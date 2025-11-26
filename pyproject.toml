@@ -1,0 +1,71 @@
+[project]
+name = "voice-cloning"
+version = "0.1.0"
+description = "A voice cloning project."
+requires-python = ">=3.10,<3.13"
+authors = [{ name = "Your Name", email = "you@example.com" }]
+dependencies = [
+    "torch",
+    "torchaudio",
+    "soundfile",
+    "pydub",
+    "librosa",
+    "scipy",
+    "phonemizer",
+    "gradio",
+    "faster-whisper",
+    "openvino-telemetry",
+    "peft",
+    "langdetect",
+    "openai-whisper",
+    "kokoro>=0.9.4",
+    "kittentts",
+    "datasets>=4.0.0",
+    "accelerate>=1.8.1",
+    "nemo-toolkit>=2.4.0",
+    "lightning", # needed by nemo (PyTorch Lightning)
+    "hydra-core>=1.3.2", # NeMo config system
+    "omegaconf>=2.3.0", # NeMo config dependency
+    "sentencepiece", # tokenizer component often required
+    "einops", # tensor rearrangements used by NeMo models
+    "huggingface-hub>=0.34.3",
+    "lhotse>=1.30.3",
+    "pytorch-lightning>=2.5.3",
+    "jiwer>=3.1.0,<4.0.0",
+    "webdataset>=1.0.2",
+    "pyannote-audio>=3.3.2",
+    "pyannote-core>=5.0.0",
+    "editdistance>=0.8.1",
+    "ipython>=8.37.0",
+    "mlx>=0.29.4",
+    "mlx-audio>=0.2.6",
+    "mlx-lm>=0.28.3",
+    "safetensors>=0.3.0",
+    "transformers>=4.49.0",  # Required by mlx-audio>=0.2.6, Granite ASR, etc.
+    # Dia2-1B TTS model (install manually: see docs/DIA2_GUIDE.md)
+    # dia2 must be installed from local clone due to dependency management
+    # uv pip install -e /path/to/dia2
+    "sphn>=0.2.0",
+    "whisper-timestamped>=1.14.2",
+    "onnxruntime>=1.20.0",  # Required by Supertone TTS
+    "neucodec>=0.0.4",  # Required by NeuTTS Air
+    "phonemizer>=3.3.0",  # Required by NeuTTS Air
+    "resemble-perth>=1.0.1",  # Required by NeuTTS Air
+    "llama-cpp-python>=0.3.0",  # Required by NeuTTS Air for GGUF models
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/voice_cloning"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/voice_cloning", "README.md", "PLAN.md"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.uv.sources]
+kittentts = { url = "https://github.com/KittenML/KittenTTS/releases/download/0.1/kittentts-0.1.0-py3-none-any.whl" }

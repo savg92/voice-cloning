@@ -1,0 +1,5 @@
+# Canary-1B-v2 Translation Result
+Audio: anger.wav
+Language: en → fr
+
+Pouvez-vous le prouver? Quelles preuves avez-vous? Pouvez-vous le prouver?

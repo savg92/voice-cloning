@@ -1,0 +1,97 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
+
+# Virtual Environments
+.env
+.venv
+venv/
+ENV/
+env/
+.Python
+
+# IDEs and Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# Agent/AI artifacts
+.gemini/
+
+# Project specific outputs
+outputs/
+models/
+checkpoints_v2/
+temp_*/
+
+# Audio files (except samples)
+*.wav
+*.mp3
+*.flac
+*.ogg
+*.m4a
+!samples/**/*.wav
+!samples/**/*.mp3
+
+# Text files (with exceptions)
+*.txt
+!requirements.txt
+!LICENSE.txt
+!docs/**/*.txt
+!tests/**/*.txt
+
+# Logs and databases
+*.log
+*.sqlite
+*.db
+
+# System files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Documentation builds
+docs/_build/
+site/
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# Lock files (optional - uncomment if you don't want to commit)
+# uv.lock
+
+# OS generated
+__MACOSX/
+
+# Keep specific markdown files
+!README.md
+!PLAN.md
+!PRD.md
+!AGENTS.md
+!walkthrough.md
+!docs/**/*.md

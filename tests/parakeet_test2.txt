@@ -1,0 +1,7 @@
+Welcome to the ADK Simple Agents repository. This collection provides ready to use agents built on top of the agent development kit. Designed to accelerate your development process. These agents cover a range of common use cases and complexities, from simple conversational bots to home class multi-agent workflows.
+
+--- Timestamps ---
+0.00s - 2.08s : Welcome to the ADK Simple Agents repository.
+2.24s - 5.20s : This collection provides ready to use agents built on top of the agent development kit.
+5.52s - 7.36s : Designed to accelerate your development process.
+7.52s - 12.64s : These agents cover a range of common use cases and complexities, from simple conversational bots to home class multi-agent workflows.
