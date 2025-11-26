@@ -120,8 +120,10 @@ For detailed usage of each model, see the respective guide in `docs/`.
   - Multilingual (En, Fr, Jp, Zh, Es, It, Pt, Hi)
   - Many voices available
   - **Streaming**: Supports real-time streaming playback (`--stream`)
+  - **MLX Backend**: 30% faster on Apple Silicon (`--use-mlx`)
   - See [docs/KOKORO_GUIDE.md](docs/KOKORO_GUIDE.md) for usage details.
 - **Best for**: High-quality offline synthesis without cloning
+
 
 ### 4. Marvis TTS (MLX-Optimized)
 - **Type**: Text-to-Speech (250M params)

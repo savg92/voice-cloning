@@ -2,48 +2,89 @@
 
 **Kokoro** is a high-quality, lightweight neural TTS model (82M parameters) that supports multiple languages and voices.
 
+## Installation
+
+Install Kokoro dependencies:
+
+```bash
+pip install kokoro
+```
+
+### MLX Backend (Apple Silicon)
+
+For optimized performance on Apple Silicon (M1/M2/M3):
+
+```bash
+pip install mlx-audio
+```
+
 ## Features
 
-- **High Quality**: Near-human naturalness.
-- **Multilingual**: Supports English (US/UK), French, Japanese, Chinese, Spanish, Italian, Portuguese, Hindi.
-- **Multiple Voices**: Dozens of voices across different languages.
+- **8 Languages**: American English, British English, Spanish, French, Italian, Portuguese, Japanese, Chinese
+- **Streaming Support**: Real-time audio generation
+- **MLX Backend**: Up to 30% faster on Apple Silicon
+- **Multiple Voices**: Various voice styles available
 - **Speed Control**: Adjust speaking rate.
 
-## Usage Examples
+## Usage
 
-### 1. Basic Synthesis (Default: US English, af_heart)
+### Basic Synthesis (PyTorch)
+
 ```bash
 uv run python main.py --model kokoro \
-  --text "Hello, this is Kokoro TTS." \
-  --output outputs/kokoro.wav
+    --text "Hello, this is Kokoro TTS" \
+    --output output.wav \
+    --voice af_heart \
+    --lang-code e
 ```
 
-### 2. Change Voice
+### With MLX Backend (Apple Silicon)
+
 ```bash
 uv run python main.py --model kokoro \
-  --text "This is the Nicole voice." \
-  --voice af_nicole \
-  --output outputs/nicole.wav
+    --text "Hello, this is Kokoro with MLX" \
+    --output output.wav \
+    --use-mlx \
+    --voice af_heart
 ```
 
-### 3. Change Language
-Use `--lang_code` to select the language.
-```bash
-# British English
-uv run python main.py --model kokoro \
-  --text "Hello from London." \
-  --lang_code b \
-  --voice bf_emma \
-  --output outputs/british.wav
+### With Streaming
 
-# Japanese
+```bash
 uv run python main.py --model kokoro \
+    --text "This will stream as it generates" \
+    --output output.wav \
+    --stream
+```
+
+### MLX + Streaming
+
+```bash
+uv run python main.py --model kokoro \
+    --text "MLX backend with streaming" \
+    --output output.wav \
+    --use-mlx \
+    --stream
+```
+
+**Note**: MLX backend currently doesn't support streaming playback during generation (coming soon).
+
+## Parameters
+
+| Parameter | Default | Options | Description |
+|-----------|---------|---------|-------------|
+| `--text` | Required | Any text | Text to synthesize |
+| `--output` | `output.wav` | Path | Output file |
+| `--voice` | `af_heart` | See voices | Voice style |
+| `--lang-code` | `e` | a,b,e,f,i,j,p,z | Language code |
+| `--speed` | `1.0` | 0.5-2.0 | Speech speed |
+| `--stream` | False | Flag | Enable streaming |
+| `--use-mlx` | False | Flag | Use MLX backend (Apple Silicon) |run python main.py --model kokoro \
   --text "こんにちは" \
   --lang_code j \
   --voice jf_alpha \
   --output outputs/japanese.wav
 ```
-
 ### 4. Adjust Speed
 ```bash
 uv run python main.py --model kokoro \

@@ -70,7 +70,38 @@ All results from MacBook Pro M3 8GB running on MPS (Metal Performance Shaders).
 
 **Test Text**: "The quick brown fox jumps over the lazy dog. This is a benchmark test to measure synthesis speed." (7.1 seconds of audio)
 
-### Analysis
+### Kokoro: MLX vs PyTorch Backend Comparison
+
+| Backend | Total Time | Speedup | Model | Notes |
+|---------|------------|---------|-------|-------|
+| **MLX** | **6.8s** | **1.42×** | mlx-community/Kokoro-82M-bf16 | Apple Silicon optimized |
+| **PyTorch** | 9.7s | 1.0× (baseline) | hexgrad/Kokoro-82M | Standard backend |
+
+**MLX Performance Benefits:**
+- ⚡ **30% faster** synthesis on Apple Silicon
+- 🎯 Same audio quality as PyTorch backend
+- 🔧 Drop-in replacement with `--use-mlx` flag
+- 🍎 Optimized for M1/M2/M3 chips
+
+**When to use MLX:**
+- Running on MacBook with Apple Silicon
+- Need faster synthesis times
+- Batch processing multiple files
+
+**Usage:**
+```bash
+# PyTorch (standard)
+uv run python main.py --model kokoro --text "Hello" --output out.wav
+
+# MLX (30% faster on Apple Silicon)
+uv run python main.py --model kokoro --text "Hello" --output out.wav --use-mlx
+```
+
+---
+
+## Analysis
+
+### Text-to-Speech Results
 
 **🏆 Supertone - Speed Champion**
 - Fastest by far with 12× real-time performance

@@ -16,28 +16,31 @@ def main():
                         help="Model to use (TTS: chatterbox, kitten[-0.1|-0.2], kokoro, marvis, supertone, neutts-air, dia2 | ASR: canary, parakeet, granite, whisper | VAD: humaware)")
     parser.add_argument("--device", choices=["cuda", "mps", "cpu"], default=None,
                         help="Device to run model on (cuda/mps/cpu). Auto-detects if not specified.")
-    parser.add_argument("--text", help="The text to be spoken (required for TTS)")
-    parser.add_argument("--reference", help="Path to the reference audio file (required for cloning/ASR/VAD)")
-    parser.add_argument("--output", required=True, help="Path to save the generated audio/text file")
+    parser.add_argument("--text", type=str, help="Text to synthesize (for TTS models)")
+    parser.add_argument("--audio", type=str, help="Audio file to transcribe (for ASR models) or analyze (for VAD models)")
+    parser.add_argument("--output", type=str, default="output.wav", help="Output file path")
+    parser.add_argument("--reference", type=str, help="Reference audio file for voice cloning (for models that support it)")
+    parser.add_argument("--voice", type=str, help="Voice preset or style")
+    parser.add_argument("--speed", type=float, default=1.0, help="Speech speed (default: 1.0)")
+    parser.add_argument("--lang-code", type=str, default="e", help="Language code (e.g., 'a' for American English, 'e' for English)")
+    parser.add_argument("--stream", action="store_true", help="Enable streaming output/playback")
+    parser.add_argument("--use-mlx", action="store_true", help="Use MLX backend for Kokoro (Apple Silicon optimization)")
+    
+    # Chatterbox Arguments
     parser.add_argument("--language", default="en", 
                         help="Source language code (OpenVoice/Canary/Chatterbox). Default: 'en'")
     parser.add_argument("--target-language", default=None,
                         help="Target language code for translation (Canary only). If not set, performs transcription.")
-    parser.add_argument("--speed", type=float, default=1.0, help="Speech speed multiplier (default: 1.0)")
+    # The original speed argument is now replaced by the new one above.
     parser.add_argument("--checkpoints", default="checkpoints_v2", 
                         help="Path to OpenVoice checkpoints directory (OpenVoice only)")
-    parser.add_argument("--lang_code", default="a",
-                        help="Language code for Kokoro model (default: 'a' for American English)")
-    parser.add_argument("--voice", default="af_heart",
-                        help="Voice to use for Kokoro model (default: 'af_heart')")
+    # The original lang_code and voice arguments are now replaced by the new ones above.
     parser.add_argument("--emotion", default="",
                         help="Emotion tag for Maya1 (e.g., 'laugh', 'sad')")
     parser.add_argument("--exaggeration", type=float, default=0.7,
                         help="Exaggeration factor for Chatterbox (0.0-1.0, default: 0.7)")
     parser.add_argument("--timestamps", action="store_true",
                         help="Enable timestamp output for ASR models (SRT format)")
-    parser.add_argument("--stream", action="store_true",
-                        help="Enable streaming output for Marvis TTS (plays as it generates)")
     parser.add_argument("--temperature", type=float,
                         help="Sampling temperature for Marvis TTS (default: 0.7)")
     parser.add_argument("--top-p", type=float, default=0.95,
@@ -314,7 +317,8 @@ def main():
                     voice=voice,
                     speed=args.speed,
                     lang_code=args.lang_code,
-                    stream=args.stream
+                    stream=args.stream,
+                    use_mlx=args.use_mlx if hasattr(args, 'use_mlx') else False
                 )
                 print(f"✓ Kokoro synthesis completed! Output saved to: {result}")
             except Exception as e:
