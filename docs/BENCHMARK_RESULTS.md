@@ -42,6 +42,7 @@ All results from MacBook Pro M3 8GB running on MPS (Metal Performance Shaders).
 | **Marvis (MLX)** | TTS | 10,678 | 1.7335 | 1.1 | 6.16 | 0.58× | MPS |
 | **Parakeet** | ASR | 2,624 | 0.3695 | 0.0 | 7.10 | 2.7× | MPS |
 | **Canary** | ASR | 27,499 | 3.8730 | 0.0 | 7.10 | 0.26× | MPS |
+| **NeuTTS Air** | TTS | 55,335 | 5.7521 | 0.0 | 9.62 | 0.17× | MPS |
 | **HumAware VAD** | VAD | 911 | 0.1283 | 0.0 | 7.10 | 7.8× | CPU |
 
 **Legend:**
@@ -67,6 +68,7 @@ All results from MacBook Pro M3 8GB running on MPS (Metal Performance Shaders).
 | **KittenTTS Nano** | 1,306ms | 0.169 | 244.9 MB | **6× real-time** | Lowest memory, CPU-friendly |
 | **Kokoro** | 3,682ms | 0.519 | 0.0 MB | **2× real-time** | High quality, multilingual |
 | **Marvis** | 10,678ms | 1.734 | 1.1 MB | **0.6× real-time** | MLX-optimized, 4-bit quantized |
+| **NeuTTS Air** | 55,335ms | 5.752 | 0.0 MB | **0.17× real-time** | Voice cloning, slow but high quality |
 
 **Test Text**: "The quick brown fox jumps over the lazy dog. This is a benchmark test to measure synthesis speed." (7.1 seconds of audio)
 
@@ -127,6 +129,12 @@ uv run python main.py --model kokoro --text "Hello" --output out.wav --use-mlx
 - 4-bit quantization for reduced model size
 - Voice cloning support
 - Runs in separate process (explains low memory reading)
+
+**🎙️ NeuTTS Air - Voice Cloning Specialist**
+- **Slowest model** (0.17× real-time, ~55s for 10s audio)
+- **High Quality**: Uses NeuCodec for excellent audio fidelity
+- **Voice Cloning**: Requires reference audio (3s+)
+- **Best for**: Offline content creation where quality/cloning matters more than speed
 
 ---
 

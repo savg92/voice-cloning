@@ -158,6 +158,17 @@ From [NeuTTS Air Collection](https://huggingface.co/collections/neuphonic/neutts
 - `neuphonic/neutts-air-q4-gguf` (default)
 - `neuphonic/neutts-air-q8-gguf`
 
+- `neuphonic/neutts-air-q8-gguf`
+
+## Performance
+
+**Benchmark Results (M3 MacBook Pro):**
+- **RTF**: ~5.75 (Slower than real-time)
+- **Speed**: ~0.17× real-time
+- **Latency**: ~55 seconds for 10 seconds of audio
+
+**Note**: NeuTTS Air prioritizes **quality and cloning accuracy** over speed. It is designed for offline content creation, not real-time interaction.
+
 ## Troubleshooting
 
 - **"Reference text not found"**: Create a `.txt` file with the same name as your audio

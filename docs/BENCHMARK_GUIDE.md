@@ -109,6 +109,9 @@ python benchmark.py --models kitten,kokoro
 
 # Test only streaming-capable models
 python benchmark.py --models supertone,kokoro,marvis --include-streaming
+
+# Test NeuTTS Air (requires cloning flag)
+python benchmark.py --models neutts --include-cloning
 ```
 
 ## Metrics Explained

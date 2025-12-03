@@ -104,11 +104,18 @@ class BenchmarkRunner:
             synthesize_speech(TEST_TEXT, output_path=str(self.test_audio_path))
             logger.info(f"Test audio generated at {self.test_audio_path}")
             
+            # Save transcript
+            self.test_text_path = OUTPUT_DIR / "benchmark_reference.txt"
+            with open(self.test_text_path, "w") as f:
+                f.write(TEST_TEXT)
+            
             # Also use as reference audio for voice cloning (copy with different name)
             if self.include_cloning:
                 self.reference_audio_path = OUTPUT_DIR / "cloning_reference.wav"
+                self.reference_text_path = OUTPUT_DIR / "cloning_reference.txt"
                 import shutil
                 shutil.copy(self.test_audio_path, self.reference_audio_path)
+                shutil.copy(self.test_text_path, self.reference_text_path)
                 logger.info(f"Reference audio for cloning: {self.reference_audio_path}")
         except Exception as e:
             logger.error(f"Failed to generate test audio: {e}")
@@ -132,9 +139,10 @@ class BenchmarkRunner:
                 # Kokoro doesn't have a class, use function directly
                 model = None
             elif model_name == "NeuTTS Air":
-                # NeuTTS Air needs reference audio, skip for now
-                logger.warning("  Skipping: NeuTTS Air requires reference audio for voice cloning")
-                return
+                if not self.reference_audio_path or not self.reference_audio_path.exists():
+                    logger.warning("  Skipping: NeuTTS Air requires reference audio (enable --include-cloning)")
+                    return
+                model = wrapper_class(backbone_device=self._get_device(), codec_device=self._get_device())
             else:
                 model = wrapper_class(device=self._get_device(), **kwargs)
                 
@@ -152,6 +160,13 @@ class BenchmarkRunner:
                 model.synthesize("Warmup", output_path=str(OUTPUT_DIR / "warmup_supertone.wav"))
             elif model_name == "KittenTTS (Nano)":
                 model.synthesize_to_file("Warmup", str(OUTPUT_DIR / "warmup_kitten.wav"))
+            elif model_name == "NeuTTS Air":
+                model.synthesize(
+                    text="Warmup",
+                    output_path=str(OUTPUT_DIR / "warmup_neutts.wav"),
+                    ref_audio_path=str(self.reference_audio_path),
+                    ref_text_path=str(self.reference_text_path)
+                )
             else:
                 model.synthesize("Warmup")
 
@@ -180,6 +195,15 @@ class BenchmarkRunner:
             elif model_name == "KittenTTS (Nano)":
                 out_path = str(OUTPUT_DIR / "bench_kitten.wav")
                 model.synthesize_to_file(TEST_TEXT, out_path)
+                audio, sr = sf.read(out_path)
+            elif model_name == "NeuTTS Air":
+                out_path = str(OUTPUT_DIR / "bench_neutts.wav")
+                model.synthesize(
+                    text=TEST_TEXT,
+                    output_path=out_path,
+                    ref_audio_path=str(self.reference_audio_path),
+                    ref_text_path=str(self.reference_text_path)
+                )
                 audio, sr = sf.read(out_path)
             else:
                 audio = model.synthesize(TEST_TEXT)
