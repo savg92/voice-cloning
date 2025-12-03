@@ -151,53 +151,70 @@ class MultilingualBenchmark:
             logger.info(f"\nTesting with: {audio_path.name}")
             logger.info(f"Reference: {reference_text}")
             
-            # 1. Whisper
-            logger.info("\n  Testing Whisper...")
-            try:
-                from src.voice_cloning.asr.whisper import WhisperASR
-                
-                model = WhisperASR(device="mps")
-                model.load_model()
-                
-                start_time = time.time()
-                result = model.transcribe(str(audio_path))
-                latency = time.time() - start_time
-                
-                transcription = result if isinstance(result, str) else result.get("text", "")
-                
-                info = sf.info(str(audio_path))
-                rtf = latency / info.duration
-                
-                # Calculate character error rate (simple)
-                cer = self._calculate_cer(reference_text, transcription)
-                
-                self.results.append({
-                    "model": "Whisper",
-                    "type": "ASR",
-                    "language": "Spanish",
-                    "audio_source": audio_path.name,
-                    "latency_s": latency,
-                    "rtf": rtf,
-                    "audio_duration_s": info.duration,
-                    "reference": reference_text,
-                    "transcription": transcription,
-                    "cer": cer,
-                    "success": True
-                })
-                
-                logger.info(f"  ✓ Success: Latency={latency:.2f}s, RTF={rtf:.4f}, CER={cer:.2%}")
-                logger.info(f"  Transcription: {transcription}")
-                
-            except Exception as e:
-                logger.error(f"  ✗ Whisper failed: {e}")
-                self.results.append({
-                    "model": "Whisper",
-                    "type": "ASR",
-                    "language": "Spanish",
-                    "audio_source": audio_path.name,
-                    "success": False,
-                    "error": str(e)
-                })
+            # 1. Whisper Variants (Fast models only - skip slow standard Medium/Large-v3)
+            logger.info("\n  Testing Whisper Variants...")
+            
+            whisper_variants = [
+                {"name": "Whisper (Large-v3 Turbo)", "id": "openai/whisper-large-v3-turbo", "mlx": False},
+                {"name": "Whisper (MLX Turbo)", "id": "mlx-community/whisper-large-v3-turbo", "mlx": True},
+                {"name": "Whisper (MLX Medium)", "id": "mlx-community/whisper-medium", "mlx": True}
+            ]
+            
+            from src.voice_cloning.asr.whisper import WhisperASR
+            
+            for variant in whisper_variants:
+                logger.info(f"\n    Testing {variant['name']}...")
+                try:
+                    # Skip MLX if not on Mac
+                    if variant['mlx']:
+                        import platform
+                        if platform.system() != "Darwin" or platform.machine() != "arm64":
+                            logger.info(f"      Skipping {variant['name']} (MLX requires Apple Silicon)")
+                            continue
+                            
+                    model = WhisperASR(device="mps", model_id=variant['id'], use_mlx=variant['mlx'])
+                    if not variant['mlx']:
+                        model.load_model()
+                    
+                    start_time = time.time()
+                    result = model.transcribe(str(audio_path))
+                    latency = time.time() - start_time
+                    
+                    transcription = result if isinstance(result, str) else result.get("text", "")
+                    
+                    info = sf.info(str(audio_path))
+                    rtf = latency / info.duration
+                    
+                    # Calculate character error rate (simple)
+                    cer = self._calculate_cer(reference_text, transcription)
+                    
+                    self.results.append({
+                        "model": variant['name'],
+                        "type": "ASR",
+                        "language": "Spanish",
+                        "audio_source": audio_path.name,
+                        "latency_s": latency,
+                        "rtf": rtf,
+                        "audio_duration_s": info.duration,
+                        "reference": reference_text,
+                        "transcription": transcription,
+                        "cer": cer,
+                        "success": True
+                    })
+                    
+                    logger.info(f"      ✓ Success: Latency={latency:.2f}s, RTF={rtf:.4f}, CER={cer:.2%}")
+                    logger.info(f"      Transcription: {transcription}")
+                    
+                except Exception as e:
+                    logger.error(f"      ✗ {variant['name']} failed: {e}")
+                    self.results.append({
+                        "model": variant['name'],
+                        "type": "ASR",
+                        "language": "Spanish",
+                        "audio_source": audio_path.name,
+                        "success": False,
+                        "error": str(e)
+                    })
             
             # 2. Canary
             logger.info("\n  Testing Canary...")

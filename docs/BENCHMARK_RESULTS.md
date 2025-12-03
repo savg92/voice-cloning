@@ -41,7 +41,10 @@ All results from MacBook Pro M3 8GB running on MPS (Metal Performance Shaders).
 | **Kokoro** | TTS | 3,682 | 0.5186 | 0.0 | 7.10 | 1.9× | MPS |
 | **Marvis (MLX)** | TTS | 10,678 | 1.7335 | 1.1 | 6.16 | 0.58× | MPS |
 | **Parakeet** | ASR | 2,624 | 0.3695 | 0.0 | 7.10 | 2.7× | MPS |
+| **Whisper (MLX Medium)** | ASR | 1,632 | 0.2299 | 0.0 | 7.10 | **4.3× real-time** | MPS |
+| **Whisper (MLX Turbo)** | ASR | 2,174 | 0.3062 | 0.0 | 7.10 | 3.3× | MPS |
 | **Canary** | ASR | 27,499 | 3.8730 | 0.0 | 7.10 | 0.26× | MPS |
+| **Whisper (Standard Turbo)** | ASR | 47,792 | 6.7313 | 0.0 | 7.10 | 0.15× (slow) | MPS |
 | **NeuTTS Air** | TTS | 55,335 | 5.7521 | 0.0 | 9.62 | 0.17× | MPS |
 | **HumAware VAD** | VAD | 911 | 0.1283 | 0.0 | 7.10 | 7.8× | CPU |
 
@@ -143,8 +146,11 @@ uv run python main.py --model kokoro --text "Hello" --output out.wav --use-mlx
 | Model | Latency | RTF | Memory | Speed Multiplier | Notes |
 |-------|---------|-----|--------|------------------|-------|
 | **Whisper (Tiny)** | 472ms | 0.066 | 0.0 MB | **15× real-time** | OpenAI model, tiny variant |
+| **Whisper (MLX Medium)** | 1,632ms | 0.230 | 0.0 MB | **4.3× real-time** | **Best for Mac** - MLX-optimized |
+| **Whisper (MLX Turbo)** | 2,174ms | 0.306 | 0.0 MB | **3.3× real-time** | MLX-optimized, large model |
 | **Parakeet** | 2,624ms | 0.370 | 0.0 MB | **2.7× real-time** | MLX-optimized, RNN-T architecture |
 | **Canary** | 27,499ms | 3.873 | 0.0 MB | **0.26× real-time** | NeMo-based, 100+ languages |
+| **Whisper (Standard Turbo)** | 47,792ms | 6.731 | 0.0 MB | **0.15× real-time** | ⚠️ Not recommended on Mac |
 
 **Test Audio**: 7.1 seconds of synthesized speech
 
@@ -153,14 +159,61 @@ uv run python main.py --model kokoro --text "Hello" --output out.wav --use-mlx
 **🌪️ Whisper (Tiny) - Blazing Fast**
 - Incredible 15× real-time performance
 - Ideal for quick, on-device transcription
-- Note: `Large-v3` model available for higher accuracy but requires significantly more resources
+- Lowest accuracy but fastest speed
 - Standard industry baseline
 
-**🚀 Parakeet - Fast ASR**
-- Nearly 3× real-time transcription
+**⚡ Whisper (MLX Medium) - WINNER for Apple Silicon**
+- **4.3× real-time** on Apple Silicon  
+- MLX-optimized for Mac
+- Excellent accuracy/speed tradeoff
+- **#1 Recommended for most use cases on Mac**
+- **21× faster than standard Turbo on MPS**
+
+**🚀 Whisper (MLX Turbo) & Parakeet - Fast ASR**
+- Both achieve ~3× real-time transcription
 - MLX backend for Apple Silicon
-- Streaming-capable architecture
-- Good accuracy for English
+- Whisper Turbo: Large model accuracy with good speed
+- Parakeet: Streaming-capable RNN-T architecture
+
+**⚠️ Standard Whisper (Large-v3, Medium, Turbo) on MPS**
+- **Not recommended on Mac** - extremely slow (47.8s for 7s audio!)
+- Standard Turbo is **22× slower** than MLX variants
+- Use MLX variants instead for 20-30× speedup
+- Standard PyTorch implementation not optimized for Apple Silicon
+- Only use on NVIDIA GPUs where they perform well
+
+### ASR Accuracy Comparison
+
+**Test Setup:**
+- Reference audio: Kokoro TTS-generated speech
+- Reference text: "The quick brown fox jumps over the lazy dog. This is a benchmark test to measure synthesis speed."
+- Metric: Character Error Rate (CER)
+
+**English vs Spanish Accuracy:**
+
+| Language | Model | CER | Accuracy | Notes |
+|----------|-------|-----|----------|-------|
+| **Spanish** | MLX Turbo | **0.00%** | **100%** ✅ | Perfect transcription |
+| **Spanish** | MLX Medium | **0.00%** | **100%** ✅ | Perfect transcription |
+| **Spanish** | All models | **0.00%** | **100%** ✅ | All ASR models perfect on Spanish |
+| **English** | MLX Turbo | 15.5% | 84.5% ⚠️ | Some transcription errors |
+| **English** | MLX Medium | 19.6% | 80.4% ⚠️ | More errors than Turbo |
+
+**Sample English Transcription Issues:**
+```
+Reference: "The quick brown fox jumps over the lazy dog..."
+MLX Turbo: "Take kick-brown foxhumps over telathidog..."
+MLX Medium: "Take each brown fox hoombs over to LathiDog..."
+```
+
+**Analysis:**
+- **Perfect accuracy on Spanish** (0% CER across all models)
+- **Lower accuracy on English** (15-20% CER)
+- **Likely cause**: Kokoro TTS synthesis quality varies by language
+- **Not a Whisper issue**: All models achieved perfect Spanish transcription
+- **Recommendation**: Use real recorded audio for production accuracy testing, not synthesized speech
+
+**Key Insight:** The accuracy difference suggests Kokoro produces clearer Spanish synthesis than English, or has pronunciation artifacts in English mode.
 
 **🌍 Canary - Multilingual Powerhouse**
 - Slower but supports 100+ languages

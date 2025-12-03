@@ -24,7 +24,8 @@ def main():
     parser.add_argument("--speed", type=float, default=1.0, help="Speech speed (default: 1.0)")
     parser.add_argument("--lang-code", type=str, default="e", help="Language code (e.g., 'a' for American English, 'e' for English)")
     parser.add_argument("--stream", action="store_true", help="Enable streaming output/playback")
-    parser.add_argument("--use-mlx", action="store_true", help="Use MLX backend for Kokoro (Apple Silicon optimization)")
+    parser.add_argument("--use-mlx", action="store_true", help="Use MLX backend (Kokoro, Whisper) for Apple Silicon optimization")
+    parser.add_argument("--model-id", type=str, help="Specific model ID to use (e.g. openai/whisper-large-v3-turbo)")
     
     # Chatterbox Arguments
     parser.add_argument("--language", default="en", 
@@ -184,17 +185,27 @@ def main():
             
             # Determine task (translate if target is en, otherwise transcribe)
             # Whisper only supports X->English translation directly.
+            # Determine task (translate if target is en, otherwise transcribe)
+            # Whisper only supports X->English translation directly.
             task = "transcribe"
             if args.target_language and args.target_language.lower() == "en" and args.language != "en":
                 task = "translate"
                 print(f"Task: Translate {args.language} -> English")
+            
+            # Use provided model ID or default based on MLX flag
+            model_id = args.model_id
+            if not model_id and args.use_mlx:
+                model_id = "mlx-community/whisper-large-v3-turbo"
+                print(f"Using default MLX model: {model_id}")
             
             transcribe_to_file(
                 audio_path=args.reference,
                 output_path=args.output,
                 language=args.language if args.language != "en" else None, # Auto-detect if en not strictly enforced? Or just pass it.
                 task=task,
-                timestamps=args.timestamps
+                timestamps=args.timestamps,
+                use_mlx=args.use_mlx,
+                model_id=model_id
             )
             print(f"✓ Whisper transcription completed! Saved to: {args.output}")
             

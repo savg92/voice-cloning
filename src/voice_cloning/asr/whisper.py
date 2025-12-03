@@ -7,26 +7,38 @@ import logging
 logger = logging.getLogger(__name__)
 
 class WhisperASR:
-    def __init__(self, model_id: str = None, device: str = None):
+    def __init__(self, model_id: str = None, device: str = None, use_mlx: bool = False):
+        self.use_mlx = use_mlx
+        
         if device:
             self.device = device
         else:
-            self.device = "cuda:0" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
+            if self.use_mlx:
+                self.device = "mps"
+            else:
+                self.device = "cuda:0" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
             
         self.torch_dtype = torch.float16 if torch.cuda.is_available() else torch.float32
         
         # Default model selection logic
         if not model_id:
-            default_model = (
-                "openai/whisper-tiny" if not torch.cuda.is_available() else "openai/whisper-large-v3"
-            )
-            self.model_id = os.environ.get("WHISPER_MODEL") or default_model
+            if self.use_mlx:
+                self.model_id = "mlx-community/whisper-large-v3-turbo"
+            else:
+                default_model = (
+                    "openai/whisper-tiny" if not torch.cuda.is_available() else "openai/whisper-large-v3"
+                )
+                self.model_id = os.environ.get("WHISPER_MODEL") or default_model
         else:
             self.model_id = model_id
             
         self.pipe = None
 
     def load_model(self):
+        if self.use_mlx:
+            # MLX Whisper loads model during transcribe or has its own management
+            return
+
         if self.pipe is not None:
             return
 
@@ -54,54 +66,60 @@ class WhisperASR:
         )
 
     def transcribe(self, audio_path: str, lang: str = None, task: str = "transcribe", timestamps: bool = True) -> str:
-        self.load_model()
-        
         if not os.path.exists(audio_path):
             raise FileNotFoundError(f"Audio file not found: {audio_path}")
 
-        generation_kwargs = {
-            "num_beams": 1,
-            "max_new_tokens": 225,
-        }
-        
-        if lang:
-            generation_kwargs["language"] = lang
-            generation_kwargs["task"] = task
-
-        logger.info(f"Transcribing {audio_path}...")
-        with torch.inference_mode():
-            # Update generation kwargs for the pipeline call if needed, 
-            # but pipeline usually handles them via generate_kwargs in init or call.
-            # We passed generate_kwargs in init, but we can override here if the pipeline supports it.
-            # HuggingFace pipeline 'call' accepts generate_kwargs.
-            result = self.pipe(audio_path, return_timestamps=timestamps, generate_kwargs=generation_kwargs)
+        if self.use_mlx:
+            import mlx_whisper
+            logger.info(f"Transcribing {audio_path} with MLX Whisper ({self.model_id})...")
             
-        return result["text"]
+            # mlx_whisper.transcribe returns a dict with 'text' and 'segments'
+            result = mlx_whisper.transcribe(
+                audio_path,
+                path_or_hf_repo=self.model_id,
+                language=lang,
+                task=task,
+                verbose=False
+            )
+            return result["text"]
+        else:
+            self.load_model()
+            
+            generation_kwargs = {
+                "num_beams": 1,
+                "max_new_tokens": 225,
+            }
+            
+            if lang:
+                generation_kwargs["language"] = lang
+                generation_kwargs["task"] = task
 
-def transcribe_to_file(audio_path: str, output_path: str, language: str = None, task: str = "transcribe", timestamps: bool = False):
-    model = WhisperASR()
-    model.load_model()
+            logger.info(f"Transcribing {audio_path}...")
+            with torch.inference_mode():
+                result = self.pipe(audio_path, return_timestamps=timestamps, generate_kwargs=generation_kwargs)
+                
+            return result["text"]
+
+def transcribe_to_file(audio_path: str, output_path: str, language: str = None, task: str = "transcribe", timestamps: bool = False, use_mlx: bool = False, model_id: str = None):
+    model = WhisperASR(model_id=model_id, use_mlx=use_mlx)
     
-    # If timestamps are requested, we might want to save as SRT or JSON
-    # For now, let's get the text. The pipeline returns chunks with timestamps if return_timestamps=True
-    
-    # Note: The pipeline return format depends on return_timestamps.
-    # If True: {'text': '...', 'chunks': [{'timestamp': (0.0, 5.0), 'text': '...'}]}
-    # If False: {'text': '...'}
-    
-    result = model.pipe(
-        audio_path, 
-        return_timestamps=timestamps, 
-        generate_kwargs={"language": language, "task": task} if language else {"task": task}
-    )
-    
-    text = result["text"]
+    if use_mlx:
+        text = model.transcribe(audio_path, lang=language, task=task, timestamps=timestamps)
+        # MLX whisper transcribe returns text directly in our wrapper
+    else:
+        model.load_model()
+        result = model.pipe(
+            audio_path, 
+            return_timestamps=timestamps, 
+            generate_kwargs={"language": language, "task": task} if language else {"task": task}
+        )
+        text = result["text"]
     
     # If timestamps requested, append them to text or save separately?
     # For consistency with other tools, let's append them if it's a txt file, or just save text.
     # The user asked for "all features", so let's try to be helpful.
     
-    if timestamps and "chunks" in result:
+    if timestamps and not use_mlx and "chunks" in result:
         text += "\n\n--- Timestamps ---\n"
         for chunk in result["chunks"]:
             start, end = chunk["timestamp"]

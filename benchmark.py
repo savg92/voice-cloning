@@ -37,6 +37,8 @@ class BenchmarkResult:
     audio_duration_s: float
     memory_mb: float = 0.0
     ttfa_ms: float = 0.0  # Time to first audio (for streaming)
+    cer: float = 0.0  # Character Error Rate for ASR
+    transcription: str = ""  # Transcription result for ASR
     notes: str = ""
     extra_metrics: Dict[str, Any] = field(default_factory=dict)
 
@@ -94,6 +96,33 @@ class BenchmarkRunner:
             ttfa = 0
             
         return ttfa, chunks
+    
+    def _calculate_cer(self, reference: str, hypothesis: str) -> float:
+        """Calculate Character Error Rate (Levenshtein distance)"""
+        if not reference or not hypothesis:
+            return 1.0
+        
+        # Normalize: lowercase and strip
+        ref = reference.lower().strip()
+        hyp = hypothesis.lower().strip()
+        
+        # Levenshtein distance
+        m, n = len(ref), len(hyp)
+        dp = [[0] * (n + 1) for _ in range(m + 1)]
+        
+        for i in range(m + 1):
+            dp[i][0] = i
+        for j in range(n + 1):
+            dp[0][j] = j
+        
+        for i in range(1, m + 1):
+            for j in range(1, n + 1):
+                if ref[i-1] == hyp[j-1]:
+                    dp[i][j] = dp[i-1][j-1]
+                else:
+                    dp[i][j] = 1 + min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1])
+        
+        return dp[m][n] / max(m, 1)
 
     def generate_test_audio(self):
         """Generates a test audio file using Kokoro TTS for ASR/VAD benchmarking."""
@@ -262,12 +291,21 @@ class BenchmarkRunner:
             except:
                 pass
 
-            # Benchmark
+            # Benchmark with transcription
             start_time = time.time()
-            model.transcribe(str(self.test_audio_path))
+            transcription_result = model.transcribe(str(self.test_audio_path))
             end_time = time.time()
             
             latency = end_time - start_time
+            
+            # Extract text from result (handle dict or string)
+            if isinstance(transcription_result, dict):
+                transcription = transcription_result.get('text', '')
+            else:
+                transcription = str(transcription_result)
+            
+            # Calculate accuracy (CER)
+            cer = self._calculate_cer(TEST_TEXT, transcription)
             
             # Get audio duration
             info = sf.info(str(self.test_audio_path))
@@ -280,10 +318,13 @@ class BenchmarkRunner:
                 latency_ms=latency * 1000,
                 rtf=rtf,
                 audio_duration_s=duration,
+                cer=cer,
+                transcription=transcription,
                 notes=f"Device: {self._get_device()}"
             )
             self.results.append(result)
-            logger.info(f"  Result: Latency={latency*1000:.2f}ms, RTF={rtf:.4f}")
+            logger.info(f"  Result: Latency={latency*1000:.2f}ms, RTF={rtf:.4f}, CER={cer:.2%}")
+            logger.info(f"  Transcription: {transcription[:80]}..." if len(transcription) > 80 else f"  Transcription: {transcription}")
 
         except Exception as e:
             logger.error(f"  Failed to benchmark {model_name}: {e}")
@@ -444,7 +485,33 @@ def main():
         if should_run("whisper"):
             try:
                 from src.voice_cloning.asr.whisper import WhisperASR
-                runner.benchmark_asr("Whisper (Large-v3)", WhisperASR, model_id="openai/whisper-large-v3")
+                
+                device = runner._get_device()
+                
+                # Standard models (Turbo, Medium, Large-v3) - Only on CUDA
+                # These are extremely slow on MPS, so skip unless GPU available
+                if device == "cuda":
+                    logger.info("GPU detected - benchmarking standard Whisper models")
+                    runner.benchmark_asr("Whisper (Large-v3 Turbo)", WhisperASR, model_id="openai/whisper-large-v3-turbo")
+                    runner.benchmark_asr("Whisper (Medium)", WhisperASR, model_id="openai/whisper-medium")
+                elif device == "mps":
+                    # On Apple Silicon, use MLX variants (much faster)
+                    logger.info("Apple Silicon detected - using MLX-optimized Whisper models")
+                    logger.info("Note: Standard Whisper models are extremely slow on MPS. Using MLX variants instead.")
+                    runner.benchmark_asr("Whisper (MLX Large-v3 Turbo)", WhisperASR, use_mlx=True, model_id="mlx-community/whisper-large-v3-turbo")
+                    runner.benchmark_asr("Whisper (MLX Medium)", WhisperASR, use_mlx=True, model_id="mlx-community/whisper-medium")
+                else:
+                    # On CPU, ask user if they want to continue
+                    logger.warning("⚠️  CPU detected - Standard Whisper models are very slow on CPU")
+                    logger.warning("Options:")
+                    logger.warning("  1. Skip Whisper benchmark (recommended)")
+                    logger.warning("  2. Run Whisper Turbo only (faster, but still slow)")
+                    logger.warning("  3. Run all models on CPU (very slow - not recommended)")
+                    
+                    # For now, just run Turbo as a compromise
+                    logger.info("Running Whisper (Large-v3 Turbo) only on CPU...")
+                    runner.benchmark_asr("Whisper (Large-v3 Turbo)", WhisperASR, model_id="openai/whisper-large-v3-turbo")
+                    
             except ImportError: logger.warning("Skipping Whisper: Not installed")
             except Exception as e: logger.warning(f"Skipping Whisper: {e}")
 

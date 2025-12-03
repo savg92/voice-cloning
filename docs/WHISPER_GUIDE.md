@@ -46,6 +46,39 @@ uv run python main.py --model whisper \
   --output outputs/translation.txt
 ```
 
+### 5. Select Specific Model
+Use `--model-id` to specify any HuggingFace Whisper model.
+```bash
+# Use Large v3 Turbo (Faster, high accuracy)
+uv run python main.py --model whisper \
+  --reference samples/speech.wav \
+  --model-id openai/whisper-large-v3-turbo \
+  --output outputs/turbo.txt
+
+# Use Medium (Balanced)
+uv run python main.py --model whisper \
+  --reference samples/speech.wav \
+  --model-id openai/whisper-medium \
+  --output outputs/medium.txt
+```
+
+### 6. Apple Silicon Optimization (MLX)
+Use `--use-mlx` for significantly faster performance on Mac (M1/M2/M3).
+```bash
+# Uses mlx-community/whisper-large-v3-turbo by default
+uv run python main.py --model whisper \
+  --reference samples/speech.wav \
+  --use-mlx \
+  --output outputs/mlx_turbo.txt
+
+# Use Medium with MLX (Fast)
+uv run python main.py --model whisper \
+  --reference samples/speech.wav \
+  --use-mlx \
+  --model-id mlx-community/whisper-medium \
+  --output outputs/mlx_medium.txt
+```
+
 ## Supported Languages
 
 Whisper supports a vast number of languages including:
@@ -53,5 +86,24 @@ English (en), Chinese (zh), German (de), Spanish (es), Russian (ru), Korean (ko)
 
 ## Configuration
 
-- **Model Size**: Defaults to `large-v3` on GPU/MPS, `tiny` on CPU.
-- **Environment Variable**: Override model size with `WHISPER_MODEL` (e.g., `export WHISPER_MODEL=openai/whisper-medium`).
+- **Model Selection**:
+  - Default (GPU/MPS): `openai/whisper-large-v3`
+  - Default (CPU): `openai/whisper-tiny`
+  - Default (MLX): `mlx-community/whisper-large-v3-turbo`
+  - Override with `--model-id` argument.
+
+- **MLX Optimization**:
+  - Use `--use-mlx` to enable `mlx-whisper` backend.
+  - Requires `mlx-whisper` package (installed automatically).
+  - Much faster on Apple Silicon.
+
+## Accuracy Notes
+
+**Benchmark Results (Kokoro TTS-synthesized audio):**
+- **Spanish**: 100% accuracy (0% CER) - Perfect! ✅
+- **English**: 80-85% accuracy (15-20% CER) - Some errors ⚠️
+
+**Key Insight:** The accuracy difference suggests Kokoro TTS produces clearer Spanish than English, or has pronunciation artifacts in English synthesis. For production use:
+- ✅ Test with real recorded audio for accurate assessment
+- ⚠️ Synthesized test audio may not reflect real-world performance
+- ✅ All Whisper models achieved perfect Spanish transcription

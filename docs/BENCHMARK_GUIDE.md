@@ -114,6 +114,20 @@ python benchmark.py --models supertone,kokoro,marvis --include-streaming
 python benchmark.py --models neutts --include-cloning
 ```
 
+### Multilingual Benchmark (Spanish)
+
+Run the dedicated multilingual benchmark script to test Spanish TTS and ASR performance:
+
+```bash
+python multilingual_benchmark.py
+```
+
+This script evaluates:
+- **TTS**: Chatterbox (Multilingual), Kokoro (Spanish)
+- **ASR**: Whisper (All variants), Canary, Parakeet
+- **Metrics**: Latency, RTF, and Character Error Rate (CER) for ASR
+
+
 ## Metrics Explained
 
 ### RTF (Real-Time Factor)
@@ -187,6 +201,9 @@ Time until the first audio chunk is available (streaming only).
 | Model | Type | Device | Notes |
 |-------|------|--------|-------|
 | **Whisper Large-v3** | Transformer ASR | GPU/CPU | Most accurate |
+| **Whisper Turbo** | Optimized ASR | GPU/CPU | Faster, high accuracy |
+| **Whisper Medium** | Transformer ASR | GPU/CPU | Balanced size/speed |
+| **Whisper (MLX)** | MLX ASR | MPS | **Fastest on Mac** |
 | **Parakeet** | RNN-T ASR | MPS/GPU | Fast, streaming-capable |
 | **Canary** | Multilingual ASR | GPU/CPU | 100+ languages |
 
