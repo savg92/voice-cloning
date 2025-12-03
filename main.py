@@ -97,8 +97,8 @@ def main():
         print(f"Error: --text is required for TTS models ({', '.join(tts_models)})")
         sys.exit(1)
 
-    # Validate inputs
-    if args.model in ["chatterbox"]:
+    # Validate --reference requirement for voice cloning models
+    if args.model in ["neutts-air"]:
         if not args.reference:
             print(f"Error: --reference is required for model '{args.model}'")
             sys.exit(1)
@@ -140,7 +140,8 @@ def main():
                 exaggeration=args.exaggeration,
                 cfg_weight=args.cfg_weight,
                 language=args.language,
-                multilingual=args.multilingual
+                multilingual=args.multilingual,
+                use_mlx=args.use_mlx
             )
             print(f"✓ Chatterbox synthesis completed! Output saved to: {args.output}")
 

@@ -367,63 +367,86 @@ def main():
     # Generate test audio first (uses Kokoro)
     runner.generate_test_audio()
 
+    # Helper to check if model should be run
+    def should_run(name):
+        if not args.models: return True
+        return any(m.lower() in name.lower() for m in args.models.split(","))
+
     # TTS Benchmarks
     if not args.skip_tts:
         # Kitten
-        try:
-            from src.voice_cloning.tts.kitten_nano import KittenNanoTTS
-            runner.benchmark_tts("KittenTTS (Nano)", KittenNanoTTS)
-        except ImportError: logger.warning("Skipping KittenTTS: Not installed")
+        if should_run("kitten"):
+            try:
+                from src.voice_cloning.tts.kitten_nano import KittenNanoTTS
+                runner.benchmark_tts("KittenTTS (Nano)", KittenNanoTTS)
+            except ImportError: logger.warning("Skipping KittenTTS: Not installed")
+            except Exception as e: logger.warning(f"Skipping KittenTTS: {e}")
 
-        # Kokoro (using direct function call, not a class)
-        try:
-            from src.voice_cloning.tts.kokoro import synthesize_speech
-            runner.benchmark_tts("Kokoro", None)  # Pass None as wrapper_class
-        except ImportError: logger.warning("Skipping Kokoro: Not installed")
+        # Kokoro
+        if should_run("kokoro"):
+            try:
+                from src.voice_cloning.tts.kokoro import synthesize_speech
+                runner.benchmark_tts("Kokoro", None)
+            except ImportError: logger.warning("Skipping Kokoro: Not installed")
+            except Exception as e: logger.warning(f"Skipping Kokoro: {e}")
 
         # Marvis
-        try:
-            from src.voice_cloning.tts.marvis import MarvisTTS
-            runner.benchmark_tts("Marvis (MLX)", MarvisTTS)
-        except ImportError: logger.warning("Skipping Marvis: Not installed")
+        if should_run("marvis"):
+            try:
+                from src.voice_cloning.tts.marvis import MarvisTTS
+                runner.benchmark_tts("Marvis (MLX)", MarvisTTS)
+            except ImportError: logger.warning("Skipping Marvis: Not installed")
+            except Exception as e: logger.warning(f"Skipping Marvis: {e}")
 
         # Supertone
-        try:
-            from src.voice_cloning.tts.supertone import SupertoneTTS
-            runner.benchmark_tts("Supertone", SupertoneTTS)
-        except ImportError: logger.warning("Skipping Supertone: Not installed")
+        if should_run("supertone"):
+            try:
+                from src.voice_cloning.tts.supertone import SupertoneTTS
+                runner.benchmark_tts("Supertone", SupertoneTTS)
+            except ImportError: logger.warning("Skipping Supertone: Not installed")
+            except Exception as e: logger.warning(f"Skipping Supertone: {e}")
         
-        # NeuTTS Air (requires reference audio, skipped in benchmark)
-        try:
-            from src.voice_cloning.tts.neutts_air import NeuTTSAirTTS
-            runner.benchmark_tts("NeuTTS Air", NeuTTSAirTTS)
-        except ImportError: logger.warning("Skipping NeuTTS Air: Not installed")
+        # NeuTTS Air
+        if should_run("neutts"):
+            try:
+                from src.voice_cloning.tts.neutts_air import NeuTTSAirTTS
+                runner.benchmark_tts("NeuTTS Air", NeuTTSAirTTS)
+            except ImportError: logger.warning("Skipping NeuTTS Air: Not installed")
+            except Exception as e: logger.warning(f"Skipping NeuTTS Air: {e}")
 
     # ASR Benchmarks
     if not args.skip_asr:
         # Whisper
-        try:
-            from src.voice_cloning.asr.whisper_asr import WhisperASR
-            runner.benchmark_asr("Whisper (Large-v3)", WhisperASR)
-        except ImportError: logger.warning("Skipping Whisper: Not installed")
+        if should_run("whisper"):
+            try:
+                from src.voice_cloning.asr.whisper import WhisperASR
+                runner.benchmark_asr("Whisper (Large-v3)", WhisperASR, model_id="openai/whisper-large-v3")
+            except ImportError: logger.warning("Skipping Whisper: Not installed")
+            except Exception as e: logger.warning(f"Skipping Whisper: {e}")
 
         # Parakeet
-        try:
-            from src.voice_cloning.asr.parakeet import ParakeetASR
-            runner.benchmark_asr("Parakeet", ParakeetASR)
-        except ImportError: logger.warning("Skipping Parakeet: Not installed")
+        if should_run("parakeet"):
+            try:
+                from src.voice_cloning.asr.parakeet import ParakeetASR
+                runner.benchmark_asr("Parakeet", ParakeetASR)
+            except ImportError: logger.warning("Skipping Parakeet: Not installed")
+            except Exception as e: logger.warning(f"Skipping Parakeet: {e}")
 
         # Canary
-        try:
-            from src.voice_cloning.asr.canary import CanaryASR
-            runner.benchmark_asr("Canary", CanaryASR)
-        except ImportError: logger.warning("Skipping Canary: Not installed")
+        if should_run("canary"):
+            try:
+                from src.voice_cloning.asr.canary import CanaryASR
+                runner.benchmark_asr("Canary", CanaryASR)
+            except ImportError: logger.warning("Skipping Canary: Not installed")
+            except Exception as e: logger.warning(f"Skipping Canary: {e}")
 
     # VAD Benchmarks
-    try:
-        from src.voice_cloning.vad.humaware import HumAwareVAD
-        runner.benchmark_vad("HumAware VAD", HumAwareVAD)
-    except ImportError: logger.warning("Skipping HumAware: Not installed")
+    if should_run("humaware") or should_run("vad"):
+        try:
+            from src.voice_cloning.vad.humaware import HumAwareVAD
+            runner.benchmark_vad("HumAware VAD", HumAwareVAD)
+        except ImportError: logger.warning("Skipping HumAware: Not installed")
+        except Exception as e: logger.warning(f"Skipping HumAware: {e}")
 
     runner.save_report()
 

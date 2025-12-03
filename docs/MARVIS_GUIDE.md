@@ -8,6 +8,24 @@ This guide explains how to use Marvis TTS's advanced features including **stream
 uv run python main.py --model marvis --text "Hello world" --output outputs/marvis_basic.wav
 ```
 
+## Multilingual Support
+
+Marvis v0.2 supports **English, French, and German**:
+
+```bash
+# French
+uv run python main.py --model marvis \
+  --text "Bonjour le monde" \
+  --output outputs/marvis_french.wav
+
+# German
+uv run python main.py --model marvis \
+  --text "Guten Tag Welt" \
+  --output outputs/marvis_german.wav
+```
+
+> **Note**: Language is automatically detected from the input text. For best results with voice cloning in non-English languages, ensure your reference audio matches the target language.
+
 ## Voice Cloning
 
 Clone a voice by providing a reference audio file. Marvis will automatically transcribe the reference audio and clone its voice characteristics.

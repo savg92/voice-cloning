@@ -7,8 +7,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 class WhisperASR:
-    def __init__(self, model_id: str = None):
-        self.device = "cuda:0" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
+    def __init__(self, model_id: str = None, device: str = None):
+        if device:
+            self.device = device
+        else:
+            self.device = "cuda:0" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
+            
         self.torch_dtype = torch.float16 if torch.cuda.is_available() else torch.float32
         
         # Default model selection logic
@@ -76,6 +80,7 @@ class WhisperASR:
 
 def transcribe_to_file(audio_path: str, output_path: str, language: str = None, task: str = "transcribe", timestamps: bool = False):
     model = WhisperASR()
+    model.load_model()
     
     # If timestamps are requested, we might want to save as SRT or JSON
     # For now, let's get the text. The pipeline returns chunks with timestamps if return_timestamps=True

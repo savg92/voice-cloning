@@ -9,10 +9,31 @@
 **Investigation Findings:**
 - Chatterbox's source code does NOT directly use `transformers.AutoModel` or `transformers.AutoTokenizer`
 - It uses custom model classes and loads weights via `safetensors`
-- The strict `transformers==4.46.3` constraint appears unnecessary forChatterbox's core functionality
+- The strict `transformers==4.46.3` constraint appears unnecessary for Chatterbox's core functionality
 - However, the PyPI package has this hardcoded and cannot be bypassed via dependency resolution
 
 **Recommendation:** Use separate environment (see Option 1 below) or use Marvis TTS which also supports voice cloning without conflicts.
+
+---
+
+## ⚠️ MLX Backend Investigation
+
+**Status:** ❌ **NOT SUPPORTED**
+
+An investigation was conducted to add MLX backend support using the `mlx-community/Chatterbox-TTS-4bit` model for Apple Silicon optimization.
+
+**Findings:**
+- The `mlx-community/Chatterbox-TTS-4bit` model exists on HuggingFace and was successfully converted to MLX format
+- However, the `mlx-audio` library (v0.2.6) does **not** have the Chatterbox architecture implemented
+- Error: `ModuleNotFoundError: No module named 'mlx_audio.tts.models.chatterbox'`
+
+**Supported MLX models in mlx-audio:**
+- ✅ bark, dia, indextts, kokoro, llama, outetts, sesame, spark
+- ❌ chatterbox
+
+**Conclusion:** MLX backend for Chatterbox is not possible until `mlx-audio` library adds support for the chatterbox model architecture. Users seeking MLX-optimized TTS on Apple Silicon should use Kokoro (`--use-mlx` flag) instead.
+
+---
 
 ## Installation Options
 
@@ -112,7 +133,7 @@ uv run python main.py --model chatterbox \
   --output outputs/dramatic.wav
 ```
 
-###CFG Weight Control
+### CFG Weight Control
 ```bash
 # Lower CFG for faster pacing
 uv run python main.py --model chatterbox \
@@ -159,7 +180,7 @@ Russian (ru), Swedish (sv), Swahili (sw), Turkish (tr), Chinese (zh)
 | `--text` | string | required | Text to synthesize |
 | `--output` | string | required | Output audio file path |
 | `--reference` | string | optional | Reference audio for voice cloning |
-| `--exaggeration` | float | 0.5 | Emotion/intensity control (0-1) |
+| `--exaggeration` | float | 0.7 | Emotion/intensity control (0-1) |
 | `--cfg-weight` | float | 0.5 | CFG guidance weight (0-1) |
 | `--multilingual` | flag | false | Use multilingual model |
 | `--language` | string | optional | Language code (e.g., 'fr', 'zh', 'ja') |
@@ -167,7 +188,7 @@ Russian (ru), Swedish (sv), Swahili (sw), Turkish (tr), Chinese (zh)
 ## Tips
 
 **General Use:**
-- Default settings (`exaggeration=0.5`, `cfg=0.5`) work well for most cases
+- Default settings (`exaggeration=0.7`, `cfg=0.5`) work well for most cases
 - For fast speakers, lower `cfg` to ~0.3
 
 **Expressive/Dramatic Speech:**
@@ -231,5 +252,6 @@ ta.save("chinese.wav", wav_zh, model.sr)
 ## Known Limitations
 
 1. **Dependency Conflict:** Cannot be installed alongside mlx-audio due to transformers version mismatch
-2. **Recommendation:** Use separate virtual environment if you need both Chatterbox and Marvis/Granite models
-3. **Alternative:** Use Marvis TTS which also supports voice cloning and is compatible with other models
+2. **No MLX Backend:** The `mlx-audio` library does not support Chatterbox architecture (as of v0.2.6)
+3. **Recommendation:** Use separate virtual environment if you need both Chatterbox and Marvis/Granite models
+4. **Alternative:** Use Marvis TTS or Kokoro (with `--use-mlx`) for Apple Silicon optimized voice synthesis

@@ -53,7 +53,7 @@ uv run python main.py --model kokoro \
 ```bash
 uv run python main.py --model kokoro \
     --text "This will stream as it generates" \
-    --output output.wav \
+    --output outputs/kokoro_stream.wav \
     --stream
 ```
 
@@ -62,7 +62,7 @@ uv run python main.py --model kokoro \
 ```bash
 uv run python main.py --model kokoro \
     --text "MLX backend with streaming" \
-    --output output.wav \
+    --output outputs/kokoro_mlx_stream.wav \
     --use-mlx \
     --stream
 ```

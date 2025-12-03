@@ -134,12 +134,19 @@ uv run python main.py --model kokoro --text "Hello" --output out.wav --use-mlx
 
 | Model | Latency | RTF | Memory | Speed Multiplier | Notes |
 |-------|---------|-----|--------|------------------|-------|
+| **Whisper (Tiny)** | 472ms | 0.066 | 0.0 MB | **15× real-time** | OpenAI model, tiny variant |
 | **Parakeet** | 2,624ms | 0.370 | 0.0 MB | **2.7× real-time** | MLX-optimized, RNN-T architecture |
 | **Canary** | 27,499ms | 3.873 | 0.0 MB | **0.26× real-time** | NeMo-based, 100+ languages |
 
 **Test Audio**: 7.1 seconds of synthesized speech
 
 ### Analysis
+
+**🌪️ Whisper (Tiny) - Blazing Fast**
+- Incredible 15× real-time performance
+- Ideal for quick, on-device transcription
+- Note: `Large-v3` model available for higher accuracy but requires significantly more resources
+- Standard industry baseline
 
 **🚀 Parakeet - Fast ASR**
 - Nearly 3× real-time transcription
