@@ -114,129 +114,72 @@ For detailed usage of each model, see the respective guide in `docs/`.
 
 ## Supported Models
 
-### 1. Chatterbox (Voice Cloning) ⚠️
 ### 1. Chatterbox TTS 🎭 Voice Cloning | ⚠️ Dependency Conflict
 - **Type**: Zero-shot TTS (Encoder-Decoder)
-- **Languages**: 23 languages including English, Spanish, French, German, Arabic, Chinese, Japanese, Korean
-- **Features**: 
-  - ✨ **Voice cloning** with reference audio
-  - Exaggeration/emotion control
-  - Multilingual support
-  - See [docs/CHATTERBOX_GUIDE.md](docs/CHATTERBOX_GUIDE.md) for details.
+- **Best for**: Multilingual voice cloning (23 languages)
+- **Guide**: [docs/CHATTERBOX_GUIDE.md](docs/CHATTERBOX_GUIDE.md)
 
 ### 2. Kitten TTS Nano (Lightweight TTS)
 - **Type**: Fast, CPU-friendly TTS
-- **Features**: 
-  - 8 Expressive voices
-  - Speed control
-  - **Streaming**: Supports pseudo-streaming playback (`--stream`)
-  - See [docs/KITTEN_GUIDE.md](docs/KITTEN_GUIDE.md) for usage details.
 - **Best for**: Real-time applications, low-resource devices
+- **Guide**: [docs/KITTEN_GUIDE.md](docs/KITTEN_GUIDE.md)
 
 ### 3. Kokoro (High Quality TTS)
 - **Type**: Neural TTS (82M params)
-- **Features**: 
-  - High quality, natural sounding
-  - Multilingual (En, Fr, Jp, Zh, Es, It, Pt, Hi)
-  - Many voices available
-  - **Streaming**: Supports real-time streaming playback (`--stream`)
-  - **MLX Backend**: 30% faster on Apple Silicon (`--use-mlx`)
-  - See [docs/KOKORO_GUIDE.md](docs/KOKORO_GUIDE.md) for usage details.
-- **Best for**: High-quality offline synthesis without cloning
+- **Best for**: High-quality offline synthesis (Multilingual)
+- **Note**: Supports MLX optimization (`--use-mlx`)
+- **Guide**: [docs/KOKORO_GUIDE.md](docs/KOKORO_GUIDE.md)
 
-
-### 4. Marvis TTS (MLX) 🎭 Voice Cloning | ⚠️ Current Bug
-- **Type**: Streaming TTS (250M params, MLX optimized)
-- **Languages**: English, French, German
-- **Features**:
-  - ✨ **Voice cloning** support
-  - Streaming generation
-  - 4-bit quantization (500MB model size)
-  - Optimized for Apple Silicon
-  - Multilingual (EN/FR/DE)
-  - See [docs/MARVIS_FIX.md](docs/MARVIS_FIX.md) for troubleshooting and details.
-  - Speed and temperature control
+### 4. Marvis TTS (MLX) 🎭 Voice Cloning
+- **Type**: Streaming TTS (MLX optimized)
+- **Best for**: Streaming generation on Apple Silicon
+- **Guide**: [docs/MARVIS_FIX.md](docs/MARVIS_FIX.md)
 
 ### 5. Supertone (Supertonic) - Ultra-Fast TTS ⚡
-- **Type**: ONNX-based TTS (66M params)
-- **Features**:
-  - Lightning fast (167× real-time on M4 Pro)
-  - Ultra-lightweight on-device inference
-  - Voice presets available
-  - Configurable quality (inference steps)
-  - **Streaming**: Supports pseudo-streaming playback (`--stream`)
-  - See [docs/SUPERTONE_GUIDE.md](docs/SUPERTONE_GUIDE.md) for usage details.
-- **Best for**: Speed-critical applications, on-device deployment
+- **Type**: ONNX-based TTS
+- **Best for**: Speed-critical applications (167× real-time)
+- **Guide**: [docs/SUPERTONE_GUIDE.md](docs/SUPERTONE_GUIDE.md)
 
 ### 6. NeuTTS Air 🎭 Voice Cloning | 🍎 macOS Optimized
-- **Type**: GGUF-based Voice Cloning TTS (0.5B params)
-- **Languages**: English only
-- **Features**:
-  - ✨ **Instant voice cloning** with 3+ seconds of reference audio
-  - On-device optimized (GGUF quantization)
-  - NeuCodec for high-quality audio (24kHz)
-  - See [docs/NEUTTS_AIR_GUIDE.md](docs/NEUTTS_AIR_GUIDE.md) for usage details.
-- **Best for**: Voice cloning, on-device deployment
+- **Type**: GGUF-based Voice Cloning TTS
+- **Best for**: On-device voice cloning
+- **Guide**: [docs/NEUTTS_AIR_GUIDE.md](docs/NEUTTS_AIR_GUIDE.md)
 
 ### 7. Dia2-1B - Streaming Dialogue TTS ⚠️ CUDA Only
-- **Type**: Streaming multi-speaker TTS (1B params)
-- **Features**:
-  - Multi-speaker dialogue support (`[S1]`, `[S2]` tags)
-  - Voice cloning via prefix audio
-  - Streaming generation
-  - Ultra-realistic conversational audio
-  - See [docs/DIA2_GUIDE.md](docs/DIA2_GUIDE.md) for usage details.
-- **⚠️ Critical Limitation**: 
-  - **CUDA-only for practical use** (NVIDIA GPUs required)
-  - **macOS Performance**: Extremely poor (CPU: 750x slower than real-time, MPS: unusable)
-  - macOS users should use Kokoro, StyleTTS2, or Marvis instead
-- **Best for**: Multi-speaker dialogue on Linux/Windows with NVIDIA GPU
+- **Type**: Streaming multi-speaker TTS
+- **Best for**: Multi-speaker dialogue on NVIDIA GPUs
+- **Guide**: [docs/DIA2_GUIDE.md](docs/DIA2_GUIDE.md)
 
 ### 8. Parakeet ASR 🌍 Multilingual | ⚠️ Dependency Conflict
 - **Type**: Automatic Speech Recognition (0.6B params)
-- **Languages**: 100+ languages (English, Spanish, French, German, Chinese, Japanese, Korean, Arabic, and many more)
-- **Backends**: 
-  - **Mac (Apple Silicon)**: MLX optimized (fastest)
-  - **Other**: NeMo toolkit (CUDA/CPU)
-- **Features**: 
-  - Multilingual support with automatic language detection
-  - Timestamp generation (SRT)
-- **Conflict**: Requires `transformers>=4.49.0` (incompatible with Chatterbox)
+- **Best for**: Fast multilingual transcription (100+ languages)
+- **Note**: MLX optimized on Mac
+- **Guide**: [docs/BENCHMARK_GUIDE.md](docs/BENCHMARK_GUIDE.md)
 
 ### 9. Canary ASR (Multilingual ASR/Translation)
 - **Type**: ASR & Translation (1B params)
-- **Features**: 
-  - Supports 25 languages
-  - Speech-to-Text (Transcription)
-  - Speech-to-Speech Translation (via text output)
-  - See [docs/CANARY_GUIDE.md](docs/CANARY_GUIDE.md) for usage details.
-- **Backend**: NeMo toolkit
+- **Best for**: Speech-to-speech translation tasks
+- **Guide**: [docs/CANARY_GUIDE.md](docs/CANARY_GUIDE.md)
 
 ### 10. Granite ASR (IBM) ⚠️
 - **Type**: Speech Recognition (3.3B params)
-- **Model**: `ibm-granite/granite-speech-3.3-8b`
-- **Features**: High accuracy, English optimized
-- **Note**: Requires ~16GB RAM. May not work on systems with limited memory.
-
+- **Best for**: High-accuracy English transcription (Requires 16GB+ RAM)
+- **Guide**: [docs/BENCHMARK_GUIDE.md](docs/BENCHMARK_GUIDE.md)
 
 ### 11. Whisper ASR 🌍 Multilingual
 - **Type**: Encoder-Decoder ASR
-- **Languages**: 99+ languages with translation to English
-- **Features**: 
-  - Multilingual transcription (auto-detect or manual)
-  - Translation to English (`--target-language en`)
-  - Timestamps support
-  - Robust to accents and background noise
-  - See [docs/WHISPER_GUIDE.md](docs/WHISPER_GUIDE.md) for usage details.
-- **Model**: `openai/whisper-large-v3` (default) or `openai/whisper-tiny` (CPU)
+- **Best for**: General purpose transcription & translation
+- **Supported Variants**:
+  - `openai/whisper-large-v3-turbo` (Fast, accurate)
+  - `openai/whisper-medium` (Balanced)
+  - `mlx-community/whisper-large-v3-turbo` (🚀 **Fastest on Mac**)
+  - `mlx-community/whisper-medium` (MLX optimized)
+- **Guide**: [docs/WHISPER_GUIDE.md](docs/WHISPER_GUIDE.md)
 
 ### 12. HumAware-VAD
 - **Type**: Voice Activity Detection
-- **Features**: 
-  - Distinguishes speech from humming
-  - Adjustable threshold and timing parameters
-  - See [docs/HUMAWARE_GUIDE.md](docs/HUMAWARE_GUIDE.md) for usage details.
-- **Base**: Silero VAD (Fine-tuned)
+- **Best for**: Distinguishing speech from non-speech
+- **Guide**: [docs/HUMAWARE_GUIDE.md](docs/HUMAWARE_GUIDE.md)
 
 ## Installation
 
@@ -399,7 +342,6 @@ uv run python main.py --model humaware --reference samples/speech.wav --output o
 - `--text`: Text to synthesize (required)
 - `--reference`: Reference audio file for voice cloning (required for voice cloning models)
 - `--output`: Output file path (required)
-- `--output`: Output file path (required)
 - `--speed`: Speech speed multiplier (default: 1.0)
 - `--voice`: Voice for Kokoro model (default: af_heart)
 - `--lang_code`: Language code for Kokoro (default: a)
@@ -410,7 +352,7 @@ You can also use the models directly in Python:
 
 
 ```python
-from src.voice_cloning.kokoro import synthesize_speech
+from src.voice_cloning.tts.kokoro import synthesize_speech
 
 # Kokoro
 result = synthesize_speech(

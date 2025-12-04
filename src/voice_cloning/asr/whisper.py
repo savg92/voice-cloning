@@ -46,7 +46,7 @@ class WhisperASR:
         
         model = AutoModelForSpeechSeq2Seq.from_pretrained(
             self.model_id,
-            torch_dtype=self.torch_dtype,
+            dtype=self.torch_dtype,
             low_cpu_mem_usage=True,
             use_safetensors=True,
         )
@@ -59,7 +59,7 @@ class WhisperASR:
             model=model,
             tokenizer=processor.tokenizer,
             feature_extractor=processor.feature_extractor,
-            torch_dtype=self.torch_dtype,
+            dtype=self.torch_dtype,
             device=self.device,
             chunk_length_s=30,
             batch_size=8 if torch.cuda.is_available() else 1,

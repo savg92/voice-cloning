@@ -34,7 +34,7 @@ class GraniteASR:
         self.model = AutoModelForSpeechSeq2Seq.from_pretrained(
             self.model_name, 
             device_map="auto", 
-            torch_dtype=self.torch_dtype,
+            dtype=self.torch_dtype,
             low_cpu_mem_usage=True
         )
         logger.info(f"Granite model loaded on {self.device} with {self.torch_dtype}")
