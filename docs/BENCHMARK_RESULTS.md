@@ -7,7 +7,6 @@
 - **OS**: macOS Sonoma
 - **Device**: MPS (Metal Performance Shaders)
 
-**Date**: November 26, 2025  
 **Benchmark Version**: v1.0 (with memory tracking)
 
 ---
@@ -36,17 +35,19 @@ All results from MacBook Pro M3 8GB running on MPS (Metal Performance Shaders).
 
 | Model | Type | Latency (ms) | RTF | Memory (MB) | Audio Duration (s) | Speed Multiplier | Device |
 |-------|------|--------------|-----|-------------|-------------------|------------------|--------|
-| **Supertone** | TTS | 583 | 0.0839 | 301.0 | 6.95 | 11.9× | MPS |
-| **KittenTTS Nano** | TTS | 1,306 | 0.1691 | 244.9 | 7.73 | 5.9× | MPS |
-| **Kokoro** | TTS | 3,682 | 0.5186 | 0.0 | 7.10 | 1.9× | MPS |
-| **Marvis (MLX)** | TTS | 10,678 | 1.7335 | 1.1 | 6.16 | 0.58× | MPS |
-| **Parakeet** | ASR | 2,624 | 0.3695 | 0.0 | 7.10 | 2.7× | MPS |
-| **Whisper (MLX Medium)** | ASR | 1,632 | 0.2299 | 0.0 | 7.10 | **4.3× real-time** | MPS |
-| **Whisper (MLX Turbo)** | ASR | 2,174 | 0.3062 | 0.0 | 7.10 | 3.3× | MPS |
-| **Canary** | ASR | 27,499 | 3.8730 | 0.0 | 7.10 | 0.26× | MPS |
-| **Whisper (Standard Turbo)** | ASR | 47,792 | 6.7313 | 0.0 | 7.10 | 0.15× (slow) | MPS |
-| **NeuTTS Air** | TTS | 55,335 | 5.7521 | 0.0 | 9.62 | 0.17× | MPS |
-| **HumAware VAD** | VAD | 911 | 0.1283 | 0.0 | 7.10 | 7.8× | CPU |
+| **Supertone** | TTS | 339 | 0.0488 | 280.5 | 6.95 | 20.5× | MPS |
+| **KittenTTS Nano** | TTS | 1,006 | 0.1302 | 67.5 | 7.73 | 7.7× | MPS |
+| **Kokoro** | TTS | 3,377 | 0.4756 | 353.7 | 7.10 | 2.1× | MPS |
+| **Chatterbox (MLX)** | TTS | 15,044 | 0.8726 | 0.0 | 6.16 | 1.15× | MPS |
+| **CosyVoice2 (MLX)** | TTS | 6,957 | 0.8919 | 0.0 | 7.80 | 1.12× | MPS |
+| **Marvis (MLX)** | TTS | 12,205 | 1.734 | 0.0 | 7.10 | 0.58× | MPS |
+| **NeuTTS Air** | TTS | 22,877 | 2.6978 | 168.9 | 9.62 | 0.37× | MPS |
+| **CosyVoice2 (PyTorch)** | TTS | 82,564 | 5.1603 | 0.0 | 7.80 | 0.19× | MPS |
+| **Whisper Large-v3-Turbo (MLX)** | ASR | 4,851 | 0.6833 | 18.9 | 7.10 | 1.46× | MPS |
+| **Whisper Base (PyTorch)** | ASR | 1,644 | 0.2315 | 17.4 | 7.10 | 4.3× | MPS |
+| **Parakeet** | ASR | 9,394 | 1.3231 | 0.0 | 7.10 | 0.75× | MPS |
+| **Canary** | ASR | 46,637 | 6.5687 | 0.0 | 7.10 | 0.15× | MPS |
+| **HumAware VAD** | VAD | 891 | 0.1254 | 411.9 | 7.10 | 8.0× | MPS |
 
 **Legend:**
 - **Latency**: Total processing time in milliseconds
@@ -67,11 +68,14 @@ All results from MacBook Pro M3 8GB running on MPS (Metal Performance Shaders).
 
 | Model | Latency | RTF | Memory | Speed Multiplier | Notes |
 |-------|---------|-----|--------|------------------|-------|
-| **Supertone** | 583ms | 0.084 | 301.0 MB | **12× real-time** | ONNX-based, ultra-fast |
-| **KittenTTS Nano** | 1,306ms | 0.169 | 244.9 MB | **6× real-time** | Lowest memory, CPU-friendly |
-| **Kokoro** | 3,682ms | 0.519 | 0.0 MB | **2× real-time** | High quality, multilingual |
-| **Marvis** | 10,678ms | 1.734 | 1.1 MB | **0.6× real-time** | MLX-optimized, 4-bit quantized |
-| **NeuTTS Air** | 55,335ms | 5.752 | 0.0 MB | **0.17× real-time** | Voice cloning, slow but high quality |
+| **Supertone** | 339ms | 0.049 | 280.5 MB | **20.5× real-time** | ONNX-based, ultra-fast |
+| **KittenTTS Nano** | 1,006ms | 0.130 | 67.5 MB | **7.7× real-time** | Lowest memory, CPU-friendly |
+| **Kokoro** | 3,377ms | 0.476 | 353.7 MB | **2.1× real-time** | High quality, multilingual |
+| **Chatterbox (MLX)** | 15,044ms | 0.873 | 0.0 MB | **1.15× real-time** | Good quality, sub-realtime |
+| **CosyVoice2 (MLX)** | 6,957ms | 0.892 | 0.0 MB | **1.12× real-time** | **Recommended for cloning** |
+| **Marvis (MLX)** | 11,626ms | 1.734 | 0.0 MB | **0.58× real-time** |
+| **NeuTTS Air** | 22,877ms | 2.698 | 168.9 MB | **0.37× real-time** | Voice cloning, slow but high quality |
+| **CosyVoice2 (PyTorch)** | 82,564ms | 5.160 | 0.0 MB | **0.19× real-time** | Very slow backend |
 
 **Test Text**: "The quick brown fox jumps over the lazy dog. This is a benchmark test to measure synthesis speed." (7.1 seconds of audio)
 
@@ -227,7 +231,7 @@ MLX Medium: "Take each brown fox hoombs over to LathiDog..."
 
 | Model | Latency | RTF | Memory | Speed Multiplier | Notes |
 |-------|---------|-----|--------|------------------|-------|
-| **HumAware VAD** | 911ms | 0.128 | 0.0 MB | **7.8× real-time** | ✅ Fixed! Silero-based, speech vs. humming |
+| **HumAware VAD** | 891ms | 0.125 | 411.9 MB | **8.0× real-time** | ✅ Fixed! Silero-based, speech vs. humming |
 
 **Test Audio**: 7.1 seconds of synthesized speech
 
@@ -394,6 +398,18 @@ Now fully functional with excellent performance (7.8× real-time).
 - RTF (Real-Time Factor) < 1.0 indicates faster than real-time processing
 - Marvis memory appears low due to subprocess execution
 - HumAware VAD now uses soundfile instead of torchaudio for compatibility
+
+---
+
+## Model Discrimination Guide
+
+- **Low Memory / Speed Priority**: Use **KittenTTS** (TTS) and **Whisper Turbo** (ASR).
+- **Quality / Cloning Priority**: Use **CosyVoice2 MLX** (TTS) and **Whisper Turbo** (ASR).
+- **Avoid**: Canary (too slow), Granite (too large ~16GB), Marvis (broken).
+
+**Metrics Explained:**
+- **RTF (Real-Time Factor)**: < 1.0 means faster than real-time. Lower is better.
+- **Latency**: Time to first audio / total processing time.
 
 ---
 

@@ -150,19 +150,18 @@ def _synthesize_with_mlx(
     output_wav: str,
     source_wav: Optional[str] = None,
     exaggeration: float = 0.5,
-    cfg_weight: float = 0.5
+    cfg_weight: float = 0.5,
+    language: Optional[str] = None
 ):
     """
     Synthesize speech using MLX backend (Apple Silicon optimized, 4-bit quantized).
-    
-    Note: MLX Chatterbox is English-only and does not support multilingual synthesis.
     """
     try:
         from mlx_audio.tts.generate import generate_audio
     except ImportError:
         raise ImportError(
-            "MLX backend requires 'mlx-audio' package. Install with:\n"
-            "  pip install mlx-audio\n"
+            "MLX backend requires 'mlx-audio-plus' package. Install with:\n"
+            "  uv pip install -U mlx-audio-plus\n"
             "Or use use_mlx=False to use PyTorch backend."
         )
     
@@ -176,31 +175,67 @@ def _synthesize_with_mlx(
         # If no reference is provided, we'll use default voice by passing None
         if source_wav:
             ref_audio = source_wav
-            ref_text = "."  # Placeholder text for voice cloning
             logger.info(f"Using reference audio for voice cloning: {source_wav}")
         else:
-            ref_audio = None
-            ref_text = None
-            logger.info("Using default voice (no reference audio)")
+            # Try to find a default reference in samples
+            default_ref = "samples/anger.wav"
+            if os.path.exists(default_ref):
+                ref_audio = default_ref
+                logger.warning(f"No reference audio provided. Using default for testing: {default_ref}")
+                logger.warning("To clone a specific voice, provide --reference path/to/audio.wav")
+            else:
+                 raise ValueError(
+                     "Chatterbox (MLX) requires a reference audio file for voice cloning.\n"
+                     "Please provide one using --reference path/to/audio.wav"
+                 )
+        
+        # Reference text is optional for zero-shot in some implementations, 
+        # but mlx-audio might require it or handle it. Passing "." as placeholder if None.
+        ref_text = "."
         
         try:
-            # Note: MLX audio doesn't expose exaggeration/cfg_weight in the same way
-            # The generate_audio function has different parameters
+            # Pass all control parameters to MLX backend via kwargs
+            # Map 'language' to 'lang_code' if provided (default 'a' for American English)
+            lang_code = language if language else "a"
+            
             generate_audio(
                 text=text,
-                model_path="mlx-community/Chatterbox-TTS-4bit",
+                model="mlx-community/Chatterbox-TTS-4bit",
                 ref_audio=ref_audio,
                 ref_text=ref_text,
                 file_prefix=file_prefix,
+                exaggeration=exaggeration,
+                cfg_weight=cfg_weight,
+                lang_code=lang_code
             )
             
-            # MLX generates file_prefix_000.wav
-            generated_file = f"{file_prefix}_000.wav"
-            if not os.path.exists(generated_file):
-                # Try without sequence for older versions
-                generated_file = f"{file_prefix}.wav"
-                if not os.path.exists(generated_file):
-                    raise RuntimeError("MLX did not generate expected output file")
+            # MLX generates file_prefix + ".wav" (or similar depending on version)
+            # Latest mlx-audio-plus might use output_path directly or append ext
+            
+            # Check for potential output files
+            possible_files = [
+                f"{file_prefix}.wav",
+                f"{file_prefix}_0.wav",
+                f"{file_prefix}_000.wav"
+            ]
+            
+            # Also check if it just wrote to output_path if it ends in .wav (but we passed directory-like prefix)
+            
+            generated_file = None
+            for f in possible_files:
+                if os.path.exists(f):
+                    generated_file = f
+                    break
+            
+            if not generated_file:
+                # Fallback: list dir to find any wav
+                files = os.listdir(tmpdir)
+                wavs = [f for f in files if f.endswith(".wav")]
+                if wavs:
+                    generated_file = os.path.join(tmpdir, wavs[0])
+            
+            if not generated_file:
+                raise RuntimeError(f"MLX did not generate expected output file. Found: {os.listdir(tmpdir)}")
             
             # Move to final output
             import shutil
@@ -244,13 +279,9 @@ def synthesize_with_chatterbox(
     if language and language != "en":
         multilingual = True
     
-    # MLX backend doesn't support multilingual
-    if use_mlx and multilingual:
-        logger.warning("MLX backend is English-only. Falling back to PyTorch for multilingual synthesis.")
-        use_mlx = False
-    
+    # MLX backend
     if use_mlx:
-        _synthesize_with_mlx(text, output_wav, source_wav, exaggeration, cfg_weight)
+         _synthesize_with_mlx(text, output_wav, source_wav, exaggeration, cfg_weight, language)
     else:
         _synthesize_with_pytorch(text, output_wav, source_wav, exaggeration, cfg_weight, language, multilingual)
 

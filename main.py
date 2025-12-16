@@ -12,8 +12,8 @@ from pathlib import Path
 
 def main():
     parser = argparse.ArgumentParser(description="Voice Cloning & ASR CLI - Test and compare speech models")
-    parser.add_argument("--model", choices=["chatterbox", "kitten", "kitten-0.1", "kitten-0.2", "openvoice", "openvoice2", "kokoro", "canary", "parakeet", "granite", "whisper", "humaware", "marvis", "supertone", "neutts-air", "dia2"], required=True,
-                        help="Model to use (TTS: chatterbox, kitten[-0.1|-0.2], kokoro, marvis, supertone, neutts-air, dia2 | ASR: canary, parakeet, granite, whisper | VAD: humaware)")
+    parser.add_argument("--model", choices=["chatterbox", "kitten", "kitten-0.1", "kitten-0.2", "openvoice", "openvoice2", "kokoro", "canary", "parakeet", "granite", "whisper", "humaware", "marvis", "supertone", "neutts-air", "dia2", "cosyvoice"], required=True,
+                        help="Model to use (TTS: cosyvoice, chatterbox, kitten[-0.1|-0.2], kokoro, marvis, supertone, neutts-air, dia2 | ASR: canary, parakeet, granite, whisper | VAD: humaware)")
     parser.add_argument("--device", choices=["cuda", "mps", "cpu"], default=None,
                         help="Device to run model on (cuda/mps/cpu). Auto-detects if not specified.")
     parser.add_argument("--text", type=str, help="Text to synthesize (for TTS models)")
@@ -90,7 +90,7 @@ def main():
     args = parser.parse_args()
 
     # Validate text requirement for TTS models
-    tts_models = ["chatterbox", "kitten", "kitten-0.1", "kitten-0.2", "kokoro", "marvis", "supertone", "neutts-air", "dia2"]
+    tts_models = ["chatterbox", "kitten", "kitten-0.1", "kitten-0.2", "kokoro", "marvis", "supertone", "neutts-air", "dia2", "cosyvoice"]
     asr_models = ["canary", "parakeet", "granite", "whisper"]
     vad_models = ["humaware"]
     
@@ -384,6 +384,33 @@ def main():
                 verbose=True
             )
             print(f"✓ Dia2 synthesis completed! Output saved to: {args.output}")
+            
+        elif args.model == "cosyvoice":
+            print("Loading CosyVoice2 model...")
+            from src.voice_cloning.tts.cosyvoice import synthesize_speech
+            
+            # Reference audio is optional generally, but required for MLX backend usually
+            # We handle it in the module (fallback), but let's inform user
+            ref_audio = args.reference
+            if args.use_mlx and not ref_audio:
+                 print("Info: MLX CosyVoice2 typically requires reference audio. Module will key default if not provided.")
+
+            result = synthesize_speech(
+                text=args.text,
+                output_path=args.output,
+                ref_audio_path=ref_audio,
+                ref_text=args.ref_text, # User can pass reference text via new arg if we added it, or reuse existing args?
+                # main.py has args.text, args.reference.
+                # marvis uses args.ref_text. Let's assume user passes it.
+                # instruct_text isn't in main.py args explicitly as generic 'instruct'.
+                # We can map 'emotion' to instruct_text or add a generic 'prompt' arg?
+                # For now let's use 'emotion' text if provided as instruct text? Or just leave it for now.
+                # Looking at args... args.emotion exists.
+                instruct_text=args.emotion if args.emotion else None, 
+                speed=args.speed,
+                use_mlx=args.use_mlx
+            )
+            print(f"✓ CosyVoice2 synthesis completed! Output saved to: {result}")
 
 
     except ImportError as e:

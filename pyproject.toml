@@ -15,7 +15,7 @@ dependencies = [
     "gradio",
     "faster-whisper",
     "openvino-telemetry",
-    "peft",
+    "peft>=0.17.0",
     "langdetect",
     "openai-whisper",
     "kokoro>=0.9.4",

@@ -195,6 +195,8 @@ Time until the first audio chunk is available (streaming only).
 | **Marvis** | MLX TTS | ✅ Native | ✅ | Apple Silicon optimized |
 | **Supertone** | ONNX TTS | ✅ Pseudo | ❌ | Ultra-fast, lightweight |
 | **NeuTTS Air** | Voice Cloning | ❌ | ✅ | Cloning only (requires ref) |
+| **CosyVoice2 (MLX)** | TTS | ✅ Native | ✅ | Apple Silicon optimized |
+| **CosyVoice2 (PyTorch)** | TTS | ✅ Native | ✅ | Apple Silicon optimized |
 
 ### ASR Models
 
@@ -266,9 +268,9 @@ uv pip install -e .
 4. **Batch Testing**: Use `--models` to test groups of similar models
 5. **Document Results**: Save benchmark reports with timestamps for comparison
 
-## Output Files
-
-- **`BENCHMARK_RESULTS.md`**: Main results table with all metrics
+## Output
+Results will be saved to `BENCHMARK_RESULTS.md`.
+Please manually update `docs/BENCHMARK_RESULTS.md` with relevant findings.
 - **`outputs/benchmark/`**: Generated audio files for verification
   - `benchmark_reference.wav`: Test audio for ASR/VAD
   - `bench_*.wav`: Generated TTS outputs

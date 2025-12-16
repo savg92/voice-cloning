@@ -1,6 +1,6 @@
 # Voice Cloning Benchmark Results
 
-**Date**: 2025-12-03 18:17:52
+**Date**: 2025-12-16 18:04:08
 **Device**: MPS
 **Streaming Tests**: Disabled
 **Cloning Tests**: Disabled
@@ -8,8 +8,7 @@
 
 | Model | Type | Latency (ms) | RTF | Memory (MB) | Notes |
 |-------|------|--------------|-----|-------------|-------|
-| Whisper (MLX Large-v3 Turbo) | ASR | 2211 | 0.3114 | 0.0 | Device: mps |
-| Whisper (MLX Medium) | ASR | 1644 | 0.2315 | 0.0 | Device: mps |
+| Marvis (MLX) | TTS | 12205 | 2.0898 | 0.0 | Device: mps |
 
 
 **Metrics Explained:**

@@ -114,9 +114,10 @@ For detailed usage of each model, see the respective guide in `docs/`.
 
 ## Supported Models
 
-### 1. Chatterbox TTS 🎭 Voice Cloning | ⚠️ Dependency Conflict
+### 1. Chatterbox TTS 🎭 Voice Cloning
 - **Type**: Zero-shot TTS (Encoder-Decoder)
 - **Best for**: Multilingual voice cloning (23 languages)
+- **Note**: Supports MLX optimization (`--use-mlx`) with 4-bit model
 - **Guide**: [docs/CHATTERBOX_GUIDE.md](docs/CHATTERBOX_GUIDE.md)
 
 ### 2. Kitten TTS Nano (Lightweight TTS)

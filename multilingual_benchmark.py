@@ -88,8 +88,61 @@ class MultilingualBenchmark:
                 "success": False,
                 "error": str(e)
             })
-        
-        # 2. Kokoro (Spanish)
+        # 1b. Chatterbox (MLX - Spanish)
+        logger.info("\n1b. Testing Chatterbox (MLX - Spanish)")
+        try:
+            from src.voice_cloning.tts.chatterbox import synthesize_with_chatterbox
+            import os
+            
+            output_path = self.output_dir / "chatterbox_mlx_spanish.wav"
+            start_time = time.time()
+            
+            output_path = self.output_dir / "chatterbox_mlx_spanish.wav"
+            start_time = time.time()
+            
+            # Use provided reference or None
+            ref_audio = "samples/anger.wav" if os.path.exists("samples/anger.wav") else None
+            
+            if not ref_audio:
+                logger.info("  No reference audio found (samples/anger.wav). Testing zero-shot/default voice.")
+
+            synthesize_with_chatterbox(
+                text=test_text,
+                output_wav=str(output_path),
+                source_wav=ref_audio, 
+                use_mlx=True,
+                language="es"
+            )
+            
+            latency = time.time() - start_time
+            info = sf.info(str(output_path))
+            rtf = latency / info.duration
+            
+            self.results.append({
+                "model": "Chatterbox (MLX - Spanish)",
+                "type": "TTS",
+                "language": "Spanish",
+                "latency_s": latency,
+                "rtf": rtf,
+                "audio_duration_s": info.duration,
+                "success": True
+            })
+            
+            logger.info(f"✓ Success: Latency={latency:.2f}s, RTF={rtf:.4f}, Duration={info.duration:.2f}s")
+            
+        except Exception as e:
+            logger.warning(f"  Chatterbox MLX skipped/failed: {e}")
+            # Don't fail the whole benchmark if just MLX fails (might be CPU)
+            if "MLX" in str(e) or "mlx" in str(e):
+                 pass
+            else:
+                 self.results.append({
+                    "model": "Chatterbox (MLX - Spanish)",
+                    "type": "TTS",
+                    "language": "Spanish",
+                    "success": False,
+                    "error": str(e)
+                })
         logger.info("\n2. Testing Kokoro (Spanish)")
         try:
             from src.voice_cloning.tts.kokoro import synthesize_speech
@@ -131,6 +184,92 @@ class MultilingualBenchmark:
                 "error": str(e)
             })
     
+        logger.info("\n3. Testing CosyVoice2 (MLX - Spanish)")
+        try:
+            from src.voice_cloning.tts.cosyvoice import synthesize_speech
+            
+            output_path = self.output_dir / "cosyvoice_mlx_spanish.wav"
+            start_time = time.time()
+            
+            # Use reference audio if available (for zero-shot prompt)
+            ref_audio = "samples/anger.wav" if Path("samples/anger.wav").exists() else None
+            
+            synthesize_speech(
+                text=test_text,
+                output_path=str(output_path),
+                ref_audio_path=str(ref_audio) if ref_audio else None,
+                use_mlx=True
+            )
+            
+            latency = time.time() - start_time
+            info = sf.info(str(output_path))
+            rtf = latency / info.duration
+            
+            self.results.append({
+                "model": "CosyVoice2 (MLX)",
+                "type": "TTS",
+                "language": "Spanish",
+                "latency_s": latency,
+                "rtf": rtf,
+                "audio_duration_s": info.duration,
+                "success": True
+            })
+            
+            logger.info(f"✓ Success: Latency={latency:.2f}s, RTF={rtf:.4f}, Duration={info.duration:.2f}s")
+            
+        except Exception as e:
+            logger.warning(f"  CosyVoice2 MLX skipped/failed: {e}")
+            if "MLX" not in str(e): # Record failure unless it's just missing MLX on non-Mac
+                self.results.append({
+                    "model": "CosyVoice2 (MLX)",
+                    "type": "TTS",
+                    "language": "Spanish",
+                    "success": False,
+                    "error": str(e)
+                })
+
+        logger.info("\n4. Testing CosyVoice2 (PyTorch - Spanish)")
+        try:
+            from src.voice_cloning.tts.cosyvoice import synthesize_speech
+            
+            output_path = self.output_dir / "cosyvoice_torch_spanish.wav"
+            start_time = time.time()
+            
+            ref_audio = "samples/anger.wav" if Path("samples/anger.wav").exists() else None
+
+            synthesize_speech(
+                text=test_text,
+                output_path=str(output_path),
+                ref_audio_path=str(ref_audio) if ref_audio else None,
+                use_mlx=False
+            )
+            
+            latency = time.time() - start_time
+            info = sf.info(str(output_path))
+            rtf = latency / info.duration
+            
+            self.results.append({
+                "model": "CosyVoice2 (PyTorch)",
+                "type": "TTS",
+                "language": "Spanish",
+                "latency_s": latency,
+                "rtf": rtf,
+                "audio_duration_s": info.duration,
+                "success": True
+            })
+            
+            logger.info(f"✓ Success: Latency={latency:.2f}s, RTF={rtf:.4f}, Duration={info.duration:.2f}s")
+            
+        except Exception as e:
+            logger.warning(f"  CosyVoice2 PyTorch skipped/failed: {e}")
+            self.results.append({
+                "model": "CosyVoice2 (PyTorch)",
+                "type": "TTS",
+                "language": "Spanish",
+                "success": False,
+                "error": str(e)
+            })
+
     def benchmark_asr_spanish(self):
         """Benchmark Spanish ASR models"""
         logger.info("\n" + "=" * 60)
@@ -140,7 +279,10 @@ class MultilingualBenchmark:
         # Find Spanish audio files from TTS benchmark
         test_files = [
             (self.output_dir / "chatterbox_spanish.wav", self.spanish_tests[0]),
-            (self.output_dir / "kokoro_spanish.wav", self.spanish_tests[0])
+            (self.output_dir / "chatterbox_mlx_spanish.wav", self.spanish_tests[0]),
+            (self.output_dir / "kokoro_spanish.wav", self.spanish_tests[0]),
+            (self.output_dir / "cosyvoice_mlx_spanish.wav", self.spanish_tests[0]),
+            (self.output_dir / "cosyvoice_torch_spanish.wav", self.spanish_tests[0])
         ]
         
         for audio_path, reference_text in test_files:
@@ -396,7 +538,7 @@ class MultilingualBenchmark:
                 f.write(f"- **Most Accurate**: {most_accurate['model']} ({most_accurate['cer']:.2%} CER)\n")
                 f.write(f"- **Fastest**: {fastest_asr['model']} ({fastest_asr['latency_s']:.2f}s)\n")
         
-        logger.info(f"Report saved to: {report_path}")
+        logger.info(f"Report saved to: {report_path}") # Keep original logging, as args.output is not defined here.
         return report_path
     
     def run(self):

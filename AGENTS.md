@@ -30,6 +30,11 @@ You are the **Lead Architect and Maintainer**. Your goal is to keep the codebase
         2.  Create the implementation in `src/voice_cloning/[type]/`.
         3.  Expose it via `main.py`.
         4.  Create a test in `tests/`.
+        5.  Update the benchmark in `benchmarks.py`.
+        6.  Update the benchmark report in `docs/BENCHMARK_RESULTS.md`.
+        7.  Update `docs/BENCHMARK_GUIDE.md`.
+        8.  Update `PLAN.md`.
+        9.  Update `README.md` if necessary.
     *   When refactoring:
         1.  Update `PLAN.md` first.
         2.  Ensure backward compatibility or update `main.py` immediately.
@@ -55,6 +60,7 @@ You are the **Lead Architect and Maintainer**. Your goal is to keep the codebase
 2.  **Dependency Management:**
     *   Always check `pyproject.toml` before suggesting new packages.
     *   Use `uv add` or `uv run` syntax in instructions.
+    *   If model requires download of weights or any other files, locate them in `/models/` directory.
 
 3.  **Coding Standards:**
     *   **Type Hints:** All function signatures must have type hints.

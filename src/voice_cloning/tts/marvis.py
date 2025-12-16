@@ -91,8 +91,14 @@ class MarvisTTS:
                 logger.info(f"Running Marvis MLX: {' '.join(cmd)}")
                 result = subprocess.run(cmd, capture_output=True, text=True)
                 
+                # Always log stderr to debug issues
+                if result.stderr:
+                    logger.info(f"Marvis stderr: {result.stderr}")
+                if result.stdout:
+                    logger.info(f"Marvis stdout: {result.stdout}")
+                
                 if result.returncode != 0:
-                    logger.error(f"Marvis MLX Error: {result.stderr}")
+                    logger.error(f"Marvis MLX Error (code {result.returncode}): {result.stderr}")
                     raise RuntimeError(f"Marvis synthesis failed: {result.stderr}")
                 
                 # If streaming, we don't expect a file

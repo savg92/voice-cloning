@@ -6,34 +6,75 @@
 - `chatterbox-tts` requires `transformers==4.46.3` (hardcoded in package)
 - `mlx-audio` (Marvis TTS) requires `transformers>=4.49.0`
 
-**Investigation Findings:**
-- Chatterbox's source code does NOT directly use `transformers.AutoModel` or `transformers.AutoTokenizer`
-- It uses custom model classes and loads weights via `safetensors`
-- The strict `transformers==4.46.3` constraint appears unnecessary for Chatterbox's core functionality
-- However, the PyPI package has this hardcoded and cannot be bypassed via dependency resolution
-
-**Recommendation:** Use separate environment (see Option 1 below) or use Marvis TTS which also supports voice cloning without conflicts.
+**MLX Optimized Version:**
+You can use the MLX-optimized 4-bit model with the updated `mlx-audio-plus` package.
 
 ---
 
-## ⚠️ MLX Backend Investigation
+## 🍎 MLX Backend Support (Apple Silicon)
 
-**Status:** ❌ **NOT SUPPORTED**
+**Status:** ✅ **SUPPORTED** (4-bit quantization)
 
-An investigation was conducted to add MLX backend support using the `mlx-community/Chatterbox-TTS-4bit` model for Apple Silicon optimization.
+You can run `mlx-community/Chatterbox-TTS-4bit` natively on Apple Silicon using the `mlx-audio-plus` library. This avoids the dependency conflict mentioned above as it uses MLX instead of PyTorch.
 
-**Findings:**
-- The `mlx-community/Chatterbox-TTS-4bit` model exists on HuggingFace and was successfully converted to MLX format
-- However, the `mlx-audio` library (v0.2.6) does **not** have the Chatterbox architecture implemented
-- Error: `ModuleNotFoundError: No module named 'mlx_audio.tts.models.chatterbox'`
+### Prerequisites
 
-**Supported MLX models in mlx-audio:**
-- ✅ bark, dia, indextts, kokoro, llama, outetts, sesame, spark
-- ❌ chatterbox
+Install the updated MLX Audio library:
 
-**Conclusion:** MLX backend for Chatterbox is not possible until `mlx-audio` library adds support for the chatterbox model architecture. Users seeking MLX-optimized TTS on Apple Silicon should use Kokoro (`--use-mlx` flag) instead.
+```bash
+uv pip install -U mlx-audio-plus
+```
 
----
+### Usage
+
+Use the `--use-mlx` flag to enable the MLX backend. 
+
+**Note:** The MLX backend supports both standard synthesis (default voice) and voice cloning.
+
+```bash
+# Basic Usage (uses default fallback reference if none provided)
+uv run python main.py --model chatterbox \
+  --text "Running on Apple Silicon with MLX 4-bit quantization." \
+  --use-mlx \
+  --output outputs/mlx_chatterbox.wav
+
+# Voice Cloning (Recommended)
+uv run python main.py --model chatterbox \
+  --text "Cloning this voice on MLX." \
+  --reference samples/anger.wav \
+  --use-mlx \
+  --output outputs/cloned_mlx.wav
+```
+
+**Features:**
+- 4-bit quantized model (low memory)
+- Fast inference on M-series chips
+- Voice cloning support
+- **Multilingual Support:** 23 languages (same as PyTorch version)
+- **Control:** Exaggeration, Speed (via cfg), and more
+
+### MLX Multilingual Usage
+```bash
+# Spanish
+uv run python main.py --model chatterbox \
+  --text "Hola, esto es una prueba en español." \
+  --language es \
+  --use-mlx \
+  --reference samples/anger.wav \
+  --output outputs/mlx_spanish.wav
+```
+
+### MLX Control Parameters
+```bash
+# Expressive speech
+uv run python main.py --model chatterbox \
+  --text "This is very dramatic!" \
+  --exaggeration 0.8 \
+  --cfg-weight 0.4 \
+  --use-mlx \
+  --reference samples/anger.wav \
+  --output outputs/mlx_dramatic.wav
+```
 
 ## Installation Options
 
@@ -251,7 +292,5 @@ ta.save("chinese.wav", wav_zh, model.sr)
 
 ## Known Limitations
 
-1. **Dependency Conflict:** Cannot be installed alongside mlx-audio due to transformers version mismatch
-2. **No MLX Backend:** The `mlx-audio` library does not support Chatterbox architecture (as of v0.2.6)
-3. **Recommendation:** Use separate virtual environment if you need both Chatterbox and Marvis/Granite models
-4. **Alternative:** Use Marvis TTS or Kokoro (with `--use-mlx`) for Apple Silicon optimized voice synthesis
+1. **Dependency Conflict:** Cannot be installed alongside mlx-audio due to transformers version mismatch (Use MLX backend to avoid this!)
+2. **Recommendation:** Use `--use-mlx` on Apple Silicon for best performance and compatibility.
