@@ -38,7 +38,13 @@ dependencies = [
     "editdistance>=0.8.1",
     "ipython>=8.37.0",
     "mlx>=0.29.4",
-    "mlx-audio>=0.2.6",
+    "mlx-audio @ git+https://github.com/Blaizzy/mlx-audio.git",
+    "sounddevice",
+    "pyloudnorm",
+    "typer",
+    "typer-slim",
+    "spacy",
+    "misaki",
     "mlx-lm>=0.28.3",
     "safetensors>=0.3.0",
     "transformers>=4.49.0",  # Required by mlx-audio>=0.2.6, Granite ASR, etc.
@@ -52,6 +58,8 @@ dependencies = [
     "phonemizer>=3.3.0",  # Required by NeuTTS Air
     "resemble-perth>=1.0.1",  # Required by NeuTTS Air
     "llama-cpp-python>=0.3.0",  # Required by NeuTTS Air for GGUF models
+    "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
 ]
 
 [build-system]
