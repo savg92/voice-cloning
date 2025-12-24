@@ -1,4 +1,5 @@
 import gradio as gr
+from src.voice_cloning.ui.tts_tab import create_tts_tab
 
 def create_interface() -> gr.Blocks:
     """Creates the main Gradio interface for the Voice Cloning Toolkit."""
@@ -8,8 +9,7 @@ def create_interface() -> gr.Blocks:
         
         with gr.Tabs():
             with gr.TabItem("TTS"):
-                gr.Markdown("## Text-to-Speech")
-                gr.Markdown("Coming soon...")
+                create_tts_tab()
             
             with gr.TabItem("ASR"):
                 gr.Markdown("## Automatic Speech Recognition")
