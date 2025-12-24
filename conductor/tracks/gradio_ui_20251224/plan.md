@@ -1,7 +1,7 @@
 # Plan: Gradio Web Interface
 
 ## Phase 1: Setup and Basic TTS Interface
-- [ ] Task: Create `src/voice_cloning/ui/` directory and `__init__.py`.
+- [x] Task: Create `src/voice_cloning/ui/` directory and `__init__.py`. 47e0846
 - [ ] Task: Implement basic Gradio scaffolding in `src/voice_cloning/ui/app.py`.
 - [ ] Task: Create `src/voice_cloning/ui/tts_tab.py` for TTS logic.
 - [ ] Task: Implement integration for **Kokoro** and **Kitten** TTS in the UI.
