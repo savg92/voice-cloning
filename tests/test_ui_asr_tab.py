@@ -11,14 +11,19 @@ def test_create_asr_tab_returns_component():
 
 @patch("src.voice_cloning.asr.whisper.WhisperASR")
 def test_transcribe_speech_whisper(MockWhisper):
-    """Test that Whisper transcription calls the correct backend."""
+    """Test that Whisper transcription calls the correct backend with params."""
     mock_instance = MockWhisper.return_value
     mock_instance.transcribe.return_value = "Whisper transcript"
     
-    output = transcribe_speech("Whisper", "audio.wav")
+    output = transcribe_speech(
+        "Whisper", "audio.wav", 
+        "openai/whisper-tiny", "en", "transcribe", False, True, # Whisper params
+        False, # Parakeet
+        "en", "en" # Canary
+    )
     
-    MockWhisper.assert_called_once()
-    mock_instance.transcribe.assert_called_with("audio.wav")
+    MockWhisper.assert_called_with(model_id="openai/whisper-tiny", use_mlx=False)
+    mock_instance.transcribe.assert_called_with("audio.wav", lang="en", task="transcribe", timestamps=True)
     assert output == "Whisper transcript"
 
 @patch("src.voice_cloning.asr.parakeet.ParakeetASR")
@@ -27,10 +32,15 @@ def test_transcribe_speech_parakeet(MockParakeet):
     mock_instance = MockParakeet.return_value
     mock_instance.transcribe.return_value = "Parakeet transcript"
     
-    output = transcribe_speech("Parakeet", "audio.wav")
+    output = transcribe_speech(
+        "Parakeet", "audio.wav",
+        "mod", "lang", "task", False, True, # Whisper
+        True, # Parakeet timestamps
+        "en", "en" # Canary
+    )
     
     MockParakeet.assert_called_once()
-    mock_instance.transcribe.assert_called_with("audio.wav")
+    mock_instance.transcribe.assert_called_with("audio.wav", timestamps=True)
     assert output == "Parakeet transcript"
 
 @patch("src.voice_cloning.asr.canary.CanaryASR")
@@ -39,14 +49,23 @@ def test_transcribe_speech_canary(MockCanary):
     mock_instance = MockCanary.return_value
     mock_instance.transcribe.return_value = {'text': "Canary transcript"}
     
-    output = transcribe_speech("Canary", "audio.wav")
+    output = transcribe_speech(
+        "Canary", "audio.wav",
+        "mod", "lang", "task", False, True, # Whisper
+        False, # Parakeet
+        "fr", "en" # Canary
+    )
     
     MockCanary.assert_called_once()
     mock_instance.load_model.assert_called_once()
-    mock_instance.transcribe.assert_called_with("audio.wav")
+    mock_instance.transcribe.assert_called_with(
+        audio_path="audio.wav",
+        source_lang="fr",
+        target_lang="en"
+    )
     assert output == "Canary transcript"
 
 def test_transcribe_speech_missing_audio():
     """Test that transcription raises error if audio is missing."""
     with pytest.raises(gr.Error, match="Please upload an audio file"):
-        transcribe_speech("Whisper", None)
+        transcribe_speech("Whisper", None, None, None, None, False, False, False, None, None)
