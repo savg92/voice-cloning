@@ -22,7 +22,7 @@ def generate_speech(model_name: str, text: str, reference_audio: Optional[str] =
         raise gr.Error("Please enter some text to synthesize.")
         
     # Validation for cloning models
-    cloning_models = ["Chatterbox", "Marvis"]
+    cloning_models = ["Chatterbox", "Marvis", "CosyVoice"]
     if model_name in cloning_models and not reference_audio:
         raise gr.Error(f"Reference audio is required for model '{model_name}'.")
 
@@ -51,6 +51,14 @@ def generate_speech(model_name: str, text: str, reference_audio: Optional[str] =
             tts = MarvisTTS()
             tts.synthesize(text=text, output_path=output_path, ref_audio=reference_audio)
             
+        elif model_name == "CosyVoice":
+            from src.voice_cloning.tts.cosyvoice import synthesize_speech as cosy_synthesize
+            cosy_synthesize(
+                text=text,
+                output_path=output_path,
+                ref_audio_path=reference_audio
+            )
+            
         else:
             raise ValueError(f"Unknown model: {model_name}")
             
@@ -62,7 +70,7 @@ def generate_speech(model_name: str, text: str, reference_audio: Optional[str] =
 
 def on_model_change(model_name: str):
     """Updates UI components based on the selected model."""
-    cloning_models = ["Chatterbox", "Marvis"]
+    cloning_models = ["Chatterbox", "Marvis", "CosyVoice"]
     is_cloning = model_name in cloning_models
     return gr.update(visible=is_cloning)
 
@@ -75,7 +83,7 @@ def create_tts_tab():
             with gr.Column():
                 model_dropdown = gr.Dropdown(
                     label="Model",
-                    choices=["Kokoro", "Kitten", "Chatterbox", "Marvis"],
+                    choices=["Kokoro", "Kitten", "Chatterbox", "Marvis", "CosyVoice"],
                     value="Kokoro",
                     interactive=True
                 )

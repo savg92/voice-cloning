@@ -73,6 +73,20 @@ def test_generate_speech_missing_reference():
     with pytest.raises(gr.Error, match="Reference audio is required"):
         generate_speech("Chatterbox", "Hello", reference_audio=None)
 
+@patch("src.voice_cloning.tts.cosyvoice.synthesize_speech")
+@patch("tempfile.mktemp")
+def test_generate_speech_cosyvoice(mock_mktemp, mock_cosyvoice):
+    """Test that generating speech with CosyVoice calls the correct function."""
+    mock_mktemp.return_value = "output_path.wav"
+    
+    output = generate_speech("CosyVoice", "Hello", reference_audio="ref.wav")
+    
+    mock_cosyvoice.assert_called_once()
+    assert output == "output_path.wav"
+    # Verify reference was passed
+    args, kwargs = mock_cosyvoice.call_args
+    assert kwargs['ref_audio_path'] == "ref.wav"
+
 def test_generate_speech_unknown_model():
     """Test that generating speech with an unknown model raises Error."""
     with pytest.raises(gr.Error):
