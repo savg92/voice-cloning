@@ -37,6 +37,7 @@ def generate_speech(
     output_path = tempfile.mktemp(suffix=".wav")
     
     try:
+        gr.Info(f"Synthesizing with {model_name}...")
         if model_name == "Kokoro":
             from src.voice_cloning.tts.kokoro import synthesize_speech as kokoro_synthesize
             kokoro_synthesize(
@@ -98,6 +99,7 @@ def generate_speech(
         else:
             raise ValueError(f"Unknown model: {model_name}")
             
+        gr.Info("Synthesis complete!")
         return output_path
         
     except Exception as e:

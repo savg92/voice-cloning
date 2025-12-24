@@ -23,16 +23,19 @@ def transcribe_speech(
         raise gr.Error("Please upload an audio file to transcribe.")
         
     try:
+        gr.Info(f"Transcribing with {model_name}...")
+        result_text = ""
+        
         if model_name == "Whisper":
             from src.voice_cloning.asr.whisper import WhisperASR
             model = WhisperASR(model_id=whisper_model_id, use_mlx=whisper_use_mlx)
             lang = whisper_lang if whisper_lang != "auto" else None
-            return model.transcribe(audio_path, lang=lang, task=whisper_task, timestamps=whisper_timestamps)
+            result_text = model.transcribe(audio_path, lang=lang, task=whisper_task, timestamps=whisper_timestamps)
             
         elif model_name == "Parakeet":
             from src.voice_cloning.asr.parakeet import ParakeetASR
             model = ParakeetASR()
-            return model.transcribe(audio_path, timestamps=parakeet_timestamps)
+            result_text = model.transcribe(audio_path, timestamps=parakeet_timestamps)
             
         elif model_name == "Canary":
             from src.voice_cloning.asr.canary import CanaryASR
@@ -43,10 +46,13 @@ def transcribe_speech(
                 source_lang=canary_source_lang,
                 target_lang=canary_target_lang
             )
-            return result['text']
+            result_text = result['text']
             
         else:
             raise ValueError(f"Unknown model: {model_name}")
+            
+        gr.Info("Transcription complete!")
+        return result_text
             
     except Exception as e:
         logger.error(f"Transcription failed: {e}")

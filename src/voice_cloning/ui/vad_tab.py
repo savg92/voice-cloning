@@ -18,6 +18,7 @@ def detect_speech_segments(
         raise gr.Error("Please upload an audio file to analyze.")
         
     try:
+        gr.Info("Analyzing audio segments...")
         from src.voice_cloning.vad.humaware import HumAwareVAD
         model = HumAwareVAD()
         segments = model.detect_speech(
@@ -28,6 +29,7 @@ def detect_speech_segments(
             speech_pad_ms=speech_pad_ms
         )
         
+        gr.Info("VAD analysis complete!")
         # Format as pretty JSON for display
         return json.dumps(segments, indent=2)
             
