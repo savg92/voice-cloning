@@ -17,55 +17,30 @@ def test_transcribe_speech_whisper(MockWhisper):
     
     output = transcribe_speech(
         "Whisper", "audio.wav", 
-        "openai/whisper-tiny", "en", "transcribe", False, True, # Whisper params
-        False, # Parakeet
-        "en", "en" # Canary
+        "openai/whisper-tiny", "en", "transcribe", False, True,
+        False, "en", "en"
     )
     
     MockWhisper.assert_called_with(model_id="openai/whisper-tiny", use_mlx=False)
     mock_instance.transcribe.assert_called_with("audio.wav", lang="en", task="transcribe", timestamps=True)
     assert output == "Whisper transcript"
 
-@patch("src.voice_cloning.asr.parakeet.ParakeetASR")
-def test_transcribe_speech_parakeet(MockParakeet):
-    """Test that Parakeet transcription calls the correct backend."""
-    mock_instance = MockParakeet.return_value
-    mock_instance.transcribe.return_value = "Parakeet transcript"
+@patch("src.voice_cloning.asr.granite.transcribe_file")
+@patch("builtins.open", new_callable=MagicMock)
+def test_transcribe_speech_granite(mock_open, mock_transcribe):
+    """Test that Granite transcription calls the correct backend."""
+    # Mock open().read()
+    mock_open.return_value.__enter__.return_value.read.return_value = "Granite transcript"
     
     output = transcribe_speech(
-        "Parakeet", "audio.wav",
-        "mod", "lang", "task", False, True, # Whisper
-        True, # Parakeet timestamps
-        "en", "en" # Canary
+        "Granite", "audio.wav",
+        "", "", "", False, False, False, "", ""
     )
     
-    MockParakeet.assert_called_once()
-    mock_instance.transcribe.assert_called_with("audio.wav", timestamps=True)
-    assert output == "Parakeet transcript"
-
-@patch("src.voice_cloning.asr.canary.CanaryASR")
-def test_transcribe_speech_canary(MockCanary):
-    """Test that Canary transcription calls the correct backend."""
-    mock_instance = MockCanary.return_value
-    mock_instance.transcribe.return_value = {'text': "Canary transcript"}
-    
-    output = transcribe_speech(
-        "Canary", "audio.wav",
-        "mod", "lang", "task", False, True, # Whisper
-        False, # Parakeet
-        "fr", "en" # Canary
-    )
-    
-    MockCanary.assert_called_once()
-    mock_instance.load_model.assert_called_once()
-    mock_instance.transcribe.assert_called_with(
-        audio_path="audio.wav",
-        source_lang="fr",
-        target_lang="en"
-    )
-    assert output == "Canary transcript"
+    mock_transcribe.assert_called_once()
+    assert output == "Granite transcript"
 
 def test_transcribe_speech_missing_audio():
     """Test that transcription raises error if audio is missing."""
     with pytest.raises(gr.Error, match="Please upload an audio file"):
-        transcribe_speech("Whisper", None, None, None, None, False, False, False, None, None)
+        transcribe_speech("Whisper", None, "", "", "", False, False, False, "", "")

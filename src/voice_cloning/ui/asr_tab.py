@@ -47,6 +47,14 @@ def transcribe_speech(
                 target_lang=canary_target_lang
             )
             result_text = result['text']
+
+        elif model_name == "Granite":
+            from src.voice_cloning.asr.granite import transcribe_file
+            import tempfile
+            out_txt = tempfile.mktemp(suffix=".txt")
+            transcribe_file(audio_path, out_txt)
+            with open(out_txt, "r") as f:
+                result_text = f.read()
             
         else:
             raise ValueError(f"Unknown model: {model_name}")
@@ -69,100 +77,56 @@ def on_model_change(model_name: str):
 def create_asr_tab():
     """Creates the ASR tab content."""
     with gr.Column() as asr_layout:
-        gr.Markdown("## 📝 Automatic Speech Recognition & Translation")
+        gr.Markdown("## 📝 Automatic Speech Recognition")
         
         with gr.Row():
             with gr.Column(scale=1):
                 model_dropdown = gr.Dropdown(
                     label="ASR Engine",
-                    choices=["Whisper", "Parakeet", "Canary"],
+                    choices=["Whisper", "Parakeet", "Canary", "Granite"],
                     value="Whisper",
                     interactive=True
                 )
                 
-                audio_input = gr.Audio(
-                    label="Source Audio",
-                    type="filepath"
-                )
+                audio_input = gr.Audio(label="Source Audio", type="filepath")
                 
-                # --- Whisper Parameters ---
                 with gr.Group(visible=True) as whisper_params:
-                    gr.Markdown("### ⚙️ Whisper Settings")
+                    gr.Markdown("### Whisper Settings")
                     whisper_model_id = gr.Dropdown(
                         label="Model Version",
-                        choices=[
-                            "openai/whisper-large-v3-turbo",
-                            "openai/whisper-large-v3",
-                            "openai/whisper-medium",
-                            "openai/whisper-base",
-                            "openai/whisper-tiny",
-                            "mlx-community/whisper-large-v3-turbo",
-                            "mlx-community/whisper-medium"
-                        ],
+                        choices=["openai/whisper-large-v3-turbo", "openai/whisper-large-v3", "openai/whisper-medium", "openai/whisper-base", "openai/whisper-tiny", "mlx-community/whisper-large-v3-turbo", "mlx-community/whisper-medium"],
                         value="openai/whisper-large-v3-turbo"
                     )
-                    whisper_lang = gr.Textbox(label="Language (e.g. 'en', 'fr')", value="auto", info="Type 'auto' for detection.")
-                    whisper_task = gr.Radio(
-                        label="Task Type",
-                        choices=["transcribe", "translate"],
-                        value="transcribe",
-                        info="'translate' translates to English."
-                    )
-                    with gr.Row():
-                        whisper_use_mlx = gr.Checkbox(label="Use MLX (Apple Silicon)", value=True)
-                        whisper_timestamps = gr.Checkbox(label="Word Timestamps", value=True)
+                    whisper_lang = gr.Textbox(label="Language", value="auto")
+                    whisper_task = gr.Radio(label="Task", choices=["transcribe", "translate"], value="transcribe")
+                    whisper_use_mlx = gr.Checkbox(label="Use MLX", value=True)
+                    whisper_timestamps = gr.Checkbox(label="Timestamps", value=True)
 
-                # --- Parakeet Parameters ---
                 with gr.Group(visible=False) as parakeet_params:
-                    gr.Markdown("### ⚙️ Parakeet Settings")
-                    parakeet_timestamps = gr.Checkbox(label="Enable SRT Timestamps", value=False)
+                    gr.Markdown("### Parakeet Settings")
+                    parakeet_timestamps = gr.Checkbox(label="SRT Timestamps", value=False)
 
-                # --- Canary Parameters ---
                 with gr.Group(visible=False) as canary_params:
-                    gr.Markdown("### ⚙️ Canary Settings")
-                    canary_source_lang = gr.Dropdown(
-                        label="Source Language",
-                        choices=['en', 'de', 'fr', 'es', 'it', 'nl', 'pt', 'ru'],
-                        value="en"
-                    )
-                    canary_target_lang = gr.Dropdown(
-                        label="Target Language",
-                        choices=['en', 'de', 'fr', 'es', 'it', 'nl', 'pt', 'ru'],
-                        value="en"
-                    )
+                    gr.Markdown("### Canary Settings")
+                    canary_source_lang = gr.Dropdown(label="Source Language", choices=['en', 'de', 'fr', 'es', 'it', 'nl', 'pt', 'ru'], value="en")
+                    canary_target_lang = gr.Dropdown(label="Target Language", choices=['en', 'de', 'fr', 'es', 'it', 'nl', 'pt', 'ru'], value="en")
 
                 transcribe_btn = gr.Button("✨ Transcribe Audio", variant="primary")
             
             with gr.Column(scale=1):
-                gr.Markdown("### Result")
-                transcript_output = gr.Textbox(
-                    label="Transcript",
-                    placeholder="Result will appear here...",
-                    lines=25,
-                    show_copy_button=True
-                )
+                transcript_output = gr.Textbox(label="Transcript", lines=25, show_copy_button=True)
         
-        # UI logic for parameter visibility
         model_dropdown.change(
             fn=on_model_change,
             inputs=[model_dropdown],
             outputs=[whisper_params, parakeet_params, canary_params]
         )
         
-        # Event wiring
         transcribe_btn.click(
             fn=transcribe_speech,
             inputs=[
-                model_dropdown, 
-                audio_input,
-                whisper_model_id,
-                whisper_lang,
-                whisper_task,
-                whisper_use_mlx,
-                whisper_timestamps,
-                parakeet_timestamps,
-                canary_source_lang,
-                canary_target_lang
+                model_dropdown, audio_input, whisper_model_id, whisper_lang, whisper_task, whisper_use_mlx, whisper_timestamps,
+                parakeet_timestamps, canary_source_lang, canary_target_lang
             ],
             outputs=[transcript_output]
         )
