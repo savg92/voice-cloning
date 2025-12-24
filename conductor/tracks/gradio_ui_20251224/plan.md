@@ -18,7 +18,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md) 79cf3ed
 
 ## Phase 3: ASR and VAD Interfaces
-- [ ] Task: Create `src/voice_cloning/ui/asr_tab.py` for ASR logic.
+- [x] Task: Create `src/voice_cloning/ui/asr_tab.py` for ASR logic. 94cb1d7
 - [ ] Task: Implement integration for **Whisper** and **Parakeet** ASR.
     - [ ] Subtask: Write integration tests.
     - [ ] Subtask: Implement file upload and transcription display.
