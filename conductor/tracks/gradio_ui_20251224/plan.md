@@ -17,14 +17,14 @@
 - [x] Task: Implement integration for **CosyVoice2** (if available/stable). e479f4f
 - [x] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md) 79cf3ed
 
-## Phase 3: ASR and VAD Interfaces
+## Phase 3: ASR and VAD Interfaces [checkpoint: 34fb69f]
 - [x] Task: Create `src/voice_cloning/ui/asr_tab.py` for ASR logic. 94cb1d7
 - [x] Task: Implement integration for **Whisper** and **Parakeet** ASR. 936918a
     - [x] Subtask: Write integration tests.
     - [x] Subtask: Implement file upload and transcription display.
 - [x] Task: Create `src/voice_cloning/ui/vad_tab.py` for VAD logic. 5ec3dd5
 - [x] Task: Implement integration for **HumAware** VAD. 5ec3dd5
-- [ ] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md) 34fb69f
 
 ## Phase 4: Polish and Documentation
 - [ ] Task: Expose all model-specific parameters (versions, device toggles, advanced settings) in the UI for TTS, ASR, and VAD.
