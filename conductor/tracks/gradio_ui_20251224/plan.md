@@ -29,6 +29,6 @@
 ## Phase 4: Polish and Documentation
 - [x] Task: Expose all model-specific parameters (versions, device toggles, advanced settings) in the UI for TTS, ASR, and VAD. 7292cec
 - [x] Task: Refine UI layout (grouping inputs, adding labels/markdown instructions). 67ce2f0
-- [ ] Task: Add error handling and user feedback (e.g., "Model loading...").
+- [x] Task: Add error handling and user feedback (e.g., "Model loading..."). 0357c3d
 - [ ] Task: Update `README.md` and create `docs/WEB_UI_GUIDE.md`.
 - [ ] Task: Conductor - User Manual Verification 'Phase 4' (Protocol in workflow.md)
