@@ -6,7 +6,7 @@ from src.voice_cloning.ui.tts_tab import create_tts_tab, generate_speech
 def get_default_args():
     return [
         "Kokoro", "Text", None, None, 1.0, True, False, # model, text, ref, ref_text, speed, mlx, stream
-        "af_heart", "a", # kokoro
+        "a", "af_heart", # kokoro (lang then voice)
         "v", # kitten
         0.7, 0.5, "en", False, "", "", # chatter
         0.7, 0.95, True, # marvis
