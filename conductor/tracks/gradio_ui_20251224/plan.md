@@ -7,7 +7,7 @@
 - [x] Task: Implement integration for **Kokoro** and **Kitten** TTS in the UI. fc4b6d5
     - [ ] Subtask: Write integration tests for UI-to-Model calls.
     - [ ] Subtask: Implement the UI components and callback logic.
-- [ ] Task: Add CLI command `--web` or `web` to `main.py` to launch the interface.
+- [x] Task: Add CLI command `--web` or `web` to `main.py` to launch the interface. 75fe8ad
 - [ ] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
 
 ## Phase 2: Advanced TTS and Voice Cloning
