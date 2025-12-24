@@ -1,5 +1,6 @@
 import gradio as gr
 from src.voice_cloning.ui.tts_tab import create_tts_tab
+from src.voice_cloning.ui.asr_tab import create_asr_tab
 
 def create_interface() -> gr.Blocks:
     """Creates the main Gradio interface for the Voice Cloning Toolkit."""
@@ -12,8 +13,7 @@ def create_interface() -> gr.Blocks:
                 create_tts_tab()
             
             with gr.TabItem("ASR"):
-                gr.Markdown("## Automatic Speech Recognition")
-                gr.Markdown("Coming soon...")
+                create_asr_tab()
                 
             with gr.TabItem("VAD"):
                 gr.Markdown("## Voice Activity Detection")
