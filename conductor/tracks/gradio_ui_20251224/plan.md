@@ -27,8 +27,8 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md) 34fb69f
 
 ## Phase 4: Polish and Documentation
-- [x] Task: Expose all model-specific parameters (versions, device toggles, advanced settings) in the UI for TTS, ASR, and VAD. 6bcbf01
-- [x] Task: Refine UI layout (grouping inputs, adding labels/markdown instructions). 6bcbf01
-- [x] Task: Add error handling and user feedback (e.g., "Model loading..."). 6bcbf01
-- [x] Task: Update `README.md` and create `docs/WEB_UI_GUIDE.md`. 0ebe2b0
-- [ ] Task: Conductor - User Manual Verification 'Phase 4' (Protocol in workflow.md)
+- [x] Task: Expose all model-specific parameters (versions, device toggles, advanced settings) in the UI for TTS, ASR, and VAD. 6b004dd
+- [x] Task: Refine UI layout (grouping inputs, adding labels/markdown instructions). 6b004dd
+- [x] Task: Add error handling and user feedback (e.g., "Model loading..."). 6b004dd
+- [x] Task: Update `README.md` and create `docs/WEB_UI_GUIDE.md`. 6b004dd
+- [x] Task: Conductor - User Manual Verification 'Phase 4' (Protocol in workflow.md) 6b004dd
