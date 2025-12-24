@@ -37,6 +37,13 @@ uv pip install -e .
 
 ### 3. Quick Start Examples
 
+#### Web Interface (GUI)
+```bash
+# Launch interactive web UI
+uv run python main.py --model web
+```
+See [docs/WEB_UI_GUIDE.md](docs/WEB_UI_GUIDE.md) for details.
+
 #### TTS (Text-to-Speech)
 ```bash
 # Kokoro - High quality, multilingual
