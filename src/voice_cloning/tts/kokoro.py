@@ -6,14 +6,16 @@
 import soundfile as sf
 from typing import Optional
 import logging
+from .utils import map_lang_code
 
 logger = logging.getLogger(__name__)
+
 
 def synthesize_speech(
     text: str,
     audio_sample_path: Optional[str] = None,
     output_path: str = "kokoro_output.wav",
-    lang_code: str = "e",
+    lang_code: str = "a",
     voice: str = "af_heart",
     speed: float = 1.0,
     stream: bool = False,
@@ -26,7 +28,7 @@ def synthesize_speech(
         text (str): The text to be converted to speech.
         audio_sample_path (Optional[str]): Path to the audio sample for voice cloning (not used in basic Kokoro pipeline).
         output_path (str): Path to save the generated audio file.
-        lang_code (str): Language code for the TTS pipeline (default: 'e' for English).
+        lang_code (str): Language code for the TTS pipeline (default: 'a' for US English).
         voice (str): Voice name to use (default: 'af_heart').
         speed (float): Speech speed (default: 1.0).
         stream (bool): Enable streaming playback.
@@ -56,6 +58,7 @@ def _synthesize_with_mlx(
     import subprocess
     import tempfile
     import os
+    import sys
     
     try:
         import mlx_audio
@@ -74,16 +77,25 @@ def _synthesize_with_mlx(
         # mlx-audio generates output with file_prefix
         file_prefix = os.path.join(tmpdir, "mlx_output")
         
+        # Apply language mapping if needed (consistent with PyTorch backend)
+        mapped_lang = map_lang_code(lang_code)
+
         cmd = [
-            "python", "-m", "mlx_audio.tts.generate",
+            sys.executable, "-m", "mlx_audio.tts.generate",
             "--model", "mlx-community/Kokoro-82M-bf16",
             "--text", text,
             "--voice", voice,
             "--speed", str(speed),
+            "--lang_code", mapped_lang,
             "--file_prefix", file_prefix
         ]
         
-        logger.info(f"Running MLX TTS generation...")
+        if stream:
+            cmd.append("--stream")
+            # If we are streaming, we might not get a file, or it might be partial.
+            # mlx-audio generate --stream usually plays audio.
+        
+        logger.info(f"Running MLX TTS command: {' '.join(cmd)}")
         
         try:
             result = subprocess.run(
@@ -93,12 +105,20 @@ def _synthesize_with_mlx(
                 check=True
             )
             
+            if stream:
+                # For streaming, we return a success indicator or similar
+                logger.info("MLX Streaming finished.")
+                return output_path
+
             # MLX generates file_prefix_000.wav (with sequence number)
             generated_file = f"{file_prefix}_000.wav"
             if not os.path.exists(generated_file):
                 # Try without sequence for older versions
                 generated_file = f"{file_prefix}.wav"
                 if not os.path.exists(generated_file):
+                    # Check if maybe it's 24k or something else
+                    logger.error(f"MLX stdout: {result.stdout}")
+                    logger.error(f"MLX stderr: {result.stderr}")
                     raise RuntimeError(f"MLX did not generate expected output file")
             
             # Move to final output
@@ -110,9 +130,6 @@ def _synthesize_with_mlx(
             raise RuntimeError(f"MLX generation failed: {e.stderr}")
         except FileNotFoundError:
             raise RuntimeError("mlx_audio.tts.generate not found. Ensure mlx-audio is properly installed.")
-    
-    if stream:
-        logger.warning("Streaming not yet implemented for MLX backend")
     
     logger.info(f"✓ MLX synthesis complete: {output_path}")
     return output_path
@@ -136,19 +153,7 @@ def _synthesize_with_pytorch(
     use_cuda = torch.cuda.is_available()
 
     # Map common language codes to Kokoro codes if needed
-    lang_map = {
-        'en-us': 'a', 'en': 'a',
-        'en-gb': 'b', 'en-uk': 'b',
-        'fr': 'f', 'fr-fr': 'f',
-        'ja': 'j', 'jp': 'j',
-        'zh': 'z', 'cn': 'z',
-        'es': 'e',
-        'it': 'i',
-        'pt': 'p', 'pt-br': 'p',
-        'hi': 'h'
-    }
-
-    pipeline_lang = lang_map.get(lang_code.lower(), lang_code)
+    pipeline_lang = map_lang_code(lang_code)
 
     try:
         pipeline = KPipeline(lang_code=pipeline_lang, repo_id="hexgrad/Kokoro-82M")

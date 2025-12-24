@@ -20,6 +20,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 from typing import Optional, Union
+from .utils import map_lang_code
 
 logger = logging.getLogger(__name__)
 
@@ -186,7 +187,9 @@ def _synthesize_with_mlx(
     cfg_weight: float = 0.5,
     language: Optional[str] = None,
     model_id: Optional[str] = None,
-    voice: Optional[str] = None
+    voice: Optional[str] = None,
+    speed: float = 1.0,
+    stream: bool = False
 ):
     """
     Synthesize speech using MLX backend (Apple Silicon optimized, 4-bit quantized).
@@ -259,7 +262,7 @@ def _synthesize_with_mlx(
             lang_code = language if language else "en"
         else:
             # Standard Kokoro-based models use 'a' for American English, 'b' for British English
-            lang_code = language if language and language != "en" else "a"
+            lang_code = map_lang_code(language) if language else "a"
         
         # Get output directory and filename
         output_dir = os.path.dirname(output_wav) or "."
@@ -300,6 +303,8 @@ def _synthesize_with_mlx(
             "file_prefix": file_prefix,
             "lang_code": lang_code,
             "voice": kokoro_voice,
+            "speed": speed,
+            "stream": stream,
             "verbose": True
         }
         
@@ -358,7 +363,9 @@ def synthesize_with_chatterbox(
     multilingual: bool = False,
     use_mlx: bool = False,
     model_id: Optional[str] = None,
-    voice: Optional[str] = None
+    voice: Optional[str] = None,
+    speed: float = 1.0,
+    stream: bool = False
 ):
     """
     Synthesize speech from text using Chatterbox TTS.
@@ -373,6 +380,9 @@ def synthesize_with_chatterbox(
         multilingual: Use multilingual model (supports 23 languages) - PyTorch only
         use_mlx: Use MLX backend for Apple Silicon optimization (English only, 4-bit)
         model_id: Specific model ID to use (e.g. 'mlx-community/chatterbox-turbo-4bit')
+        voice: Specific voice name to use (e.g. 'af_heart')
+        speed: Speech speed (default 1.0)
+        stream: Enable streaming (default False)
     
     Supported languages (multilingual model, PyTorch only):
         ar, da, de, el, en, es, fi, fr, he, hi, it, ja, ko, ms, nl, no, 
@@ -392,7 +402,9 @@ def synthesize_with_chatterbox(
              cfg_weight, 
              language, 
              model_id=model_id,
-             voice=voice
+             voice=voice,
+             speed=speed,
+             stream=stream
          )
     else:
         _synthesize_with_pytorch(text, output_wav, source_wav, exaggeration, cfg_weight, language, multilingual)

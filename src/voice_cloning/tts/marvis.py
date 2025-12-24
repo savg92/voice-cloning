@@ -4,6 +4,7 @@ import sys
 import os
 from pathlib import Path
 from typing import Optional
+from .utils import map_lang_code
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,7 @@ class MarvisTTS:
     def synthesize(self, text: str, output_path: str, ref_audio: Optional[str] = None, 
                    ref_text: Optional[str] = None, stream: bool = False, 
                    speed: Optional[float] = None, temperature: Optional[float] = None,
-                   quantized: bool = True):
+                   quantized: bool = True, lang_code: str = "en", voice: Optional[str] = None):
         """
         Synthesize text to speech.
         
@@ -40,12 +41,15 @@ class MarvisTTS:
             stream: Enable streaming output (audio plays as it generates)
             speed: Speech speed multiplier (default: 1.0)
             temperature: Sampling temperature for generation (default: 0.7)
+            lang_code: Language code (en, fr, de)
+            voice: Voice name to use (if not using ref_audio)
         """
         # Using MLX via subprocess as verified
         try:
             import subprocess
             import tempfile
             import shutil
+            import sys
             from pathlib import Path
 
             # Use a temporary directory to handle the _000.wav suffix
@@ -63,18 +67,23 @@ class MarvisTTS:
                 elif quantized and not local_model_path.exists():
                     logger.warning(f"Quantized model not found at {local_model_path}, falling back to standard model")
                 
+                mapped_lang = map_lang_code(lang_code)
+
                 cmd = [
-                    "uv", "run", "python", "-m", "mlx_audio.tts.generate",
+                    sys.executable, "-m", "mlx_audio.tts.generate",
                     "--model", model_arg,
                     "--text", text,
+                    "--lang_code", mapped_lang,
                     "--file_prefix", str(temp_prefix)
                 ]
                 
-                # Add voice cloning parameters
+                # Add voice or reference audio
                 if ref_audio:
                     cmd.extend(["--ref_audio", ref_audio])
                     if ref_text:
                         cmd.extend(["--ref_text", ref_text])
+                elif voice:
+                    cmd.extend(["--voice", voice])
                 
                 # Add streaming
                 if stream:

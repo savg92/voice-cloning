@@ -111,7 +111,8 @@ def generate_speech(
                 exaggeration=chatter_exaggeration, cfg_weight=chatter_cfg,
                 language=chatter_lang, multilingual=chatter_multi, use_mlx=use_mlx,
                 model_id=chatter_model_id if chatter_model_id else None,
-                voice=chatter_voice if chatter_voice else None
+                voice=chatter_voice if chatter_voice else None,
+                speed=speed, stream=stream
             )
             
         elif model_name == "Marvis":
@@ -120,7 +121,8 @@ def generate_speech(
             tts.synthesize(
                 text=text, output_path=output_path, ref_audio=reference_audio,
                 ref_text=reference_text, speed=speed, temperature=marvis_temp,
-                top_p=marvis_top_p, quantized=marvis_quant, stream=stream
+                top_p=marvis_top_p, quantized=marvis_quant, stream=stream,
+                lang_code="en" # Default to en for Marvis in UI for now
             )
             
         elif model_name == "CosyVoice":
