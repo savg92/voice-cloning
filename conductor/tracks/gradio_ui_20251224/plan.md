@@ -4,7 +4,7 @@
 - [x] Task: Create `src/voice_cloning/ui/` directory and `__init__.py`. 47e0846
 - [x] Task: Implement basic Gradio scaffolding in `src/voice_cloning/ui/app.py`. ef304b8
 - [x] Task: Create `src/voice_cloning/ui/tts_tab.py` for TTS logic. 1437c78
-- [ ] Task: Implement integration for **Kokoro** and **Kitten** TTS in the UI.
+- [x] Task: Implement integration for **Kokoro** and **Kitten** TTS in the UI. fc4b6d5
     - [ ] Subtask: Write integration tests for UI-to-Model calls.
     - [ ] Subtask: Implement the UI components and callback logic.
 - [ ] Task: Add CLI command `--web` or `web` to `main.py` to launch the interface.
