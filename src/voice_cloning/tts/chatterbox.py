@@ -14,14 +14,47 @@ Features:
 
 import torch
 import torchaudio as ta
+import os
 import logging
-from pathlib import Path
-from typing import Optional
 import subprocess
 import tempfile
-import os
+from pathlib import Path
+from typing import Optional, Union
 
 logger = logging.getLogger(__name__)
+
+# Voice Presets for consistency across languages
+# These reference local wav files that serve as high-quality speaker embeddings
+VOICE_PRESETS = {
+    # Default Language Voices (Kokoro-cloned)
+    "en": "samples/kokoro_voices/af_heart.wav",
+    "es": "samples/kokoro_voices/ef_dora.wav",
+    "fr": "samples/kokoro_voices/ff_siwis.wav",
+    "it": "samples/kokoro_voices/if_sara.wav",
+    "pt": "samples/kokoro_voices/pf_dora.wav",
+    "de": "samples/kokoro_voices/de_sarah.wav",
+    "ru": "samples/kokoro_voices/ru_nicole.wav",
+    "tr": "samples/kokoro_voices/tr_river.wav",
+    "hi": "samples/kokoro_voices/hf_alpha.wav",
+    
+    # Specific Kokoro Character Voices
+    "af_heart": "samples/kokoro_voices/af_heart.wav",
+    "af_bella": "samples/kokoro_voices/af_bella.wav",
+    "am_adam": "samples/kokoro_voices/am_adam.wav",
+    "ef_dora": "samples/kokoro_voices/ef_dora.wav",
+    "ff_siwis": "samples/kokoro_voices/ff_siwis.wav",
+    "if_sara": "samples/kokoro_voices/if_sara.wav",
+    "pf_dora": "samples/kokoro_voices/pf_dora.wav",
+    "de_sarah": "samples/kokoro_voices/de_sarah.wav",
+    "ru_nicole": "samples/kokoro_voices/ru_nicole.wav",
+    "tr_river": "samples/kokoro_voices/tr_river.wav",
+    "hi_puck": "samples/kokoro_voices/hi_puck.wav",
+    "hf_alpha": "samples/kokoro_voices/hf_alpha.wav",
+
+    # Legacy/Other
+    "dave": "samples/neutts_air/dave.wav",
+    "jo": "samples/neutts_air/jo.wav",
+}
 
 class ChatterboxWrapper:
     """
@@ -151,101 +184,168 @@ def _synthesize_with_mlx(
     source_wav: Optional[str] = None,
     exaggeration: float = 0.5,
     cfg_weight: float = 0.5,
-    language: Optional[str] = None
+    language: Optional[str] = None,
+    model_id: Optional[str] = None,
+    voice: Optional[str] = None
 ):
     """
     Synthesize speech using MLX backend (Apple Silicon optimized, 4-bit quantized).
+    
+    NOTE: As of mlx-audio 0.2.8, Chatterbox support is not yet available in the official
+    mlx-audio library, despite references on Hugging Face. This function is prepared for
+    when support is added.
     """
     try:
         from mlx_audio.tts.generate import generate_audio
     except ImportError:
         raise ImportError(
-            "MLX backend requires 'mlx-audio-plus' package. Install with:\n"
-            "  uv pip install -U mlx-audio-plus\n"
+            "MLX backend requires 'mlx-audio' package. Install with:\n"
+            "  uv pip install -U mlx-audio\n"
             "Or use use_mlx=False to use PyTorch backend."
         )
     
     logger.info("Generating speech with MLX backend (Chatterbox-TTS-4bit)...")
-    logger.info(f"Exaggeration={exaggeration}, CFG Weight={cfg_weight}")
     
-    with tempfile.TemporaryDirectory() as tmpdir:
-        file_prefix = os.path.join(tmpdir, "chatterbox_mlx")
-        
-        # MLX Chatterbox requires ref_audio and ref_text for voice cloning
-        # If no reference is provided, we'll use default voice by passing None
-        if source_wav:
-            ref_audio = source_wav
-            logger.info(f"Using reference audio for voice cloning: {source_wav}")
+    # MLX Chatterbox requires ref_audio for voice cloning.
+    # We'll determine the best reference in this order:
+    # 1. source_wav (direct path)
+    # 2. voice (preset name or direct path)
+    # 3. language-specific default preset
+    # 4. Global default (samples/anger.wav)
+    
+    ref_audio = None
+    
+    if source_wav:
+        ref_audio = source_wav
+        logger.info(f"Using reference audio for voice cloning: {source_wav}")
+    elif voice:
+        if voice in VOICE_PRESETS:
+            ref_audio = VOICE_PRESETS[voice]
+            logger.info(f"Using voice preset: {voice} -> {ref_audio}")
+        elif os.path.exists(voice):
+            ref_audio = voice
+            logger.info(f"Using voice reference file: {voice}")
         else:
-            # Try to find a default reference in samples
-            default_ref = "samples/anger.wav"
+            logger.warning(f"Voice preset/file not found: {voice}. Falling back to default.")
+            
+    if not ref_audio:
+        # Check if we have a preset for the current language
+        if language in VOICE_PRESETS:
+            ref_audio = VOICE_PRESETS[language]
+            logger.info(f"Using consistent language voice preset for '{language}': {ref_audio}")
+        else:
+            # Global fallback
+            default_ref = VOICE_PRESETS.get("en", "samples/anger.wav")
             if os.path.exists(default_ref):
                 ref_audio = default_ref
-                logger.warning(f"No reference audio provided. Using default for testing: {default_ref}")
-                logger.warning("To clone a specific voice, provide --reference path/to/audio.wav")
+                logger.info(f"Using global default voice: {ref_audio}")
             else:
                  raise ValueError(
                      "Chatterbox (MLX) requires a reference audio file for voice cloning.\n"
-                     "Please provide one using --reference path/to/audio.wav"
+                     "Please provide one using --reference or --voice, or ensured default samples exist."
                  )
+    
+    # Reference text is optional - mlx-audio can auto-transcribe if needed
+    ref_text = "."
+    
+    try:
+        # Use provided model_id or default to standard 4-bit model
+        target_model = model_id if model_id else "mlx-community/chatterbox-4bit"
+        is_turbo = "turbo" in target_model.lower()
         
-        # Reference text is optional for zero-shot in some implementations, 
-        # but mlx-audio might require it or handle it. Passing "." as placeholder if None.
-        ref_text = "."
+        # Map 'language' to 'lang_code'
+        if is_turbo:
+            # Turbo model supports expanded language codes (ar, da, de, el, en, es, etc.)
+            lang_code = language if language else "en"
+        else:
+            # Standard Kokoro-based models use 'a' for American English, 'b' for British English
+            lang_code = language if language and language != "en" else "a"
         
-        try:
-            # Pass all control parameters to MLX backend via kwargs
-            # Map 'language' to 'lang_code' if provided (default 'a' for American English)
-            lang_code = language if language else "a"
-            
-            generate_audio(
-                text=text,
-                model="mlx-community/Chatterbox-TTS-4bit",
-                ref_audio=ref_audio,
-                ref_text=ref_text,
-                file_prefix=file_prefix,
-                exaggeration=exaggeration,
-                cfg_weight=cfg_weight,
-                lang_code=lang_code
+        # Get output directory and filename
+        output_dir = os.path.dirname(output_wav) or "."
+        output_name = os.path.splitext(os.path.basename(output_wav))[0]
+        file_prefix = os.path.join(output_dir, output_name)
+        
+        # Map languages to their respective Kokoro voices for consistency
+        # This solves the issue where it defaults to 'af_heart' (English) even for French/Spanish
+        voice_map = {
+            "en": "af_heart",
+            "es": "ef_dora",
+            "fr": "ff_siwis",
+            "it": "if_sara",
+            "pt": "pf_dora",
+            "de": "af_sarah", # de_sarah sample uses af_sarah voice
+            "ru": "af_nicole",
+            "tr": "af_river",
+            "hi": "hf_alpha",
+            "ja": "jf_alpha", # Fallback names if generation failed but user wants consistency
+            "zh": "zf_xiaoxiao"
+        }
+        
+        # Determine the best Kokoro voice name to pass to mlx-audio
+        if voice and voice in VOICE_PRESETS:
+             kokoro_voice = voice # Use the preset name as the voice
+        elif voice:
+             kokoro_voice = voice # Pass through direct voice name (e.g. af_bella)
+        else:
+             kokoro_voice = voice_map.get(language, "af_heart")
+
+        # Note: mlx-audio may not support exaggeration and cfg_weight parameters
+        # These were specific to mlx-audio-plus. We'll try to pass them but they may be ignored.
+        kwargs = {
+            "text": text,
+            "model": target_model,
+            "ref_audio": ref_audio,
+            "ref_text": ref_text,
+            "file_prefix": file_prefix,
+            "lang_code": lang_code,
+            "voice": kokoro_voice,
+            "verbose": True
+        }
+        
+        # Try to include control parameters if supported
+        # The official mlx-audio may use different parameter names or not support these
+        if exaggeration != 0.5 or cfg_weight != 0.5:
+            logger.warning(
+                f"Note: exaggeration={exaggeration} and cfg_weight={cfg_weight} parameters "
+                "may not be supported by the official mlx-audio library. "
+                "These were specific to mlx-audio-plus."
             )
-            
-            # MLX generates file_prefix + ".wav" (or similar depending on version)
-            # Latest mlx-audio-plus might use output_path directly or append ext
-            
-            # Check for potential output files
-            possible_files = [
-                f"{file_prefix}.wav",
-                f"{file_prefix}_0.wav",
-                f"{file_prefix}_000.wav"
-            ]
-            
-            # Also check if it just wrote to output_path if it ends in .wav (but we passed directory-like prefix)
-            
-            generated_file = None
-            for f in possible_files:
-                if os.path.exists(f):
-                    generated_file = f
-                    break
-            
-            if not generated_file:
-                # Fallback: list dir to find any wav
-                files = os.listdir(tmpdir)
-                wavs = [f for f in files if f.endswith(".wav")]
-                if wavs:
-                    generated_file = os.path.join(tmpdir, wavs[0])
-            
-            if not generated_file:
-                raise RuntimeError(f"MLX did not generate expected output file. Found: {os.listdir(tmpdir)}")
-            
-            # Move to final output
-            import shutil
-            shutil.move(generated_file, output_wav)
-            
+        
+        generate_audio(**kwargs)
+        
+        # mlx-audio generates file_prefix + "_000.wav" by default
+        expected_output = f"{file_prefix}_000.wav"
+        
+        # Also check for .wav if prefix already had it (unlikely but possible)
+        if not os.path.exists(expected_output) and os.path.exists(f"{file_prefix}.wav"):
+             expected_output = f"{file_prefix}.wav"
+
+        if os.path.exists(expected_output):
+            # Rename to the requested output_wav if they differ
+            if os.path.abspath(expected_output) != os.path.abspath(output_wav):
+                if os.path.exists(output_wav):
+                    os.remove(output_wav)
+                os.rename(expected_output, output_wav)
             logger.info(f"✓ MLX synthesis complete: {output_wav}")
-            
-        except Exception as e:
-            logger.error(f"MLX synthesis failed: {e}")
-            raise RuntimeError(f"MLX generation failed: {e}")
+        else:
+            # Check if maybe it saved it without suffix for some reason (older version?)
+            raise RuntimeError(
+                f"MLX did not generate expected output file: {expected_output}"
+            )
+        
+    except ValueError as e:
+        if "chatterbox not supported" in str(e).lower():
+            raise RuntimeError(
+                "Chatterbox is not yet supported in the official mlx-audio library.\n"
+                "As of mlx-audio 0.2.8, Chatterbox support is still in development.\n"
+                "Please use the PyTorch backend instead (remove --use-mlx flag).\n"
+                f"Original error: {e}"
+            )
+        raise
+    except Exception as e:
+        logger.error(f"MLX synthesis failed: {e}")
+        raise RuntimeError(f"MLX generation failed: {e}")
 
 
 def synthesize_with_chatterbox(
@@ -256,7 +356,9 @@ def synthesize_with_chatterbox(
     cfg_weight: float = 0.5,
     language: Optional[str] = None,
     multilingual: bool = False,
-    use_mlx: bool = False
+    use_mlx: bool = False,
+    model_id: Optional[str] = None,
+    voice: Optional[str] = None
 ):
     """
     Synthesize speech from text using Chatterbox TTS.
@@ -270,6 +372,7 @@ def synthesize_with_chatterbox(
         language: Language code for multilingual model (e.g., 'en', 'fr', 'zh')
         multilingual: Use multilingual model (supports 23 languages) - PyTorch only
         use_mlx: Use MLX backend for Apple Silicon optimization (English only, 4-bit)
+        model_id: Specific model ID to use (e.g. 'mlx-community/chatterbox-turbo-4bit')
     
     Supported languages (multilingual model, PyTorch only):
         ar, da, de, el, en, es, fi, fr, he, hi, it, ja, ko, ms, nl, no, 
@@ -281,7 +384,16 @@ def synthesize_with_chatterbox(
     
     # MLX backend
     if use_mlx:
-         _synthesize_with_mlx(text, output_wav, source_wav, exaggeration, cfg_weight, language)
+         _synthesize_with_mlx(
+             text, 
+             output_wav, 
+             source_wav, 
+             exaggeration, 
+             cfg_weight, 
+             language, 
+             model_id=model_id,
+             voice=voice
+         )
     else:
         _synthesize_with_pytorch(text, output_wav, source_wav, exaggeration, cfg_weight, language, multilingual)
 

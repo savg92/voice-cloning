@@ -6,7 +6,7 @@
 1. **Research**: Analyzed features and installation requirements for CosyVoice2 (MLX and PyTorch).
 2. **Implementation**:
    - Created `src/voice_cloning/tts/cosyvoice.py` supporting:
-     - **MLX Backend**: Using `mlx-audio-plus`.
+     - **MLX Backend**: Using `mlx-audio`.
      - **PyTorch Backend**: Using `CosyVoice` repo (official / ModelScope).
    - Features implemented: Basic TTS, Zero-shot cloning, Instruct mode (CosyVoice2/Instruct).
 3. **Documentation**:

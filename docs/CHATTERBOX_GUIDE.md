@@ -7,22 +7,27 @@
 - `mlx-audio` (Marvis TTS) requires `transformers>=4.49.0`
 
 **MLX Optimized Version:**
-You can use the MLX-optimized 4-bit model with the updated `mlx-audio-plus` package.
+You can use the MLX-optimized 4-bit model with the official `mlx-audio` package.
 
 ---
 
 ## 🍎 MLX Backend Support (Apple Silicon)
 
-**Status:** ✅ **SUPPORTED** (4-bit quantization)
+**Status:** ⏳ **PENDING** (Chatterbox not yet in mlx-audio 0.2.8)
 
-You can run `mlx-community/Chatterbox-TTS-4bit` natively on Apple Silicon using the `mlx-audio-plus` library. This avoids the dependency conflict mentioned above as it uses MLX instead of PyTorch.
+The Hugging Face model page for `mlx-community/chatterbox-4bit` references `mlx-audio`, but as of version 0.2.8, Chatterbox support is not yet implemented in the official library. However, we've implemented support for both the standard and **turbo** versions via the `--model-id` flag.
+
+### Turbo Model
+
+The turbo model (`mlx-community/chatterbox-turbo-4bit`) is significantly faster and optimized for real-time performance.
+
 
 ### Prerequisites
 
-Install the updated MLX Audio library:
+Install the MLX Audio library:
 
 ```bash
-uv pip install -U mlx-audio-plus
+uv pip install -U mlx-audio
 ```
 
 ### Usage
@@ -44,7 +49,64 @@ uv run python main.py --model chatterbox \
   --reference samples/anger.wav \
   --use-mlx \
   --output outputs/cloned_mlx.wav
+
+# Using Chatterbox Turbo (Fastest)
+uv run python main.py --model chatterbox \
+  --text "Testing the new turbo model for faster inference." \
+  --use-mlx \
+  --model-id mlx-community/chatterbox-turbo-4bit \
+  --output outputs/turbo_test.wav
+
+# Multilingual Support (Turbo only)
+# Languages: ar, da, de, el, en, es, fi, fr, he, hi, it, ja, ko, ms, nl, no, pl, pt, ru, sv, sw, tr, zh
+uv run python main.py --model chatterbox \
+  --text "¡Hola! Estoy probando el soporte multilingüe de Chatterbox Turbo." \
+  --language es \
+  --use-mlx \
+  --model-id mlx-community/chatterbox-turbo-4bit \
+  --output outputs/turbo_spanish.wav
 ```
+
+### Supported Languages (Turbo Model)
+The `chatterbox-turbo-4bit` model supports the following languages:
+
+| Language | Code | Language | Code |
+| :--- | :--- | :--- | :--- |
+| Arabic | `ar` | Italian | `it` |
+| Chinese | `zh` | Japanese | `ja` |
+| Danish | `da` | Korean | `ko` |
+| Dutch | `nl` | Malay | `ms` |
+| English | `en` | Norwegian | `no` |
+| Finnish | `fi` | Polish | `pl` |
+| French | `fr` | Portuguese | `pt` |
+| German | `de` | Russian | `ru` |
+| Greek | `el` | Spanish | `es` |
+| Hebrew | `he` | Swahili | `sw` |
+| Hindi | `hi` | Swedish | `sv` |
+| | | Turkish | `tr` |
+
+### Voice Presets (Kokoro Consistency)
+For consistency across languages, you can use these high-quality Kokoro voice presets. They are automatically mapped to the appropriate language if no other reference is provided:
+
+| Preset Name | Recommended Language | Description |
+| :--- | :--- | :--- |
+| `af_heart` | `en` | Standard high-quality female voice (Global default) |
+| `af_bella` | `en` | Expressive female voice |
+| `am_adam` | `en` | Deep male voice |
+| `ef_dora` | `es` | Spanish-optimized female voice |
+| `ff_siwis` | `fr` | French-optimized female voice |
+| `if_sara` | `it` | Italian-optimized female voice |
+| `pf_dora` | `pt` | Portuguese-optimized female voice |
+
+Example usage:
+```bash
+# Uses the French-optimized Kokoro voice for consistency
+uv run python main.py --model chatterbox --text "C'est une voix française consistante." --language fr --use-mlx --model-id mlx-community/chatterbox-turbo-4bit --output outputs/turbo_fr_consistant.wav
+
+# Explicitly selecting a Kokoro voice
+uv run python main.py --model chatterbox --text "Using the Adam voice for English." --voice am_adam --use-mlx --model-id mlx-community/chatterbox-turbo-4bit --output outputs/turbo_adam.wav
+```
+
 
 **Features:**
 - 4-bit quantized model (low memory)
@@ -75,6 +137,12 @@ uv run python main.py --model chatterbox \
   --reference samples/anger.wav \
   --output outputs/mlx_dramatic.wav
 ```
+
+> [!WARNING]
+> **MLX Backend Status (December 2024):** While the Hugging Face model page for `mlx-community/chatterbox-4bit` suggests support in `mlx-audio`, as of version 0.2.8, Chatterbox is **not yet implemented** in the official `mlx-audio` library. The module `mlx_audio.tts.models.chatterbox` does not exist. 
+>
+> **Recommendation:** Use the PyTorch backend (without `--use-mlx` flag) for Chatterbox TTS until official MLX support is added.
+
 
 ## Installation Options
 
