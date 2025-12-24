@@ -5,18 +5,21 @@ from src.voice_cloning.ui.vad_tab import create_vad_tab
 
 def create_interface() -> gr.Blocks:
     """Creates the main Gradio interface for the Voice Cloning Toolkit."""
-    with gr.Blocks(title="Voice Cloning Toolkit") as demo:
-        gr.Markdown("# Voice Cloning Toolkit")
-        gr.Markdown("Select a tab below to access different features.")
+    with gr.Blocks(title="Voice Cloning Toolkit", theme=gr.themes.Soft()) as demo:
+        gr.Markdown("# 🎙️ Voice Cloning & ASR Research Toolkit")
+        gr.Markdown(
+            "Welcome to the Voice Cloning Research Toolkit. This interface allows you to "
+            "interactively test and compare state-of-the-art TTS, ASR, and VAD models."
+        )
         
         with gr.Tabs():
-            with gr.TabItem("TTS"):
+            with gr.TabItem("🎭 Text-to-Speech"):
                 create_tts_tab()
             
-            with gr.TabItem("ASR"):
+            with gr.TabItem("📝 Speech Recognition"):
                 create_asr_tab()
                 
-            with gr.TabItem("VAD"):
+            with gr.TabItem("🔍 Voice Activity"):
                 create_vad_tab()
                 
     return demo

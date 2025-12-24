@@ -10,24 +10,18 @@ def generate_speech(
     model_name: str, 
     text: str, 
     reference_audio: Optional[str],
-    # Shared params
     speed: float,
     use_mlx: bool,
-    # Kokoro params
     kokoro_voice: str,
     kokoro_lang: str,
-    # Kitten params
     kitten_voice: str,
-    # Chatterbox params
     chatter_exaggeration: float,
     chatter_cfg: float,
     chatter_lang: str,
     chatter_multi: bool,
-    # Marvis params
     marvis_temp: float,
     marvis_top_p: float,
     marvis_quant: bool,
-    # CosyVoice params
     cosy_instruct: str
 ) -> str:
     """
@@ -36,7 +30,6 @@ def generate_speech(
     if not text.strip():
         raise gr.Error("Please enter some text to synthesize.")
         
-    # Validation for cloning models
     cloning_models = ["Chatterbox", "Marvis", "CosyVoice"]
     if model_name in cloning_models and not reference_audio:
         raise gr.Error(f"Reference audio is required for model '{model_name}'.")
@@ -112,7 +105,7 @@ def generate_speech(
         raise gr.Error(f"Synthesis failed: {str(e)}")
 
 def on_model_change(model_name: str):
-    """Updates visibility of model-specific parameter groups."""
+    """Updates visibility of model-specific parameter groups and instructions."""
     cloning_models = ["Chatterbox", "Marvis", "CosyVoice"]
     is_cloning = model_name in cloning_models
     
@@ -128,49 +121,50 @@ def on_model_change(model_name: str):
 def create_tts_tab():
     """Creates the TTS tab content."""
     with gr.Column() as tts_layout:
-        gr.Markdown("## Text-to-Speech")
+        gr.Markdown("## 🎭 Text-to-Speech & Voice Cloning")
         
         with gr.Row():
-            with gr.Column():
+            with gr.Column(scale=1):
                 model_dropdown = gr.Dropdown(
-                    label="Model",
+                    label="Model Engine",
                     choices=["Kokoro", "Kitten", "Chatterbox", "Marvis", "CosyVoice"],
                     value="Kokoro",
-                    interactive=True
-                )
-                text_input = gr.Textbox(
-                    label="Input Text",
-                    placeholder="Enter text to synthesize...",
-                    lines=3
+                    interactive=True,
+                    info="Select the underlying TTS architecture."
                 )
                 
-                # Reference Audio Input
+                text_input = gr.Textbox(
+                    label="Input Text",
+                    placeholder="Type the text you want to synthesize...",
+                    lines=5
+                )
+                
                 ref_audio_input = gr.Audio(
-                    label="Reference Audio (Voice Cloning)",
+                    label="Reference Audio (for Cloning)",
                     type="filepath",
                     visible=False
                 )
 
-                # --- Shared Params ---
-                with gr.Row():
-                    speed = gr.Slider(label="Speed", minimum=0.5, maximum=2.0, value=1.0, step=0.1)
-                    use_mlx = gr.Checkbox(label="Use MLX (Apple Silicon)", value=True)
+                with gr.Accordion("⚙️ Global Settings", open=True):
+                    with gr.Row():
+                        speed = gr.Slider(label="Playback Speed", minimum=0.5, maximum=2.0, value=1.0, step=0.1)
+                        use_mlx = gr.Checkbox(label="MLX Acceleration", value=True, info="Recommended for Mac")
 
                 # --- Kokoro Params ---
                 with gr.Group(visible=True) as kokoro_params:
                     gr.Markdown("### Kokoro Settings")
                     kokoro_voice = gr.Dropdown(
-                        label="Voice",
+                        label="Voice Style",
                         choices=["af_heart", "af_bella", "am_adam", "bf_emma", "bf_isabella"],
                         value="af_heart"
                     )
-                    kokoro_lang = gr.Dropdown(label="Language Code", choices=["a", "b", "e"], value="a")
+                    kokoro_lang = gr.Dropdown(label="Language", choices=["a (American)", "b (British)", "e (English)"], value="a")
 
                 # --- Kitten Params ---
                 with gr.Group(visible=False) as kitten_params:
                     gr.Markdown("### Kitten Settings")
                     kitten_voice = gr.Dropdown(
-                        label="Voice",
+                        label="Kitten Voice",
                         choices=["expr-voice-4-f", "expr-voice-1-m"],
                         value="expr-voice-4-f"
                     )
@@ -180,25 +174,39 @@ def create_tts_tab():
                     gr.Markdown("### Chatterbox Settings")
                     chatter_exaggeration = gr.Slider(label="Exaggeration", minimum=0.0, maximum=1.0, value=0.7)
                     chatter_cfg = gr.Slider(label="CFG Weight", minimum=0.0, maximum=1.0, value=0.5)
-                    chatter_lang = gr.Textbox(label="Language Code", value="en")
-                    chatter_multi = gr.Checkbox(label="Multilingual Mode", value=False)
+                    chatter_lang = gr.Textbox(label="Language Code (e.g. 'en')", value="en")
+                    chatter_multi = gr.Checkbox(label="Enable Multilingual", value=False)
 
                 # --- Marvis Params ---
                 with gr.Group(visible=False) as marvis_params:
                     gr.Markdown("### Marvis Settings")
-                    marvis_temp = gr.Slider(label="Temperature", minimum=0.0, maximum=1.0, value=0.7)
-                    marvis_top_p = gr.Slider(label="Top P", minimum=0.0, maximum=1.0, value=0.95)
-                    marvis_quant = gr.Checkbox(label="Quantized (4-bit)", value=True)
+                    marvis_temp = gr.Slider(label="Sampling Temperature", minimum=0.0, maximum=1.0, value=0.7)
+                    marvis_top_p = gr.Slider(label="Top-P (Nucleus)", minimum=0.0, maximum=1.0, value=0.95)
+                    marvis_quant = gr.Checkbox(label="4-bit Quantization", value=True)
 
                 # --- CosyVoice Params ---
                 with gr.Group(visible=False) as cosy_params:
                     gr.Markdown("### CosyVoice Settings")
-                    cosy_instruct = gr.Textbox(label="Instruct Text (Style)", placeholder="e.g. 'Speak with excitement'")
+                    cosy_instruct = gr.Textbox(
+                        label="Style Prompt", 
+                        placeholder="e.g. 'Speak very fast with a joyful tone'",
+                        info="Controls the emotion/style of the generated speech."
+                    )
 
-                generate_btn = gr.Button("Generate Speech", variant="primary")
+                generate_btn = gr.Button("🚀 Generate Audio", variant="primary")
             
-            with gr.Column():
-                audio_output = gr.Audio(label="Generated Audio", type="filepath")
+            with gr.Column(scale=1):
+                gr.Markdown("### Output")
+                audio_output = gr.Audio(label="Generated Result", type="filepath")
+                
+                with gr.Accordion("📖 Model Information", open=False):
+                    gr.Markdown("""
+                    - **Kokoro**: High-quality neural TTS (82M).
+                    - **Kitten**: Lightweight and fast CPU-friendly synthesis.
+                    - **Chatterbox**: Specialized in zero-shot voice cloning.
+                    - **Marvis**: Optimized for Apple Silicon using MLX.
+                    - **CosyVoice**: Large-scale foundation model for natural speech.
+                    """)
         
         # UI Logic
         model_dropdown.change(

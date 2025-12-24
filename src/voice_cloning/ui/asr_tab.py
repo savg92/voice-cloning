@@ -7,15 +7,12 @@ logger = logging.getLogger(__name__)
 def transcribe_speech(
     model_name: str, 
     audio_path: str,
-    # Whisper specific
     whisper_model_id: str,
     whisper_lang: str,
     whisper_task: str,
     whisper_use_mlx: bool,
     whisper_timestamps: bool,
-    # Parakeet specific
     parakeet_timestamps: bool,
-    # Canary specific
     canary_source_lang: str,
     canary_target_lang: str
 ) -> str:
@@ -66,25 +63,25 @@ def on_model_change(model_name: str):
 def create_asr_tab():
     """Creates the ASR tab content."""
     with gr.Column() as asr_layout:
-        gr.Markdown("## Automatic Speech Recognition")
+        gr.Markdown("## 📝 Automatic Speech Recognition & Translation")
         
         with gr.Row():
-            with gr.Column():
+            with gr.Column(scale=1):
                 model_dropdown = gr.Dropdown(
-                    label="Model",
+                    label="ASR Engine",
                     choices=["Whisper", "Parakeet", "Canary"],
                     value="Whisper",
                     interactive=True
                 )
                 
                 audio_input = gr.Audio(
-                    label="Upload Audio",
+                    label="Source Audio",
                     type="filepath"
                 )
                 
                 # --- Whisper Parameters ---
                 with gr.Group(visible=True) as whisper_params:
-                    gr.Markdown("### Whisper Settings")
+                    gr.Markdown("### ⚙️ Whisper Settings")
                     whisper_model_id = gr.Dropdown(
                         label="Model Version",
                         choices=[
@@ -98,26 +95,28 @@ def create_asr_tab():
                         ],
                         value="openai/whisper-large-v3-turbo"
                     )
-                    whisper_lang = gr.Textbox(label="Language (e.g. 'en', 'fr' or 'auto')", value="auto")
+                    whisper_lang = gr.Textbox(label="Language (e.g. 'en', 'fr')", value="auto", info="Type 'auto' for detection.")
                     whisper_task = gr.Radio(
-                        label="Task",
+                        label="Task Type",
                         choices=["transcribe", "translate"],
-                        value="transcribe"
+                        value="transcribe",
+                        info="'translate' translates to English."
                     )
-                    whisper_use_mlx = gr.Checkbox(label="Use MLX (Apple Silicon)", value=False)
-                    whisper_timestamps = gr.Checkbox(label="Show Timestamps", value=True)
+                    with gr.Row():
+                        whisper_use_mlx = gr.Checkbox(label="Use MLX (Apple Silicon)", value=True)
+                        whisper_timestamps = gr.Checkbox(label="Word Timestamps", value=True)
 
                 # --- Parakeet Parameters ---
                 with gr.Group(visible=False) as parakeet_params:
-                    gr.Markdown("### Parakeet Settings")
-                    parakeet_timestamps = gr.Checkbox(label="Show Timestamps (SRT)", value=False)
+                    gr.Markdown("### ⚙️ Parakeet Settings")
+                    parakeet_timestamps = gr.Checkbox(label="Enable SRT Timestamps", value=False)
 
                 # --- Canary Parameters ---
                 with gr.Group(visible=False) as canary_params:
-                    gr.Markdown("### Canary Settings")
+                    gr.Markdown("### ⚙️ Canary Settings")
                     canary_source_lang = gr.Dropdown(
                         label="Source Language",
-                        choices=['en', 'de', 'fr', 'es', 'it', 'nl', 'pt', 'ru'], # Truncated for UI simplicity
+                        choices=['en', 'de', 'fr', 'es', 'it', 'nl', 'pt', 'ru'],
                         value="en"
                     )
                     canary_target_lang = gr.Dropdown(
@@ -126,13 +125,15 @@ def create_asr_tab():
                         value="en"
                     )
 
-                transcribe_btn = gr.Button("Transcribe", variant="primary")
+                transcribe_btn = gr.Button("✨ Transcribe Audio", variant="primary")
             
-            with gr.Column():
+            with gr.Column(scale=1):
+                gr.Markdown("### Result")
                 transcript_output = gr.Textbox(
-                    label="Transcription",
-                    placeholder="Transcription will appear here...",
-                    lines=20
+                    label="Transcript",
+                    placeholder="Result will appear here...",
+                    lines=25,
+                    show_copy_button=True
                 )
         
         # UI logic for parameter visibility
