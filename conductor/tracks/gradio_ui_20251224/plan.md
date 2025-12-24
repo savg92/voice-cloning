@@ -11,7 +11,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md) db70903
 
 ## Phase 2: Advanced TTS and Voice Cloning
-- [ ] Task: Implement integration for **Chatterbox** and **Marvis** (Voice Cloning) in `src/voice_cloning/ui/tts_tab.py`.
+- [x] Task: Implement integration for **Chatterbox** and **Marvis** (Voice Cloning) in `src/voice_cloning/ui/tts_tab.py`. 07547e0
     - [ ] Subtask: Add file upload component for reference audio.
     - [ ] Subtask: Update logic to handle reference audio input.
 - [ ] Task: Implement integration for **CosyVoice2** (if available/stable).
