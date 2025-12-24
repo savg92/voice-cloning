@@ -22,8 +22,8 @@
 - [x] Task: Implement integration for **Whisper** and **Parakeet** ASR. 936918a
     - [x] Subtask: Write integration tests.
     - [x] Subtask: Implement file upload and transcription display.
-- [ ] Task: Create `src/voice_cloning/ui/vad_tab.py` for VAD logic.
-- [ ] Task: Implement integration for **HumAware** VAD.
+- [x] Task: Create `src/voice_cloning/ui/vad_tab.py` for VAD logic. 5ec3dd5
+- [x] Task: Implement integration for **HumAware** VAD. 5ec3dd5
 - [ ] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)
 
 ## Phase 4: Polish and Documentation
