@@ -4,8 +4,8 @@
 - [x] Task: Fix Kokoro MLX backend: add `--lang_code` and `--stream` flags. (Already implemented in previous turn)
 - [x] Task: Update Kokoro default `lang_code` to 'a' and fix docstring. (Already implemented)
 - [x] Task: Implement CUDA check for Dia2 model in `tts_tab.py`. (Already implemented)
-- [x] Task: Consolidate `lang_map` in Kokoro and ensure consistency across backends.
-- [x] Task: Verify Marvis and Chatterbox MLX backends for missing flags (e.g. `lang_code`).
+- [x] Task: Consolidate `lang_map` in Kokoro and ensure consistency across backends. bf9aec0
+- [x] Task: Verify Marvis and Chatterbox MLX backends for missing flags (e.g. `lang_code`). bf9aec0
 - [ ] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
 
 ## Phase 2: Comprehensive Validation Suite
