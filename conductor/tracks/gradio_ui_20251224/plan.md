@@ -10,12 +10,12 @@
 - [x] Task: Add CLI command `--web` or `web` to `main.py` to launch the interface. 75fe8ad
 - [x] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md) db70903
 
-## Phase 2: Advanced TTS and Voice Cloning
+## Phase 2: Advanced TTS and Voice Cloning [checkpoint: 79cf3ed]
 - [x] Task: Implement integration for **Chatterbox** and **Marvis** (Voice Cloning) in `src/voice_cloning/ui/tts_tab.py`. 07547e0
-    - [ ] Subtask: Add file upload component for reference audio.
-    - [ ] Subtask: Update logic to handle reference audio input.
+    - [x] Subtask: Add file upload component for reference audio.
+    - [x] Subtask: Update logic to handle reference audio input.
 - [x] Task: Implement integration for **CosyVoice2** (if available/stable). e479f4f
-- [ ] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md) 79cf3ed
 
 ## Phase 3: ASR and VAD Interfaces
 - [ ] Task: Create `src/voice_cloning/ui/asr_tab.py` for ASR logic.
