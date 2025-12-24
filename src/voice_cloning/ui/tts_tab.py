@@ -2,24 +2,25 @@ import gradio as gr
 import os
 import tempfile
 import logging
+import torch
 from typing import Optional, List, Dict
 
 logger = logging.getLogger(__name__)
 
-# Kokoro voice mapping
+# Kokoro voice mapping (Expanded)
 KOKORO_VOICES = {
     "a": ["af_heart", "af_bella", "am_adam", "am_fenix", "am_puck", "af_nicole", "af_sky"],
     "b": ["bf_emma", "bf_isabella", "bm_george", "bm_lewis"],
+    "d": ["de_sarah"],
     "e": ["ef_dora"],
     "f": ["ff_siwis"],
-    "i": ["if_sara", "it_bella"],
-    "p": ["pf_dora"],
     "h": ["hf_alpha", "hi_puck"],
+    "i": ["if_sara", "it_bella"],
     "j": ["jf_alpha"],
-    "z": ["zf_alpha"],
-    "d": ["de_sarah"],
+    "p": ["pf_dora"],
     "r": ["ru_nicole"],
-    "t": ["tr_river"]
+    "t": ["tr_river"],
+    "z": ["zf_alpha"]
 }
 
 KOKORO_LANGS = {
@@ -80,7 +81,7 @@ def generate_speech(
     if not text.strip():
         raise gr.Error("Please enter some text to synthesize.")
         
-    cloning_models = ["Chatterbox", "Marvis", "CosyVoice", "NeuTTS Air"]
+    cloning_models = ["Chatterbox", "Marvis", "CosyVoice", "NeuTTS Air", "OpenVoice", "OpenVoice2"]
     if model_name in cloning_models and not reference_audio:
         raise gr.Error(f"Reference audio is required for model '{model_name}'.")
 
@@ -145,6 +146,8 @@ def generate_speech(
             )
 
         elif model_name == "Dia2":
+            if not torch.cuda.is_available():
+                raise gr.Error("Dia2 model requires an NVIDIA GPU with CUDA. CUDA was not detected.")
             try:
                 from src.voice_cloning.tts.dia2 import Dia2TTS
                 tts = Dia2TTS()
@@ -154,6 +157,10 @@ def generate_speech(
                 )
             except ImportError:
                 raise gr.Error("Dia2 library not found. Please install it to use this model.")
+        
+        elif model_name in ["OpenVoice", "OpenVoice2"]:
+            # Note: OpenVoice is mentioned in PRD but not yet implemented in tts/
+            raise gr.Error(f"{model_name} is currently not implemented in the backend.")
             
         else:
             raise ValueError(f"Unknown model: {model_name}")
@@ -167,7 +174,7 @@ def generate_speech(
 
 def on_model_change(model_name: str):
     """Updates visibility of model-specific parameter groups."""
-    cloning_models = ["Chatterbox", "Marvis", "CosyVoice", "NeuTTS Air"]
+    cloning_models = ["Chatterbox", "Marvis", "CosyVoice", "NeuTTS Air", "OpenVoice", "OpenVoice2"]
     ref_text_models = ["Marvis", "CosyVoice", "NeuTTS Air"]
     
     return [
@@ -197,7 +204,7 @@ def create_tts_tab():
             with gr.Column(scale=1):
                 model_dropdown = gr.Dropdown(
                     label="Model Engine",
-                    choices=["Kokoro", "Kitten", "Chatterbox", "Marvis", "CosyVoice", "NeuTTS Air", "Supertone", "Dia2"],
+                    choices=["Kokoro", "Kitten", "Chatterbox", "Marvis", "CosyVoice", "NeuTTS Air", "Supertone", "Dia2", "OpenVoice", "OpenVoice2"],
                     value="Kokoro",
                     interactive=True
                 )
@@ -213,7 +220,7 @@ def create_tts_tab():
                         use_mlx = gr.Checkbox(label="MLX Acceleration", value=True)
                         stream = gr.Checkbox(label="Enable Streaming", value=False)
 
-                # --- Kokoro Params ---
+                # --- Model Groups ---
                 with gr.Group(visible=True) as kokoro_params:
                     gr.Markdown("### Kokoro Settings")
                     with gr.Row():
@@ -228,25 +235,22 @@ def create_tts_tab():
                             value="af_heart"
                         )
 
-                # --- Kitten Params ---
                 with gr.Group(visible=False) as kitten_params:
                     gr.Markdown("### Kitten Settings")
                     kitten_voice = gr.Dropdown(label="Voice", choices=["expr-voice-4-f", "expr-voice-1-m"], value="expr-voice-4-f")
 
-                # --- Chatterbox Params ---
                 with gr.Group(visible=False) as chatter_params:
                     gr.Markdown("### Chatterbox Settings")
                     with gr.Row():
                         chatter_exaggeration = gr.Slider(label="Exaggeration", minimum=0.0, maximum=1.0, value=0.7)
                         chatter_cfg = gr.Slider(label="CFG Weight", minimum=0.0, maximum=1.0, value=0.5)
                     with gr.Row():
-                        chatter_lang = gr.Textbox(label="Language (e.g. 'en', 'fr')", value="en")
+                        chatter_lang = gr.Textbox(label="Language", value="en")
                         chatter_multi = gr.Checkbox(label="Multilingual Mode", value=False)
                     with gr.Row():
                         chatter_model_id = gr.Textbox(label="Model ID (Optional)")
                         chatter_voice = gr.Textbox(label="Voice Preset (Optional)")
 
-                # --- Marvis Params ---
                 with gr.Group(visible=False) as marvis_params:
                     gr.Markdown("### Marvis Settings")
                     with gr.Row():
@@ -254,17 +258,14 @@ def create_tts_tab():
                         marvis_top_p = gr.Slider(label="Top P", minimum=0.0, maximum=1.0, value=0.95)
                     marvis_quant = gr.Checkbox(label="4-bit Quantization", value=True)
 
-                # --- CosyVoice Params ---
                 with gr.Group(visible=False) as cosy_params:
                     gr.Markdown("### CosyVoice Settings")
                     cosy_instruct = gr.Textbox(label="Style Prompt", placeholder="e.g. 'Speak with excitement'")
 
-                # --- NeuTTS Air Params ---
                 with gr.Group(visible=False) as neutts_params:
                     gr.Markdown("### NeuTTS Air Settings")
                     neutts_backbone = gr.Dropdown(label="Backbone", choices=["neuphonic/neutts-air-q4-gguf", "neuphonic/neutts-air-q8-gguf"], value="neuphonic/neutts-air-q4-gguf")
 
-                # --- Supertone Params ---
                 with gr.Group(visible=False) as supertone_params:
                     gr.Markdown("### Supertone Settings")
                     supertone_preset = gr.Textbox(label="Voice Preset (e.g. F1, M1)")
@@ -272,7 +273,6 @@ def create_tts_tab():
                         supertone_steps = gr.Slider(label="Inference Steps", minimum=1, maximum=50, value=8, step=1)
                         supertone_cfg = gr.Slider(label="CFG Scale", minimum=0.0, maximum=5.0, value=1.0)
 
-                # --- Dia2 Params ---
                 with gr.Group(visible=False) as dia2_params:
                     gr.Markdown("### Dia2 Settings (CUDA Required)")
                     with gr.Row():

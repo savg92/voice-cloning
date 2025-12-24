@@ -18,7 +18,7 @@ def test_transcribe_speech_whisper(MockWhisper):
     output = transcribe_speech(
         "Whisper", "audio.wav", 
         "openai/whisper-tiny", "en", "transcribe", False, True,
-        False, "en", "en"
+        False, "en", "en", False
     )
     
     MockWhisper.assert_called_with(model_id="openai/whisper-tiny", use_mlx=False)
@@ -34,7 +34,7 @@ def test_transcribe_speech_granite(mock_open, mock_transcribe):
     
     output = transcribe_speech(
         "Granite", "audio.wav",
-        "", "", "", False, False, False, "", ""
+        "", "", "", False, False, False, "", "", False
     )
     
     mock_transcribe.assert_called_once()
@@ -43,4 +43,4 @@ def test_transcribe_speech_granite(mock_open, mock_transcribe):
 def test_transcribe_speech_missing_audio():
     """Test that transcription raises error if audio is missing."""
     with pytest.raises(gr.Error, match="Please upload an audio file"):
-        transcribe_speech("Whisper", None, "", "", "", False, False, False, "", "")
+        transcribe_speech("Whisper", None, "", "", "", False, False, False, "", "", False)

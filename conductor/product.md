@@ -12,6 +12,7 @@ The primary users of this platform are **Application Developers**. They are look
 
 ## Critical Features
 *   **Unified Benchmarking Suite:** A standardized, automated system to measure and report critical performance metrics (Latency, RTF, TTFA) across all supported models.
+*   **Interactive Web Interface:** A user-friendly Gradio-based GUI for real-time testing, parameter tuning, and qualitative comparison of all supported TTS, ASR, and VAD models.
 
 ## Technical Constraints
 *   **Offline Functionality:** The platform must prioritize models that run locally, ensuring full functionality without reliance on external API dependencies.

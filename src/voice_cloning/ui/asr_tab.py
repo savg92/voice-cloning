@@ -4,6 +4,16 @@ from typing import Optional, List
 
 logger = logging.getLogger(__name__)
 
+CANARY_LANGS = [
+    'bg', 'hr', 'cs', 'da', 'nl', 'en', 'et', 'fi', 'fr', 'de', 
+    'el', 'hu', 'it', 'lv', 'lt', 'mt', 'pl', 'pt', 'ru', 'sk', 
+    'sl', 'es', 'sv', 'ru', 'uk'
+]
+
+WHISPER_LANGS = [
+    "auto", "en", "zh", "de", "es", "ru", "ko", "fr", "ja", "pt", "tr", "pl", "ca", "nl", "ar", "sv", "it", "id", "hi", "fi", "vi", "he", "uk", "el", "ms", "cs", "ro", "da", "hu", "ta", "no", "th", "ur", "hr", "bg", "lt", "la", "mi", "ml", "cy", "sk", "te", "fa", "lv", "bn", "sr", "az", "sl", "kn", "et", "mk", "br", "eu", "is", "hy", "ne", "mn", "bs", "kk", "sq", "sw", "gl", "mr", "pa", "si", "km", "sn", "yo", "so", "af", "oc", "ka", "be", "tg", "sd", "gu", "am", "yi", "lo", "uz", "fo", "ht", "ps", "tk", "nn", "mt", "sa", "lb", "my", "ba", "as", "tt", "ln", "ha", "mg"
+]
+
 def transcribe_speech(
     model_name: str, 
     audio_path: str,
@@ -14,7 +24,8 @@ def transcribe_speech(
     whisper_timestamps: bool,
     parakeet_timestamps: bool,
     canary_source_lang: str,
-    canary_target_lang: str
+    canary_target_lang: str,
+    canary_timestamps: bool
 ) -> str:
     """
     Transcribes speech using the selected model and its parameters.
@@ -44,9 +55,18 @@ def transcribe_speech(
             result = model.transcribe(
                 audio_path=audio_path,
                 source_lang=canary_source_lang,
-                target_lang=canary_target_lang
+                target_lang=canary_target_lang,
+                timestamps=canary_timestamps
             )
             result_text = result['text']
+            
+            if canary_timestamps and 'timestamps' in result:
+                result_text += "\n\n--- Segments ---\n"
+                for segment in result['timestamps'].get('segment', []):
+                    start = segment.get('start', 0)
+                    end = segment.get('end', 0)
+                    text = segment.get('segment', '')
+                    result_text += f"[{start:.2f}s -> {end:.2f}s] {text}\n"
 
         elif model_name == "Granite":
             from src.voice_cloning.asr.granite import transcribe_file
@@ -71,7 +91,8 @@ def on_model_change(model_name: str):
     return [
         gr.update(visible=(model_name == "Whisper")),
         gr.update(visible=(model_name == "Parakeet")),
-        gr.update(visible=(model_name == "Canary"))
+        gr.update(visible=(model_name == "Canary")),
+        gr.update(visible=(model_name == "Granite"))
     ]
 
 def create_asr_tab():
@@ -97,19 +118,25 @@ def create_asr_tab():
                         choices=["openai/whisper-large-v3-turbo", "openai/whisper-large-v3", "openai/whisper-medium", "openai/whisper-base", "openai/whisper-tiny", "mlx-community/whisper-large-v3-turbo", "mlx-community/whisper-medium"],
                         value="openai/whisper-large-v3-turbo"
                     )
-                    whisper_lang = gr.Textbox(label="Language", value="auto")
+                    whisper_lang = gr.Dropdown(label="Language", choices=WHISPER_LANGS, value="auto", allow_custom_value=True)
                     whisper_task = gr.Radio(label="Task", choices=["transcribe", "translate"], value="transcribe")
-                    whisper_use_mlx = gr.Checkbox(label="Use MLX", value=True)
-                    whisper_timestamps = gr.Checkbox(label="Timestamps", value=True)
+                    whisper_use_mlx = gr.Checkbox(label="Use MLX Acceleration", value=True)
+                    whisper_timestamps = gr.Checkbox(label="Show Timestamps", value=True)
 
                 with gr.Group(visible=False) as parakeet_params:
                     gr.Markdown("### Parakeet Settings")
-                    parakeet_timestamps = gr.Checkbox(label="SRT Timestamps", value=False)
+                    parakeet_timestamps = gr.Checkbox(label="Enable SRT Timestamps", value=False)
 
                 with gr.Group(visible=False) as canary_params:
                     gr.Markdown("### Canary Settings")
-                    canary_source_lang = gr.Dropdown(label="Source Language", choices=['en', 'de', 'fr', 'es', 'it', 'nl', 'pt', 'ru'], value="en")
-                    canary_target_lang = gr.Dropdown(label="Target Language", choices=['en', 'de', 'fr', 'es', 'it', 'nl', 'pt', 'ru'], value="en")
+                    with gr.Row():
+                        canary_source_lang = gr.Dropdown(label="Source Language", choices=CANARY_LANGS, value="en")
+                        canary_target_lang = gr.Dropdown(label="Target Language", choices=CANARY_LANGS, value="en")
+                    canary_timestamps = gr.Checkbox(label="Show Timestamps", value=False)
+
+                with gr.Group(visible=False) as granite_params:
+                    gr.Markdown("### Granite Settings")
+                    gr.Markdown("Granite ASR currently uses default settings.")
 
                 transcribe_btn = gr.Button("✨ Transcribe Audio", variant="primary")
             
@@ -119,14 +146,14 @@ def create_asr_tab():
         model_dropdown.change(
             fn=on_model_change,
             inputs=[model_dropdown],
-            outputs=[whisper_params, parakeet_params, canary_params]
+            outputs=[whisper_params, parakeet_params, canary_params, granite_params]
         )
         
         transcribe_btn.click(
             fn=transcribe_speech,
             inputs=[
                 model_dropdown, audio_input, whisper_model_id, whisper_lang, whisper_task, whisper_use_mlx, whisper_timestamps,
-                parakeet_timestamps, canary_source_lang, canary_target_lang
+                parakeet_timestamps, canary_source_lang, canary_target_lang, canary_timestamps
             ],
             outputs=[transcript_output]
         )
