@@ -19,9 +19,9 @@
 
 ## Phase 3: ASR and VAD Interfaces
 - [x] Task: Create `src/voice_cloning/ui/asr_tab.py` for ASR logic. 94cb1d7
-- [ ] Task: Implement integration for **Whisper** and **Parakeet** ASR.
-    - [ ] Subtask: Write integration tests.
-    - [ ] Subtask: Implement file upload and transcription display.
+- [x] Task: Implement integration for **Whisper** and **Parakeet** ASR. 936918a
+    - [x] Subtask: Write integration tests.
+    - [x] Subtask: Implement file upload and transcription display.
 - [ ] Task: Create `src/voice_cloning/ui/vad_tab.py` for VAD logic.
 - [ ] Task: Implement integration for **HumAware** VAD.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)
