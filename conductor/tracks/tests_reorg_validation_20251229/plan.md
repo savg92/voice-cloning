@@ -1,10 +1,10 @@
 # Plan: Comprehensive Test Suite Reorganization and Full Model Validation
 
-## Phase 1: Foundation and Reorganization
+## Phase 1: Foundation and Reorganization [checkpoint: 10db901]
 - [x] Task: Create structured directory hierarchy (`tests/tts/`, `tests/asr/`, `tests/vad/`, `tests/ui/`, `tests/core/`, `tests/data/`). c40f76a
 - [x] Task: Move active test files into respective model folders and update paths/imports. 3b98d44
 - [x] Task: Identify and delete obsolete/redundant test files from the root `tests/` directory. 3b98d44
-- [ ] Task: Conductor - User Manual Verification 'Foundation and Reorganization' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Foundation and Reorganization' (Protocol in workflow.md) 10db901
 
 ## Phase 2: Kokoro Comprehensive Validation
 - [ ] Task: Refine `tests/tts/kokoro/test_kokoro_full.py` to cover all 9 languages and both backends (MLX/PyTorch).
