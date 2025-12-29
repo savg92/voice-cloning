@@ -20,6 +20,6 @@
 - [x] Task: Conductor - User Manual Verification 'Model-by-Model Feature Validation Plan' (Protocol in workflow.md) c3a252d
 
 ## Phase 4: UI and Integration Finalization
-- [ ] Task: Consolidate UI tests in `tests/ui/` ensuring integration with the new organized backend tests.
+- [~] Task: Consolidate UI tests in `tests/ui/` ensuring integration with the new organized backend tests.
 - [ ] Task: Perform a final end-to-end verification of the Web UI with all models.
 - [ ] Task: Conductor - User Manual Verification 'UI and Integration Finalization' (Protocol in workflow.md)

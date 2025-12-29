@@ -9,7 +9,7 @@ def test_create_vad_tab_returns_component():
         tab = create_vad_tab()
         assert isinstance(tab, gr.blocks.BlockContext) or isinstance(tab, gr.components.Component)
 
-@patch("voice_cloning.vad.humaware.HumAwareVAD")
+@patch("voice_cloning.ui.vad_tab.HumAwareVAD")
 def test_detect_speech_segments(MockVAD):
     """Test that VAD analysis calls the correct backend with params."""
     mock_instance = MockVAD.return_value

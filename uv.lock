@@ -1858,31 +1858,17 @@ wheels = [
 [[package]]
 name = "kittentts"
 version = "0.1.0"
-source = { url = "https://github.com/KittenML/KittenTTS/releases/download/0.1/kittentts-0.1.0-py3-none-any.whl" }
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "espeakng-loader" },
     { name = "huggingface-hub" },
-    { name = "misaki", extra = ["en"] },
-    { name = "num2words" },
     { name = "numpy" },
     { name = "onnxruntime" },
     { name = "soundfile" },
-    { name = "spacy" },
 ]
+sdist = { url = "https://files.pythonhosted.org/packages/86/c6/007e40b7e6f0c071ae215ec4595475b89ce3ba4c8b59ea4c3877b89c5211/kittentts-0.1.0.tar.gz", hash = "sha256:f54ee8c6bb00802541b92688017184d16220e310004133973061e262f228473f", size = 2315, upload-time = "2025-08-09T21:58:11.696Z" }
 wheels = [
-    { url = "https://github.com/KittenML/KittenTTS/releases/download/0.1/kittentts-0.1.0-py3-none-any.whl", hash = "sha256:5a498422ec275f5df41b87592c6c482e637230fd563039197244d3966d1ce793" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "espeakng-loader" },
-    { name = "huggingface-hub" },
-    { name = "misaki", extras = ["en"], specifier = ">=0.9.4" },
-    { name = "num2words" },
-    { name = "numpy" },
-    { name = "onnxruntime" },
-    { name = "soundfile" },
-    { name = "spacy" },
+    { url = "https://files.pythonhosted.org/packages/6f/bc/6e404eb71726f0ec7f87becaacf7d0b7ac4d3535b5fde36934213e5fd4f3/kittentts-0.1.0-py2.py3-none-any.whl", hash = "sha256:16a5bc70e930693c39523674bb8ce05954b1359444bf1e3750df2521d4b85773", size = 2692, upload-time = "2025-08-09T21:58:10.255Z" },
 ]
 
 [[package]]
@@ -5560,7 +5546,7 @@ requires-dist = [
     { name = "ipadic" },
     { name = "ipython", specifier = ">=8.37.0" },
     { name = "jiwer", specifier = ">=3.1.0,<4.0.0" },
-    { name = "kittentts", url = "https://github.com/KittenML/KittenTTS/releases/download/0.1/kittentts-0.1.0-py3-none-any.whl" },
+    { name = "kittentts" },
     { name = "kokoro", specifier = ">=0.9.4" },
     { name = "langdetect" },
     { name = "lhotse", specifier = ">=1.30.3" },

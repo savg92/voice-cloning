@@ -132,14 +132,14 @@ def main():
     try:
         if args.model == "web":
             print("Launching Web Interface...")
-            from src.voice_cloning.ui.app import create_interface
+            from voice_cloning.ui.app import create_interface
             demo = create_interface()
             demo.launch()
             return
 
         if args.model == "chatterbox":
             print("Loading Chatterbox model...")
-            from src.voice_cloning.tts.chatterbox import synthesize_with_chatterbox
+            from voice_cloning.tts.chatterbox import synthesize_with_chatterbox
             synthesize_with_chatterbox(
                 text=args.text,
                 output_wav=args.output,
@@ -157,7 +157,7 @@ def main():
 
         elif args.model == "canary":
             print("Loading Canary ASR model...")
-            from src.voice_cloning.asr.canary import transcribe_to_file
+            from voice_cloning.asr.canary import transcribe_to_file
             
             # Determine target language (default to source if not specified, which implies transcription)
             target_lang = args.target_language if args.target_language else args.language
@@ -172,7 +172,7 @@ def main():
             
         elif args.model == "parakeet":
             print("Loading Parakeet ASR model...")
-            from src.voice_cloning.asr.parakeet import ParakeetASR
+            from voice_cloning.asr.parakeet import ParakeetASR
             model = ParakeetASR()
             # Parakeet supports timestamps via MLX backend (SRT format)
             transcript = model.transcribe(args.reference, timestamps=args.timestamps)
@@ -189,7 +189,7 @@ def main():
 
         elif args.model == "whisper":
             print("Loading Whisper ASR model...")
-            from src.voice_cloning.asr.whisper import transcribe_to_file
+            from voice_cloning.asr.whisper import transcribe_to_file
             
             # Determine task (translate if target is en, otherwise transcribe)
             # Whisper only supports X->English translation directly.
@@ -219,13 +219,13 @@ def main():
             
         elif args.model == "granite":
             print("Loading Granite ASR model...")
-            from src.voice_cloning.asr.granite import transcribe_file
+            from voice_cloning.asr.granite import transcribe_file
             transcript = transcribe_file(args.reference, args.output)
             print(f"✓ Granite transcription completed! Transcript saved to: {args.output}")
             
         elif args.model == "humaware":
             print("Loading HumAware VAD model...")
-            from src.voice_cloning.vad.humaware import HumAwareVAD
+            from voice_cloning.vad.humaware import HumAwareVAD
             model = HumAwareVAD()
             segments = model.detect_speech(
                 args.reference,
@@ -242,7 +242,7 @@ def main():
             
         elif args.model == "marvis":
             print("Loading Marvis TTS model...")
-            from src.voice_cloning.tts.marvis import MarvisTTS
+            from voice_cloning.tts.marvis import MarvisTTS
             model = MarvisTTS()
             
             # Prepare optional parameters
@@ -269,12 +269,12 @@ def main():
             print("Loading Kitten TTS Nano model...")
             # Ensure phonemizer/espeak compatibility is patched before importing
             try:
-                from src.voice_cloning.tts.kitten_nano import ensure_espeak_compatibility
+                from voice_cloning.tts.kitten_nano import ensure_espeak_compatibility
                 ensure_espeak_compatibility()
             except Exception:
                 pass
             
-            from src.voice_cloning.tts.kitten_nano import KittenNanoTTS
+            from voice_cloning.tts.kitten_nano import KittenNanoTTS
             
             # Determine version
             model_id = "KittenML/kitten-tts-nano-0.2"  # Default
@@ -297,7 +297,7 @@ def main():
             
         elif args.model == "supertone":
             print("Loading Supertone (Supertonic) TTS model...")
-            from src.voice_cloning.tts.supertone import synthesize_with_supertone
+            from voice_cloning.tts.supertone import synthesize_with_supertone
             
             try:
                 result = synthesize_with_supertone(
@@ -324,7 +324,7 @@ def main():
         
         elif args.model == "kokoro":
             print("Loading Kokoro TTS model...")
-            from src.voice_cloning.tts.kokoro import synthesize_speech
+            from voice_cloning.tts.kokoro import synthesize_speech
             
             try:
                 # Default voice for Kokoro is af_heart, which is already default in synthesize_speech
@@ -347,7 +347,7 @@ def main():
         
         elif args.model == "neutts-air":
             print("Loading NeuTTS Air model...")
-            from src.voice_cloning.tts.neutts_air import synthesize_with_neutts_air
+            from voice_cloning.tts.neutts_air import synthesize_with_neutts_air
             
             # Validate required arguments
             if not args.reference:
@@ -375,7 +375,7 @@ def main():
         elif args.model == "dia2":
             print("Loading Dia2-1B model...")
             try:
-                from src.voice_cloning.tts.dia2 import Dia2TTS
+                from voice_cloning.tts.dia2 import Dia2TTS
             except ImportError:
                 print("Error: dia2 library not found. Please install it:")
                 print("  uv pip install 'dia2 @ git+https://github.com/nari-labs/dia2.git'")
@@ -395,7 +395,7 @@ def main():
             
         elif args.model == "cosyvoice":
             print("Loading CosyVoice2 model...")
-            from src.voice_cloning.tts.cosyvoice import synthesize_speech
+            from voice_cloning.tts.cosyvoice import synthesize_speech
             
             # Reference audio is optional generally, but required for MLX backend usually
             # We handle it in the module (fallback), but let's inform user

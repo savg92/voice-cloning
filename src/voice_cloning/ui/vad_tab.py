@@ -1,6 +1,7 @@
 import gradio as gr
 import logging
 import json
+from voice_cloning.vad.humaware import HumAwareVAD
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,6 @@ def detect_speech_segments(
         
     try:
         gr.Info("Analyzing audio segments...")
-        from src.voice_cloning.vad.humaware import HumAwareVAD
         model = HumAwareVAD()
         segments = model.detect_speech(
             audio_path,

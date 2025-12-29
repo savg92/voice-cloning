@@ -42,6 +42,7 @@ def generate_speech(
     kokoro_lang: str,
     kokoro_voice: str,
     # Kitten
+    kitten_version: str,
     kitten_voice: str,
     # Chatterbox
     chatter_exaggeration: float,
@@ -91,7 +92,13 @@ def generate_speech(
             
         elif model_name == "Kitten":
             from src.voice_cloning.tts.kitten_nano import KittenNanoTTS
-            tts = KittenNanoTTS()
+            # Map version name to model ID
+            v_map = {
+                "0.1": "KittenML/kitten-tts-nano-0.1",
+                "0.2": "KittenML/kitten-tts-nano-0.2"
+            }
+            model_id = v_map.get(kitten_version, "KittenML/kitten-tts-nano-0.2")
+            tts = KittenNanoTTS(model_id=model_id)
             tts.synthesize_to_file(
                 text=text, output_path=output_path, voice=kitten_voice, speed=speed, stream=stream
             )
@@ -106,17 +113,17 @@ def generate_speech(
                 voice=chatter_voice if chatter_voice else None,
                 speed=speed, stream=stream
             )
-            
+
         elif model_name == "Marvis":
             from src.voice_cloning.tts.marvis import MarvisTTS
             tts = MarvisTTS()
             tts.synthesize(
                 text=text, output_path=output_path, ref_audio=reference_audio,
                 ref_text=reference_text, speed=speed, temperature=marvis_temp,
-                top_p=marvis_top_p, quantized=marvis_quant, stream=stream,
+                quantized=marvis_quant, stream=stream,
                 lang_code="en" # Default to en for Marvis in UI for now
             )
-            
+        
         elif model_name == "CosyVoice":
             from src.voice_cloning.tts.cosyvoice import synthesize_speech as cosy_synthesize
             cosy_synthesize(
@@ -171,6 +178,11 @@ def on_model_change(model_name: str):
     cloning_models = ["Chatterbox", "Marvis", "CosyVoice", "NeuTTS Air", "OpenVoice", "OpenVoice2"]
     ref_text_models = ["Marvis", "CosyVoice", "NeuTTS Air"]
     
+    # Models that support MLX
+    mlx_models = ["Kokoro", "Chatterbox", "CosyVoice"]
+    # Models that support Streaming
+    stream_models = ["Kokoro", "Kitten", "Supertone", "Marvis"]
+    
     return [
         gr.update(visible=(model_name in cloning_models)), # ref_audio
         gr.update(visible=(model_name in ref_text_models)), # ref_text
@@ -181,7 +193,9 @@ def on_model_change(model_name: str):
         gr.update(visible=(model_name == "CosyVoice")),
         gr.update(visible=(model_name == "NeuTTS Air")),
         gr.update(visible=(model_name == "Supertone")),
-        gr.update(visible=(model_name == "Dia2"))
+        gr.update(visible=(model_name == "Dia2")),
+        gr.update(visible=(model_name in mlx_models)), # use_mlx
+        gr.update(visible=(model_name in stream_models)) # stream
     ]
 
 def on_kokoro_lang_change(lang_code: str):
@@ -211,8 +225,8 @@ def create_tts_tab():
                 with gr.Accordion("⚙️ Global Settings", open=True):
                     with gr.Row():
                         speed = gr.Slider(label="Speed", minimum=0.5, maximum=2.0, value=1.0, step=0.1)
-                        use_mlx = gr.Checkbox(label="MLX Acceleration", value=True)
-                        stream = gr.Checkbox(label="Enable Streaming", value=False)
+                        use_mlx = gr.Checkbox(label="MLX Acceleration", value=True, visible=True)
+                        stream = gr.Checkbox(label="Enable Streaming", value=False, visible=True)
 
                 # --- Model Groups ---
                 with gr.Group(visible=True) as kokoro_params:
@@ -231,7 +245,18 @@ def create_tts_tab():
 
                 with gr.Group(visible=False) as kitten_params:
                     gr.Markdown("### Kitten Settings")
-                    kitten_voice = gr.Dropdown(label="Voice", choices=["expr-voice-4-f", "expr-voice-1-m"], value="expr-voice-4-f")
+                    with gr.Row():
+                        kitten_version = gr.Dropdown(label="Version", choices=["0.1", "0.2"], value="0.2")
+                        kitten_voice = gr.Dropdown(
+                            label="Voice", 
+                            choices=[
+                                "expr-voice-2-m", "expr-voice-2-f", 
+                                "expr-voice-3-m", "expr-voice-3-f", 
+                                "expr-voice-4-m", "expr-voice-4-f", 
+                                "expr-voice-5-m", "expr-voice-5-f"
+                            ], 
+                            value="expr-voice-4-f"
+                        )
 
                 with gr.Group(visible=False) as chatter_params:
                     gr.Markdown("### Chatterbox Settings")
@@ -288,7 +313,8 @@ def create_tts_tab():
                 ref_audio_input, ref_text_input, 
                 kokoro_params, kitten_params, chatter_params, 
                 marvis_params, cosy_params, neutts_params, 
-                supertone_params, dia2_params
+                supertone_params, dia2_params,
+                use_mlx, stream
             ]
         )
         
@@ -303,7 +329,7 @@ def create_tts_tab():
             inputs=[
                 model_dropdown, text_input, ref_audio_input, ref_text_input, speed, use_mlx, stream,
                 kokoro_lang, kokoro_voice,
-                kitten_voice,
+                kitten_version, kitten_voice,
                 chatter_exaggeration, chatter_cfg, chatter_lang, chatter_multi, chatter_model_id, chatter_voice,
                 marvis_temp, marvis_top_p, marvis_quant,
                 cosy_instruct,

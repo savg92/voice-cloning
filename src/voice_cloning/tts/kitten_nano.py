@@ -8,47 +8,70 @@ def ensure_espeak_compatibility():
     """
     Helper to patch espeak-ng paths if needed, especially on macOS/Linux
     where phonemizer might not find the library automatically.
-    Also patches EspeakWrapper to support set_data_path if missing.
     """
     try:
+        import os
+        import logging
         from phonemizer.backend.espeak.wrapper import EspeakWrapper
+        
+        # 1. Patch set_data_path if missing (for older misaki/phonemizer versions)
         if not hasattr(EspeakWrapper, 'set_data_path'):
-            # Monkey patch set_data_path to avoid AttributeError in misaki
             def set_data_path(path):
-                # We can likely ignore this or set the library path if needed
                 pass
             EspeakWrapper.set_data_path = staticmethod(set_data_path)
             logger.info("Monkey-patched EspeakWrapper.set_data_path")
             
-        # Also patch espeakng_loader if it returns a bad path
-        import espeakng_loader
-        original_get_data_path = espeakng_loader.get_data_path
+        # 2. Find and set library path
+        # Common paths for libespeak-ng on macOS (Homebrew) and Linux
+        lib_paths = [
+            "/opt/homebrew/lib/libespeak-ng.dylib",
+            "/usr/local/lib/libespeak-ng.dylib",
+            "/usr/lib/libespeak-ng.so",
+            "/usr/lib/x86_64-linux-gnu/libespeak-ng.so"
+        ]
         
-        def patched_get_data_path():
-            # Check if system espeak-ng data exists (e.g. from brew)
-            # Common paths: /opt/homebrew/share/espeak-ng-data, /usr/share/espeak-ng-data
-            common_paths = [
-                "/opt/homebrew/share/espeak-ng-data",
-                "/usr/local/share/espeak-ng-data",
-                "/usr/share/espeak-ng-data"
-            ]
-            for path in common_paths:
-                if os.path.isdir(path):
-                    logger.info(f"Using system espeak-ng data at {path}")
-                    # CRITICAL: Set environment variable so libespeak-ng finds the data
-                    os.environ["ESPEAK_DATA_PATH"] = path
-                    return path
-            return original_get_data_path()
+        found_lib = False
+        for lib in lib_paths:
+            if os.path.exists(lib):
+                logger.info(f"Using system espeak-ng library at {lib}")
+                os.environ["PHONEMIZER_ESPEAK_LIBRARY"] = lib
+                found_lib = True
+                break
+        
+        # 3. Find and set data path
+        data_paths = [
+            "/opt/homebrew/share/espeak-ng-data",
+            "/usr/local/share/espeak-ng-data",
+            "/usr/share/espeak-ng-data"
+        ]
+        
+        for p in data_paths:
+            if os.path.isdir(p):
+                logger.info(f"Using system espeak-ng data at {p}")
+                os.environ["ESPEAK_DATA_PATH"] = p
+                # Also set for newer phonemizer versions
+                os.environ["PHONEMIZER_ESPEAK_DATA_PATH"] = p
+                break
+
+        # 4. Patch espeakng_loader if present
+        try:
+            import espeakng_loader
+            if not hasattr(espeakng_loader, '_original_get_data_path'):
+                espeakng_loader._original_get_data_path = espeakng_loader.get_data_path
+                
+                def patched_get_data_path():
+                    data_path = os.environ.get("ESPEAK_DATA_PATH")
+                    if data_path and os.path.isdir(data_path):
+                        return data_path
+                    return espeakng_loader._original_get_data_path()
+                    
+                espeakng_loader.get_data_path = patched_get_data_path
+                logger.info("Monkey-patched espeakng_loader.get_data_path")
+        except ImportError:
+            pass
             
-        espeakng_loader.get_data_path = patched_get_data_path
-        
-        # Trigger the patch immediately to set env var
-        espeakng_loader.get_data_path()
-        
-        logger.info("Monkey-patched espeakng_loader.get_data_path")
-            
-    except ImportError:
-        pass
+    except Exception as e:
+        logger.debug(f"Non-critical error in ensure_espeak_compatibility: {e}")
 
 class KittenNanoTTS:
     """
@@ -63,10 +86,25 @@ class KittenNanoTTS:
         
         try:
             from kittentts import KittenTTS
-            self.model = KittenTTS(model_id)
-            logger.info(f"Loaded Kitten TTS model: {model_id}")
+            from huggingface_hub import hf_hub_download
+            
+            # Map model_id to specific onnx file
+            model_files = {
+                "KittenML/kitten-tts-nano-0.1": "kitten_tts_nano_v0_1.onnx",
+                "KittenML/kitten-tts-nano-0.2": "kitten_tts_nano_v0_2.onnx"
+            }
+            onnx_file = model_files.get(model_id, "kitten_tts_nano_v0_2.onnx")
+            
+            logger.info(f"Downloading/loading Kitten TTS model: {model_id} ({onnx_file})")
+            
+            model_path = hf_hub_download(repo_id=model_id, filename=onnx_file, cache_dir=cache_dir)
+            voices_path = hf_hub_download(repo_id=model_id, filename="voices.npz", cache_dir=cache_dir)
+            
+            self.model = KittenTTS(model_path=model_path, voices_path=voices_path)
+            logger.info(f"Successfully loaded Kitten TTS model from {model_path}")
+            
         except ImportError:
-            logger.error("Failed to import kittentts. Please install it via pip.")
+            logger.error("Failed to import kittentts or huggingface_hub. Please ensure they are installed.")
             raise
         except Exception as e:
             logger.error(f"Failed to load Kitten TTS model: {e}")

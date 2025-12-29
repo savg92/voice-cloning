@@ -2,7 +2,6 @@ import os
 import sys
 import logging
 import pytest
-import numpy as np
 import soundfile as sf
 from pathlib import Path
 
