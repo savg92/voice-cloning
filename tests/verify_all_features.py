@@ -1,11 +1,6 @@
 import sys
-import os
-import time
 import logging
-import torch
-import soundfile as sf
 from pathlib import Path
-from typing import Optional, Dict, Any
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
@@ -34,7 +29,8 @@ class FeatureValidator:
             out_str = str(out)
             
             # Clean up
-            if out.exists(): out.unlink()
+            if out.exists():
+                out.unlink()
             
             result_path = synthesize_speech("Hello from PyTorch.", output_path=out_str, use_mlx=False)
             logger.info(f"Synthesize speech returned path: {result_path}")
@@ -58,13 +54,15 @@ class FeatureValidator:
             # Test English
             out_en = self.output_dir / "kokoro_mlx_en.wav"
             out_en_str = str(out_en)
-            if out_en.exists(): out_en.unlink()
+            if out_en.exists():
+                out_en.unlink()
             synthesize_speech("Hello from MLX English.", output_path=out_en_str, use_mlx=True, lang_code='a')
             
             # Test Spanish
             out_es = self.output_dir / "kokoro_mlx_es.wav"
             out_es_str = str(out_es)
-            if out_es.exists(): out_es.unlink()
+            if out_es.exists():
+                out_es.unlink()
             synthesize_speech("Hola desde MLX español.", output_path=out_es_str, use_mlx=True, lang_code='e')
             
             success = True

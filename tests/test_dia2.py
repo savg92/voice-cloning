@@ -4,7 +4,6 @@ Tests for Dia2-1B TTS model wrapper.
 
 import pytest
 import numpy as np
-from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock
 
 
@@ -63,7 +62,7 @@ class TestDia2TTS:
         """Test that the model initializes correctly."""
         from src.voice_cloning.tts.dia2 import Dia2TTS
         
-        tts = Dia2TTS(device="cpu")
+        Dia2TTS(device="cpu")
         
         # Verify from_repo was called
         mock_dia2_model["Dia2"].from_repo.assert_called_once_with(
@@ -112,7 +111,7 @@ class TestDia2TTS:
         from src.voice_cloning.tts.dia2 import Dia2TTS
         
         tts = Dia2TTS(device="cpu")
-        audio = tts.synthesize(
+        tts.synthesize(
             text="[S1] Test",
             cfg_scale=3.0,
             temperature=0.9,
@@ -132,7 +131,7 @@ class TestDia2TTS:
         tts = Dia2TTS(device="cpu")
         output_path = "test.wav"
         
-        audio = tts.synthesize(
+        tts.synthesize(
             text="[S1] Test",
             output_path=output_path
         )
@@ -148,7 +147,7 @@ class TestDia2TTS:
         
         tts = Dia2TTS(device="cpu")
         
-        audio = tts.synthesize(
+        tts.synthesize(
             text="[S1] Test",
             prefix_speaker_1="voice1.wav",
             prefix_speaker_2="voice2.wav"

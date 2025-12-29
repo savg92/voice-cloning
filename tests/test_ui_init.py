@@ -1,10 +1,9 @@
 import pytest
-import importlib
 
 def test_ui_package_exists():
     """Test that the voice_cloning.ui package exists and can be imported."""
     try:
-        import src.voice_cloning.ui
+        import src.voice_cloning.ui  # noqa: F401
     except ImportError:
         pytest.fail("Could not import src.voice_cloning.ui package")
 

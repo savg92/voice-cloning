@@ -1,5 +1,4 @@
-from transformers import AutoModelForTextToSpeech, AutoTokenizer
-import torch
+from transformers import AutoModel
 
 print("Attempting to load ResembleAI/chatterbox via transformers...")
 try:
@@ -9,8 +8,8 @@ try:
     model_id = "ResembleAI/chatterbox"
     
     # Try trust_remote_code=True as it's likely a custom model
-    model = AutoModelForTextToSpeech.from_pretrained(model_id, trust_remote_code=True)
-    print("✓ Successfully loaded model via AutoModelForTextToSpeech")
+    model = AutoModel.from_pretrained(model_id, trust_remote_code=True)
+    print("✓ Successfully loaded model via AutoModel")
     
     # Check if generate accepts lang/exaggeration
     import inspect

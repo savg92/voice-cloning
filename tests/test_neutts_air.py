@@ -17,12 +17,10 @@ from src.voice_cloning.tts.neutts_air import NeuTTSAirTTS, synthesize_with_neutt
 
 # Skip tests if neuttsair module not available
 try:
-    import sys
-    from pathlib import Path
     models_dir = Path(__file__).parent.parent / "models"
     if str(models_dir) not in sys.path:
         sys.path.insert(0, str(models_dir))
-    from neuttsair.neutts import NeuTTSAir
+    from neuttsair.neutts import NeuTTSAir  # noqa: F401
     NEUTTS_AVAILABLE = True
 except ImportError:
     NEUTTS_AVAILABLE = False

@@ -1,7 +1,7 @@
 import pytest
 import gradio as gr
-from unittest.mock import patch, MagicMock
-from src.voice_cloning.ui.tts_tab import create_tts_tab, generate_speech
+from unittest.mock import patch
+from src.voice_cloning.ui.tts_tab import generate_speech
 
 def get_default_args():
     return [

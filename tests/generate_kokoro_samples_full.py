@@ -1,6 +1,4 @@
 import os
-import sys
-import subprocess
 from unittest.mock import patch, MagicMock
 
 # Mock spacy and subprocess BEFORE importing anything else
@@ -15,9 +13,6 @@ def mocked_check_call(*args, **kwargs):
     return 0
 
 with patch("subprocess.check_call", side_effect=mocked_check_call):
-    import mlx.core as mx
-    import numpy as np
-    import soundfile as sf
     from mlx_audio.tts.generate import generate_audio
     import logging
 

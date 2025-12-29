@@ -3,12 +3,11 @@
 Test script for NVIDIA Canary-1B-v2 ASR and Translation model
 """
 
-import os
 import sys
 from pathlib import Path
 
 # Add the src directory to the path
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / "src"))
 
 
 from voice_cloning.asr.canary import get_canary, transcribe_to_file, CanaryASR
@@ -47,7 +46,7 @@ def test_canary_asr():
 
 def test_canary_translation():
     """Test Canary translation functionality."""
-    print("\\n=== Testing Canary Translation ===")
+    print("\n=== Testing Canary Translation ===")
     
     try:
         # Test EN -> FR translation
@@ -79,7 +78,7 @@ def test_canary_translation():
 
 def test_supported_languages():
     """Test language support."""
-    print("\\n=== Testing Supported Languages ===")
+    print("\n=== Testing Supported Languages ===")
     
     try:
         model = CanaryV2Model()
@@ -106,7 +105,7 @@ def test_supported_languages():
 
 def test_main_cli_integration():
     """Test integration with main.py CLI."""
-    print("\\n=== Testing Main CLI Integration ===")
+    print("\n=== Testing Main CLI Integration ===")
     
     try:
         # This would normally be tested by calling main.py, but we'll just verify the import works
@@ -122,14 +121,10 @@ def test_main_cli_integration():
     
     return True
 
-
 def main():
     """Run all tests."""
     print("🐤 NVIDIA Canary-1B-v2 Test Suite")
     print("=" * 50)
-    
-    # Change to the project directory
-    os.chdir(Path(__file__).parent)
     
     # Check if sample audio exists
     if not Path("sample_voices/anger.wav").exists():
@@ -154,7 +149,7 @@ def main():
         except Exception as e:
             print(f"✗ Test {test.__name__} crashed: {e}")
     
-    print("\\n" + "=" * 50)
+    print("\n" + "=" * 50)
     print(f"🐤 Test Results: {passed}/{total} tests passed")
     
     if passed == total:

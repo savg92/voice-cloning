@@ -1,5 +1,4 @@
 import os
-import sys
 import logging
 from src.voice_cloning.tts.kokoro import synthesize_speech
 

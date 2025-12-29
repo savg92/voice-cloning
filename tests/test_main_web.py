@@ -1,6 +1,5 @@
 import pytest
 from unittest.mock import patch, MagicMock
-import sys
 from main import main
 
 @patch("src.voice_cloning.ui.app.create_interface")

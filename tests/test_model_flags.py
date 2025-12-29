@@ -1,6 +1,5 @@
 import sys
 from pathlib import Path
-import pytest
 from unittest.mock import patch, MagicMock
 
 # Add src to path
@@ -48,7 +47,7 @@ def test_marvis_subprocess_flags():
         mock_run.return_value = MagicMock(returncode=0, stderr="", stdout="")
         
         # Mock shutil.move to avoid file error since we don't actually generate files
-        with patch("shutil.move") as mock_move, \
+        with patch("shutil.move"), \
              patch("pathlib.Path.exists", return_value=True):
             
             marvis.synthesize(

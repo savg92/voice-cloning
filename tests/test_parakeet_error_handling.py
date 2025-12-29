@@ -1,6 +1,3 @@
-import shutil
-from pathlib import Path
-import sys
 
 from src.voice_cloning.asr.parakeet import ParakeetASR
 

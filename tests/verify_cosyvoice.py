@@ -87,7 +87,7 @@ def verify_pytorch():
         from voice_cloning.tts.cosyvoice import synthesize_speech
         # Try to import cosyvoice to check availability
         try:
-             import cosyvoice
+             import cosyvoice  # noqa: F401
              logger.info("CosyVoice package found.")
         except ImportError:
              logger.warning("CosyVoice package not found in path. Skipping PyTorch verification.")

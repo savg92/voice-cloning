@@ -1,11 +1,13 @@
 import sys
 import os
 import logging
+from pathlib import Path
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
-sys.path.insert(0, os.getcwd())
+# Add project root to sys.path
+sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
 from src.voice_cloning.tts.kitten_nano import KittenNanoTTS  # noqa: E402
 
@@ -15,7 +17,9 @@ def test_synthesis_v01():
         # Explicitly request 0.1
         model = KittenNanoTTS(model_id="KittenML/kitten-tts-nano-0.1")
         
-        output_file = "outputs/kitten_v01_test.wav"
+        output_file = "outputs/tests/kitten/kitten_v01_test.wav"
+        os.makedirs(os.path.dirname(output_file), exist_ok=True)
+        
         text = "This is a test of the Kitten TTS Nano version 0.1."
         
         print(f"Synthesizing text: '{text}'")

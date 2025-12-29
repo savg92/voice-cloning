@@ -1,6 +1,6 @@
 import pytest
 import gradio as gr
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from src.voice_cloning.ui.vad_tab import create_vad_tab, detect_speech_segments
 
 def test_create_vad_tab_returns_component():

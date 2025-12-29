@@ -8,7 +8,6 @@ It serves as both a demo and a validation tool for the voice cloning project.
 
 import os
 import sys
-from pathlib import Path
 
 def test_model(model_name, text, reference=None, output_suffix="test"):
     """Test a specific model with given parameters."""
@@ -123,7 +122,7 @@ def main():
     # List generated files
     generated_files = [f for f in os.listdir(".") if f.endswith("_test_output.wav")]
     if generated_files:
-        print(f"\nGenerated files:")
+        print("\nGenerated files:")
         for file in sorted(generated_files):
             size = os.path.getsize(file)
             print(f"  - {file} ({size} bytes)")

@@ -1,5 +1,5 @@
 import unittest
-from src.voice_cloning.tts.utils import map_lang_code, KOKORO_LANG_MAP
+from src.voice_cloning.tts.utils import map_lang_code
 
 class TestTTSUtils(unittest.TestCase):
     def test_map_lang_code_common(self):

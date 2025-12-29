@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.INFO)
 
 sys.path.insert(0, os.getcwd())
 
-from src.voice_cloning.tts.kitten_nano import KittenNanoTTS
+from src.voice_cloning.tts.kitten_nano import KittenNanoTTS  # noqa: E402
 
 def test_synthesis():
     try:

@@ -1,5 +1,4 @@
 import sys
-import os
 import logging
 from pathlib import Path
 
@@ -33,7 +32,8 @@ def test_multilang():
         if sys.platform == "darwin":
             try:
                 out_path = output_dir / f"mlx_{filename}"
-                if out_path.exists(): out_path.unlink()
+                if out_path.exists():
+                    out_path.unlink()
                 
                 logger.info(f"Generating MLX for {lang_code}...")
                 synthesize_speech(text, output_path=str(out_path), lang_code=lang_code, use_mlx=True)
@@ -48,7 +48,8 @@ def test_multilang():
         # Test PyTorch
         try:
             out_path = output_dir / f"torch_{filename}"
-            if out_path.exists(): out_path.unlink()
+            if out_path.exists():
+                out_path.unlink()
             
             logger.info(f"Generating PyTorch for {lang_code}...")
             synthesize_speech(text, output_path=str(out_path), lang_code=lang_code, use_mlx=False)

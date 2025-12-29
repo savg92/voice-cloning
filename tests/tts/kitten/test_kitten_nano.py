@@ -1,7 +1,11 @@
 import sys
 import types
+from pathlib import Path
 import numpy as np
 import soundfile as sf
+
+# Add project root to sys.path
+sys.path.append(str(Path(__file__).parent.parent.parent.parent))
 
 from src.voice_cloning.tts.kitten_nano import KittenNanoTTS
 
