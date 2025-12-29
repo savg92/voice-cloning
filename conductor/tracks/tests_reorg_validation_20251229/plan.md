@@ -2,8 +2,8 @@
 
 ## Phase 1: Foundation and Reorganization
 - [x] Task: Create structured directory hierarchy (`tests/tts/`, `tests/asr/`, `tests/vad/`, `tests/ui/`, `tests/core/`, `tests/data/`). c40f76a
-- [ ] Task: Move active test files into respective model folders and update paths/imports.
-- [ ] Task: Identify and delete obsolete/redundant test files from the root `tests/` directory.
+- [x] Task: Move active test files into respective model folders and update paths/imports. 3b98d44
+- [~] Task: Identify and delete obsolete/redundant test files from the root `tests/` directory.
 - [ ] Task: Conductor - User Manual Verification 'Foundation and Reorganization' (Protocol in workflow.md)
 
 ## Phase 2: Kokoro Comprehensive Validation
