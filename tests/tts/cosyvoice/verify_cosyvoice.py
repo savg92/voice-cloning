@@ -12,9 +12,9 @@ import soundfile as sf
 import numpy as np
 
 # Add src to path
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "src"))
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "..", "src"))
 # Add local CosyVoice repo to path if it exists
-REPOS_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+REPOS_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 COSYVOICE_PATH = os.path.join(REPOS_ROOT, "models", "CosyVoice")
 if os.path.exists(COSYVOICE_PATH):
     if COSYVOICE_PATH not in sys.path:

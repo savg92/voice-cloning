@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 from main import main
 
-@patch("src.voice_cloning.ui.app.create_interface")
+@patch("voice_cloning.ui.app.create_interface")
 @patch("sys.argv", ["main.py", "--model", "web"])
 def test_main_web_mode(mock_create_interface):
     """Test that --model web launches the Gradio interface."""

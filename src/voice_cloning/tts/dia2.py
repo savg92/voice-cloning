@@ -9,7 +9,6 @@ GitHub: https://github.com/nari-labs/dia2
 """
 
 import logging
-from pathlib import Path
 from typing import Optional
 
 import numpy as np

@@ -1,11 +1,5 @@
 import gradio as gr
-import sys
-from pathlib import Path
-
-# Add src to path
-sys.path.append(str(Path(__file__).parent.parent.parent))
-
-from src.voice_cloning.ui.app import create_interface
+from voice_cloning.ui.app import create_interface
 
 def test_create_interface_returns_blocks():
     """Test that create_interface returns a Gradio Blocks instance."""

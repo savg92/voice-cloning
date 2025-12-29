@@ -13,8 +13,8 @@ class TestDia2TTS:
     @pytest.fixture
     def mock_dia2_imports(self):
         """Mock the dia2 library imports."""
-        with patch("src.voice_cloning.tts.dia2.torch") as mock_torch, \
-             patch("src.voice_cloning.tts.dia2.logger"):
+        with patch("voice_cloning.tts.dia2.torch") as mock_torch, \
+             patch("voice_cloning.tts.dia2.logger"):
             
             # Setup torch mocks
             mock_torch.cuda.is_available.return_value = False
@@ -60,7 +60,7 @@ class TestDia2TTS:
 
     def test_model_initialization(self, mock_dia2_imports, mock_dia2_model):
         """Test that the model initializes correctly."""
-        from src.voice_cloning.tts.dia2 import Dia2TTS
+        from voice_cloning.tts.dia2 import Dia2TTS
         
         Dia2TTS(device="cpu")
         
@@ -73,7 +73,7 @@ class TestDia2TTS:
 
     def test_device_auto_detection_cpu(self, mock_dia2_imports, mock_dia2_model):
         """Test automatic device selection falls back to CPU."""
-        from src.voice_cloning.tts.dia2 import Dia2TTS
+        from voice_cloning.tts.dia2 import Dia2TTS
         
         # Ensure CUDA and MPS are not available
         mock_dia2_imports.cuda.is_available.return_value = False
@@ -84,7 +84,7 @@ class TestDia2TTS:
 
     def test_device_auto_detection_cuda(self, mock_dia2_imports, mock_dia2_model):
         """Test automatic device selection prefers CUDA."""
-        from src.voice_cloning.tts.dia2 import Dia2TTS
+        from voice_cloning.tts.dia2 import Dia2TTS
         
         mock_dia2_imports.cuda.is_available.return_value = True
         
@@ -94,7 +94,7 @@ class TestDia2TTS:
 
     def test_synthesize_basic(self, mock_dia2_imports, mock_dia2_model):
         """Test basic synthesis."""
-        from src.voice_cloning.tts.dia2 import Dia2TTS
+        from voice_cloning.tts.dia2 import Dia2TTS
         
         tts = Dia2TTS(device="cpu")
         audio = tts.synthesize(text="[S1] Hello world!")
@@ -108,7 +108,7 @@ class TestDia2TTS:
 
     def test_synthesize_with_parameters(self, mock_dia2_imports, mock_dia2_model):
         """Test synthesis with custom parameters."""
-        from src.voice_cloning.tts.dia2 import Dia2TTS
+        from voice_cloning.tts.dia2 import Dia2TTS
         
         tts = Dia2TTS(device="cpu")
         tts.synthesize(
@@ -126,7 +126,7 @@ class TestDia2TTS:
 
     def test_synthesize_with_output_path(self, mock_dia2_imports, mock_dia2_model):
         """Test synthesis with output file."""
-        from src.voice_cloning.tts.dia2 import Dia2TTS
+        from voice_cloning.tts.dia2 import Dia2TTS
         
         tts = Dia2TTS(device="cpu")
         output_path = "test.wav"
@@ -143,7 +143,7 @@ class TestDia2TTS:
 
     def test_synthesize_with_voice_cloning(self, mock_dia2_imports, mock_dia2_model):
         """Test synthesis with voice cloning."""
-        from src.voice_cloning.tts.dia2 import Dia2TTS
+        from voice_cloning.tts.dia2 import Dia2TTS
         
         tts = Dia2TTS(device="cpu")
         
@@ -163,7 +163,7 @@ class TestDia2TTS:
 
     def test_repr(self, mock_dia2_imports, mock_dia2_model):
         """Test string representation."""
-        from src.voice_cloning.tts.dia2 import Dia2TTS
+        from voice_cloning.tts.dia2 import Dia2TTS
         
         tts = Dia2TTS(model_name="nari-labs/Dia2-2B", device="cuda", dtype="float16")
         
@@ -175,7 +175,7 @@ class TestDia2TTS:
 
     def test_waveform_tensor_conversion(self, mock_dia2_imports, mock_dia2_model):
         """Test that torch tensor waveforms are converted to numpy."""
-        from src.voice_cloning.tts.dia2 import Dia2TTS
+        from voice_cloning.tts.dia2 import Dia2TTS
         import torch
         
         # Mock waveform as torch tensor
@@ -193,7 +193,7 @@ class TestDia2TTS:
 
     def test_multidimensional_waveform_squeeze(self, mock_dia2_imports, mock_dia2_model):
         """Test that multi-dimensional waveforms are squeezed to 1D."""
-        from src.voice_cloning.tts.dia2 import Dia2TTS
+        from voice_cloning.tts.dia2 import Dia2TTS
         
         # Mock waveform as 2D array
         mock_dia2_model["result"].waveform = np.random.randn(1, 16000)

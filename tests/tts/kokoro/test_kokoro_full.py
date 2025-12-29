@@ -5,9 +5,9 @@ import pytest
 from pathlib import Path
 
 # Add src to path
-sys.path.append(str(Path(__file__).parent.parent.parent.parent))
+sys.path.append(str(Path(__file__).parent.parent.parent.parent / "src"))
 
-from src.voice_cloning.tts.kokoro import synthesize_speech
+from voice_cloning.tts.kokoro import synthesize_speech
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')

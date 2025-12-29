@@ -1,7 +1,10 @@
 import sys
 import types
 from pathlib import Path
+import numpy as np
 
+# Add src to path
+sys.path.append(str(Path(__file__).parent.parent.parent.parent / "src"))
 
 def test_kitten_cli_writes_file(monkeypatch, tmp_path):
     # Inject fake kittentts
@@ -10,24 +13,20 @@ def test_kitten_cli_writes_file(monkeypatch, tmp_path):
         def __init__(self, model_id, cache_dir=None):
             self.model_id = model_id
         def generate(self, text, voice='expr-voice-4-f', speed=1.0):
-            return [0.0, 0.1, -0.1, 0.0]
+            return np.array([0.0, 0.1, -0.1, 0.0], dtype=np.float32)
     fake_kittentts.KittenTTS = DummyKittenTTS
     monkeypatch.setitem(sys.modules, 'kittentts', fake_kittentts)
 
-    # Inject fake numpy
-    fake_np = types.ModuleType('numpy')
-    def asarray(x, dtype=None):
-        return list(x)
-    fake_np.asarray = asarray
-    monkeypatch.setitem(sys.modules, 'numpy', fake_np)
-
+    # We use REAL numpy instead of fake one to avoid attribute errors in soundfile
+    
     # Inject fake soundfile
     fake_sf = types.ModuleType('soundfile')
     def write(path, arr, sr):
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
-        with open(path, 'w') as f:
-            f.write(' '.join(str(x) for x in arr))
+        # Create an empty file to satisfy existence check
+        with open(path, 'wb') as f:
+            f.write(b'fake audio data')
     fake_sf.write = write
     monkeypatch.setitem(sys.modules, 'soundfile', fake_sf)
 
@@ -39,4 +38,4 @@ def test_kitten_cli_writes_file(monkeypatch, tmp_path):
     from scripts.kitten_cli import main
     main()
 
-    assert out_path.exists(), 'CLI should write output file'
+    assert out_path.exists()

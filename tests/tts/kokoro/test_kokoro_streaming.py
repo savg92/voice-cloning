@@ -7,10 +7,10 @@ logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 logger = logging.getLogger(__name__)
 
 # Add src to path
-sys.path.append(str(Path(__file__).parent.parent))
+sys.path.append(str(Path(__file__).parent.parent.parent.parent / "src"))
 
 def test_streaming():
-    from src.voice_cloning.tts.kokoro import synthesize_speech
+    from voice_cloning.tts.kokoro import synthesize_speech
     
     text = "This is a streaming test. It should play audio chunks as they are generated."
     output_dir = Path("outputs/test")

@@ -3,10 +3,9 @@ NVIDIA Canary-1B-v2 ASR Model Wrapper
 A powerful 1-billion parameter model for speech transcription and translation across 25 European languages.
 """
 
-import os
 import logging
 from pathlib import Path
-from typing import Optional, Union, List, Dict, Any
+from typing import Optional, Union, Dict, Any
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -26,11 +25,16 @@ class CanaryASR:
         """Initialize the Canary ASR model."""
         self.model = None
         self._mode = "asr"  # Default mode
-        self.supported_languages = [
-            'bg', 'hr', 'cs', 'da', 'nl', 'en', 'et', 'fi', 'fr', 'de', 
-            'el', 'hu', 'it', 'lv', 'lt', 'mt', 'pl', 'pt', 'ro', 'sk', 
-            'sl', 'es', 'sv', 'ru', 'uk'
-        ]
+        self.languages_map = {
+            'bg': 'Bulgarian', 'hr': 'Croatian', 'cs': 'Czech', 'da': 'Danish', 
+            'nl': 'Dutch', 'en': 'English', 'et': 'Estonian', 'fi': 'Finnish', 
+            'fr': 'French', 'de': 'German', 'el': 'Greek', 'hu': 'Hungarian', 
+            'it': 'Italian', 'lv': 'Latvian', 'lt': 'Lithuanian', 'mt': 'Maltese', 
+            'pl': 'Polish', 'pt': 'Portuguese', 'ro': 'Romanian', 'sk': 'Slovak', 
+            'sl': 'Slovenian', 'es': 'Spanish', 'sv': 'Swedish', 'ru': 'Russian', 
+            'uk': 'Ukrainian'
+        }
+        self.supported_languages = list(self.languages_map.keys())
         
     def load_model(self) -> bool:
         """
@@ -70,6 +74,14 @@ class CanaryASR:
         except Exception as e:
             logger.error(f"Failed to load Canary model: {e}")
             return False
+
+    def get_supported_languages(self) -> Dict[str, str]:
+        """Get Dict of supported language codes and names."""
+        return self.languages_map
+
+    def validate_language(self, lang_code: str) -> bool:
+        """Check if a language code is supported."""
+        return lang_code in self.supported_languages
     
     def transcribe(
         self, 

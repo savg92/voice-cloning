@@ -7,10 +7,10 @@ logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 logger = logging.getLogger(__name__)
 
 # Add src to path
-sys.path.append(str(Path(__file__).parent.parent))
+sys.path.append(str(Path(__file__).parent.parent.parent.parent / "src"))
 
 def test_multilang():
-    from src.voice_cloning.tts.kokoro import synthesize_speech
+    from voice_cloning.tts.kokoro import synthesize_speech
     
     # Language map based on user report + standard Kokoro codes
     # German (d), Chinese (z), Japanese (j), Russian (r), Turkish (t)

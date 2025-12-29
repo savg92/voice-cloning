@@ -4,13 +4,13 @@ from unittest.mock import patch
 from pathlib import Path
 
 # Add src to path
-sys.path.append(str(Path(__file__).parent.parent))
+sys.path.append(str(Path(__file__).parent.parent.parent.parent / "src"))
 
-from src.voice_cloning.tts.chatterbox import synthesize_with_chatterbox
+from voice_cloning.tts.chatterbox import synthesize_with_chatterbox
 
 class TestChatterboxTurbo(unittest.TestCase):
     
-    @patch('src.voice_cloning.tts.chatterbox._synthesize_with_mlx')
+    @patch('voice_cloning.tts.chatterbox._synthesize_with_mlx')
     def test_model_id_passed_to_mlx(self, mock_mlx):
         """Test that model_id is correctly passed down to the MLX synthesis function."""
         text = "Hello"
@@ -30,7 +30,7 @@ class TestChatterboxTurbo(unittest.TestCase):
         self.assertEqual(kwargs.get('model_id'), model_id)
         print("✓ model_id correctly passed to _synthesize_with_mlx")
 
-    @patch('src.voice_cloning.tts.chatterbox._synthesize_with_mlx')
+    @patch('voice_cloning.tts.chatterbox._synthesize_with_mlx')
     def test_default_model_id(self, mock_mlx):
         """Test that it defaults to None (which then defaults to 4bit) if not provided."""
         synthesize_with_chatterbox(

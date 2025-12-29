@@ -9,10 +9,7 @@ KOKORO_LANG_MAP = {
     'es': 'e',
     'it': 'i',
     'pt': 'p', 'pt-br': 'p',
-    'hi': 'h',
-    'de': 'd',
-    'ru': 'r',
-    'tr': 't'
+    'hi': 'h'
 }
 
 def map_lang_code(lang_code: str) -> str:

@@ -68,14 +68,14 @@ class NeuTTSAirTTS:
                 f"is in models/ folder. Error: {e}"
             )
         
-        logger.info(f"Initializing NeuTTS Air...")
+        logger.info("Initializing NeuTTS Air...")
         logger.info(f"  Backbone: {backbone_repo} ({backbone_device})")
         logger.info(f"  Codec: {codec_repo} ({codec_device})")
         
-        print(f"\n⏳ Loading NeuTTS Air (first run may download models - several GB)...")
+        print("\n⏳ Loading NeuTTS Air (first run may download models - several GB)...")
         print(f"   Backbone: {backbone_repo}")
-        print(f"   This may take 5-10 minutes on first run...")
-        print(f"DEBUG: About to create NeuTTSAir instance...\n")
+        print("   This may take 5-10 minutes on first run...")
+        print("DEBUG: About to create NeuTTSAir instance...\n")
         
         self.tts = self.NeuTTSAir(
             backbone_repo=backbone_repo,
@@ -133,21 +133,21 @@ class NeuTTSAirTTS:
         logger.info(f"Reference text: {ref_text[:50]}...")
         
         # Encode reference
-        print(f"DEBUG: Encoding reference audio...")
+        print("DEBUG: Encoding reference audio...")
         ref_codes = self.tts.encode_reference(ref_audio_path)
-        print(f"DEBUG: Reference encoded successfully")
+        print("DEBUG: Reference encoded successfully")
         
         # Generate speech
         logger.info(f"Generating speech: {text[:50]}...")
         print(f"DEBUG: Generating speech with text: '{text[:60]}...'")
         wav = self.tts.infer(text, ref_codes, ref_text)
-        print(f"DEBUG: Speech generated successfully")
+        print("DEBUG: Speech generated successfully")
         
         # Save
         print(f"DEBUG: Saving audio to: {output_path}")
         sf.write(output_path, wav, 24000)
         logger.info(f"✓ Audio saved to: {output_path}")
-        print(f"DEBUG: Audio saved, synthesis complete!")
+        print("DEBUG: Audio saved, synthesis complete!")
         
         return output_path
 

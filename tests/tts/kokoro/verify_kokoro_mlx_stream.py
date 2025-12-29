@@ -1,6 +1,6 @@
 import os
 import logging
-from src.voice_cloning.tts.kokoro import synthesize_speech
+from voice_cloning.tts.kokoro import synthesize_speech
 
 logging.basicConfig(level=logging.INFO)
 

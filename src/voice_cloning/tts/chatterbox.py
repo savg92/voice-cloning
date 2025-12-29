@@ -16,10 +16,7 @@ import torch
 import torchaudio as ta
 import os
 import logging
-import subprocess
-import tempfile
-from pathlib import Path
-from typing import Optional, Union
+from typing import Optional
 from .utils import map_lang_code
 
 logger = logging.getLogger(__name__)

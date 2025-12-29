@@ -3,14 +3,14 @@ from pathlib import Path
 from unittest.mock import patch, MagicMock
 
 # Add src to path
-sys.path.append(str(Path(__file__).parent.parent))
+sys.path.append(str(Path(__file__).parent.parent.parent / "src"))
 
-from src.voice_cloning.tts.chatterbox import synthesize_with_chatterbox
-from src.voice_cloning.tts.marvis import MarvisTTS
+from voice_cloning.tts.chatterbox import synthesize_with_chatterbox
+from voice_cloning.tts.marvis import MarvisTTS
 
 def test_chatterbox_mlx_flags():
     """Test that flags are passed correctly to the MLX backend in Chatterbox."""
-    with patch("src.voice_cloning.tts.chatterbox._synthesize_with_mlx") as mock_mlx:
+    with patch("voice_cloning.tts.chatterbox._synthesize_with_mlx") as mock_mlx:
         synthesize_with_chatterbox(
             text="Hello",
             output_wav="out.wav",

@@ -2,8 +2,7 @@ import logging
 import os
 import sys
 import shutil
-from pathlib import Path
-from typing import Optional, Union
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +25,7 @@ class ParakeetASR:
         """Determine which backend to use based on system and availability."""
         if sys.platform == "darwin" and os.uname().machine == "arm64":
             try:
-                import mlx.core  # type: ignore
+                import mlx.core  # noqa: F401 type: ignore
                 logger.info("Detected Apple Silicon. Using MLX backend for Parakeet.")
                 return "mlx"
             except ImportError:

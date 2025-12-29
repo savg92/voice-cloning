@@ -1,7 +1,7 @@
 import pytest
 import gradio as gr
 from unittest.mock import patch
-from src.voice_cloning.ui.tts_tab import generate_speech
+from voice_cloning.ui.tts_tab import generate_speech
 
 def get_default_args():
     return [
@@ -16,7 +16,7 @@ def get_default_args():
         2.0, 0.8, 50 # dia2
     ]
 
-@patch("src.voice_cloning.tts.kokoro.synthesize_speech")
+@patch("voice_cloning.tts.kokoro.synthesize_speech")
 @patch("tempfile.mktemp")
 def test_generate_speech_kokoro(mock_mktemp, mock_kokoro):
     mock_mktemp.return_value = "output.wav"
@@ -31,7 +31,7 @@ def test_generate_speech_kokoro(mock_mktemp, mock_kokoro):
         lang_code="a", speed=1.0, use_mlx=True, stream=False
     )
 
-@patch("src.voice_cloning.tts.supertone.synthesize_with_supertone")
+@patch("voice_cloning.tts.supertone.synthesize_with_supertone")
 @patch("tempfile.mktemp")
 def test_generate_speech_supertone(mock_mktemp, mock_supertone):
     mock_mktemp.return_value = "output.wav"

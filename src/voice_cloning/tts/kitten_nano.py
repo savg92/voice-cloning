@@ -1,7 +1,6 @@
 import logging
 import soundfile as sf
 import os
-import sys
 from typing import Optional
 
 logger = logging.getLogger(__name__)
@@ -56,8 +55,9 @@ class KittenNanoTTS:
     """
     Wrapper for KittenML/kitten-tts-nano models.
     """
-    def __init__(self, model_id: str = "KittenML/kitten-tts-nano-0.2", device: Optional[str] = None):
+    def __init__(self, model_id: str = "KittenML/kitten-tts-nano-0.2", device: Optional[str] = None, cache_dir: Optional[str] = None):
         self.model_id = model_id
+        self.cache_dir = cache_dir
         
         # Ensure compatibility before importing kittentts
         ensure_espeak_compatibility()
@@ -111,7 +111,8 @@ class KittenNanoTTS:
                     while not stop_event.is_set() or not playback_queue.empty():
                         try:
                             audio_file = playback_queue.get(timeout=0.1)
-                            if audio_file is None: break
+                            if audio_file is None:
+                                break
                             
                             try:
                                 subprocess.run(["afplay", audio_file], check=True)
@@ -119,12 +120,12 @@ class KittenNanoTTS:
                                 try:
                                     subprocess.run(["ffplay", "-nodisp", "-autoexit", audio_file], 
                                                  stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                                except:
+                                except Exception:
                                     pass
                                     
                             try:
                                 os.remove(audio_file)
-                            except:
+                            except Exception:
                                 pass
                                 
                             playback_queue.task_done()
@@ -186,6 +187,7 @@ class KittenNanoTTS:
             # Save to file
             sf.write(output_path, audio, sample_rate)
             logger.info(f"Saved audio to {output_path}")
+            return output_path
 
         except Exception as e:
             logger.error(f"Kitten TTS synthesis failed: {e}")

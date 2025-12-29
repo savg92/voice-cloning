@@ -9,7 +9,7 @@ It serves as both a demo and a validation tool for the voice cloning project.
 import os
 import sys
 
-def test_model(model_name, text, reference=None, output_suffix="test"):
+def run_model_test(model_name, text, reference=None, output_suffix="test"):
     """Test a specific model with given parameters."""
     print(f"\n{'='*60}")
     print(f"Testing {model_name.upper()} Model")
@@ -89,7 +89,7 @@ def main():
             results[model] = "skipped"
             continue
         
-        success = test_model(
+        success = run_model_test(
             model, 
             test_text, 
             reference_audio if needs_reference else None

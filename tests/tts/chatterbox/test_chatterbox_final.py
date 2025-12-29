@@ -2,12 +2,12 @@ import sys
 from pathlib import Path
 
 # Add src to path
-sys.path.append(str(Path(__file__).parent.parent.parent.parent))
+sys.path.append(str(Path(__file__).parent.parent.parent.parent / "src"))
 
 def test_chatterbox():
     print("Testing Chatterbox integration...")
     try:
-        from src.voice_cloning.tts.chatterbox import ChatterboxWrapper
+        from voice_cloning.tts.chatterbox import ChatterboxWrapper
         wrapper = ChatterboxWrapper()
         print("✓ ChatterboxWrapper initialized successfully")
         

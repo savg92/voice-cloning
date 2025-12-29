@@ -1,9 +1,8 @@
 import gradio as gr
-import os
 import tempfile
 import logging
 import torch
-from typing import Optional, List, Dict
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -11,30 +10,24 @@ logger = logging.getLogger(__name__)
 KOKORO_VOICES = {
     "a": ["af_heart", "af_bella", "am_adam", "am_fenix", "am_puck", "af_nicole", "af_sky"],
     "b": ["bf_emma", "bf_isabella", "bm_george", "bm_lewis"],
-    "d": ["af_heart", "bf_emma"], # No native voices yet, fallback to English
     "e": ["ef_dora", "em_alex", "em_santa"],
     "f": ["ff_siwis"],
     "h": ["hf_alpha", "hi_puck"],
     "i": ["if_sara", "it_bella", "im_nicola"],
     "j": ["jf_alpha", "jf_gongitsune", "jf_nezumi", "jf_tebukuro", "jm_kumo"],
     "p": ["pf_dora", "pm_alex", "pm_santa"],
-    "r": ["af_heart", "bf_emma"], # No native voices yet
-    "t": ["af_heart", "bf_emma"], # No native voices yet
     "z": ["zf_xiaobei", "zf_xiaoni", "zf_xiaoxiao", "zf_xiaoyi", "zm_yunjian", "zm_yunxi", "zm_yunxia", "zm_yunyang"]
 }
 
 KOKORO_LANGS = {
     "a": "US English",
     "b": "British English",
-    "d": "German",
     "e": "Spanish",
     "f": "French",
     "h": "Hindi",
     "i": "Italian",
     "j": "Japanese",
     "p": "Portuguese",
-    "r": "Russian",
-    "t": "Turkish",
     "z": "Chinese"
 }
 

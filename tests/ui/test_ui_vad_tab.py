@@ -1,7 +1,7 @@
 import pytest
 import gradio as gr
 from unittest.mock import patch
-from src.voice_cloning.ui.vad_tab import create_vad_tab, detect_speech_segments
+from voice_cloning.ui.vad_tab import create_vad_tab, detect_speech_segments
 
 def test_create_vad_tab_returns_component():
     """Test that create_vad_tab returns a Gradio Component."""
@@ -9,7 +9,7 @@ def test_create_vad_tab_returns_component():
         tab = create_vad_tab()
         assert isinstance(tab, gr.blocks.BlockContext) or isinstance(tab, gr.components.Component)
 
-@patch("src.voice_cloning.vad.humaware.HumAwareVAD")
+@patch("voice_cloning.vad.humaware.HumAwareVAD")
 def test_detect_speech_segments(MockVAD):
     """Test that VAD analysis calls the correct backend with params."""
     mock_instance = MockVAD.return_value

@@ -1,9 +1,7 @@
 import torch
 import torchaudio
 from transformers import AutoProcessor, AutoModelForSpeechSeq2Seq
-from datetime import datetime
 import logging
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 

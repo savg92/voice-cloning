@@ -1,5 +1,4 @@
 import os
-import sys
 import torch
 from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
 import logging

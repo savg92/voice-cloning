@@ -50,7 +50,7 @@ class UnicodeProcessor:
         # Character replacements
         replacements = {
             "–": "-", "‑": "-", "—": "-", "¯": " ", "_": " ",
-            """: '"', """: '"', "'": "'", "'": "'", "´": "'", "`": "'",
+            """: '"', """: '"', "'": "'", "´": "'", "`": "'",
             "[": " ", "]": " ", "|": " ", "/": " ", "#": " ",
             "→": " ", "←": " ",
         }
@@ -276,7 +276,8 @@ class SupertoneTTS:
                 while not stop_event.is_set() or not playback_queue.empty():
                     try:
                         audio_file = playback_queue.get(timeout=0.1)
-                        if audio_file is None: break
+                        if audio_file is None:
+                            break
                         
                         # Play audio (macOS specific for now, fallback to ffplay)
                         try:
@@ -285,13 +286,13 @@ class SupertoneTTS:
                             try:
                                 subprocess.run(["ffplay", "-nodisp", "-autoexit", audio_file], 
                                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                            except:
+                            except Exception:
                                 pass
                                 
                         # Cleanup
                         try:
                             os.remove(audio_file)
-                        except:
+                        except Exception:
                             pass
                             
                         playback_queue.task_done()

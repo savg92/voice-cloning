@@ -1,13 +1,13 @@
 import sys
-import types
 from pathlib import Path
+import types
 import numpy as np
 import soundfile as sf
 
-# Add project root to sys.path
-sys.path.append(str(Path(__file__).parent.parent.parent.parent))
+# Add src to path
+sys.path.append(str(Path(__file__).parent.parent.parent.parent / "src"))
 
-from src.voice_cloning.tts.kitten_nano import KittenNanoTTS
+from voice_cloning.tts.kitten_nano import KittenNanoTTS
 
 
 def test_kitten_nano_synthesize_file(tmp_path, monkeypatch):
@@ -38,7 +38,7 @@ def test_kitten_nano_synthesize_file(tmp_path, monkeypatch):
     out_file = tmp_path / "kitten_test.wav"
     path = tts.synthesize_to_file("Hello from tests", out_file)
 
-    assert path.exists(), "Expected synthesized file to exist"
-    info = sf.info(str(path))
-    assert info.samplerate == tts.sr
+    assert out_file.exists(), "Expected synthesized file to exist"
+    info = sf.info(str(out_file))
+    assert info.samplerate == 24000
     assert info.frames > 0

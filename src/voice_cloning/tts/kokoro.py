@@ -5,10 +5,8 @@
 
 import soundfile as sf
 import os
-import shutil
 import subprocess
 import tempfile
-import sys
 import logging
 from typing import Optional
 from .utils import map_lang_code
@@ -49,38 +47,6 @@ def synthesize_speech(
         return _synthesize_with_pytorch(text, output_path, lang_code, voice, speed, stream)
 
 
-def _patch_kokoro_langs():
-    """
-    Monkeypatch Kokoro libraries to support German, Russian, and Turkish.
-    These languages are supported by espeak-ng but filtered out by Kokoro's validation.
-    """
-    # Patch PyTorch backend
-    try:
-        import kokoro.pipeline
-        if 'd' not in kokoro.pipeline.LANG_CODES:
-            logger.info("Patching Kokoro (PyTorch) LANG_CODES for de, ru, tr")
-            kokoro.pipeline.LANG_CODES.update({
-                'd': 'de',
-                'r': 'ru', 
-                't': 'tr'
-            })
-    except ImportError:
-        pass
-
-    # Patch MLX backend
-    try:
-        import mlx_audio.tts.models.kokoro.pipeline as mlx_pipeline
-        if 'd' not in mlx_pipeline.LANG_CODES:
-            logger.info("Patching Kokoro (MLX) LANG_CODES for de, ru, tr")
-            mlx_pipeline.LANG_CODES.update({
-                'd': 'de',
-                'r': 'ru',
-                't': 'tr'
-            })
-    except ImportError:
-        pass
-
-
 def _synthesize_with_mlx(
     text: str,
     output_path: str,
@@ -91,10 +57,10 @@ def _synthesize_with_mlx(
 ) -> str:
     """
     Synthesize speech using MLX backend (optimized for Apple Silicon).
-    Using direct Python API instead of subprocess for better control and patching.
+    Using direct Python API instead of subprocess for better control.
     """
     try:
-        import mlx.core as mx
+        import mlx.core as mx  # noqa: F401
         import numpy as np
         from mlx_audio.tts.utils import load_model
     except ImportError:
@@ -104,8 +70,7 @@ def _synthesize_with_mlx(
             "Or use use_mlx=False to use PyTorch backend."
         )
     
-    _patch_kokoro_langs()
-    
+    # logger.info("Generating speech with MLX backend (Kokoro-82M-4bit)...")
     logger.info("Generating speech with MLX backend (Kokoro-82M-bf16)...")
     logger.info(f"Voice={voice}, Speed={speed}, Lang={lang_code}")
 
@@ -114,12 +79,11 @@ def _synthesize_with_mlx(
 
     try:
         # Load model
-        # Using default repo_id for MLX Kokoro
+        # model_path = "mlx-community/Kokoro-82M-4bit"
         model_path = "mlx-community/Kokoro-82M-bf16"
         model = load_model(model_path)
         
         # Generate
-        # model.generate returns a generator of GenerationResult
         generator = model.generate(
             text=text,
             voice=voice,
@@ -130,13 +94,56 @@ def _synthesize_with_mlx(
         all_audio = []
         
         if stream:
-            # Simple streaming implementation (blocking playback for now/skipping)
-            # Ideally we'd yield chunks or play them
+            import threading
+            import queue
+
+            playback_queue = queue.Queue()
+            stop_event = threading.Event()
+
+            def playback_worker():
+                while not stop_event.is_set() or not playback_queue.empty():
+                    try:
+                        audio_file = playback_queue.get(timeout=0.1)
+                        if audio_file is None:
+                            break
+
+                        try:
+                            # Try afplay (macOS native)
+                            subprocess.run(["afplay", audio_file], check=True)
+                        except (FileNotFoundError, subprocess.CalledProcessError):
+                            try:
+                                # Fallback to ffplay
+                                subprocess.run(["ffplay", "-nodisp", "-autoexit", audio_file],
+                                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                            except Exception:
+                                pass
+
+                        try:
+                            os.remove(audio_file)
+                        except Exception:
+                            pass
+
+                        playback_queue.task_done()
+                    except queue.Empty:
+                        continue
+
+            player_thread = threading.Thread(target=playback_worker, daemon=True)
+            player_thread.start()
+
+            logger.info("Starting streaming generation (MLX)...")
             for result in generator:
                 if result.audio is not None:
-                    # Convert MLX array to numpy
                     audio_np = np.array(result.audio)
                     all_audio.append(audio_np)
+
+                    # Save chunk and play
+                    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+                        sf.write(tmp.name, audio_np, 24000)
+                        playback_queue.put(tmp.name)
+
+            stop_event.set()
+            player_thread.join()
+
         else:
             for result in generator:
                 if result.audio is not None:
@@ -144,13 +151,6 @@ def _synthesize_with_mlx(
                     all_audio.append(audio_np)
         
         if not all_audio:
-            # This might happen if generator yielded no audio (e.g. empty text)
-            # But normally it should yield something.
-            # Check if we caught an error inside generator (it yields results, errors might raise)
-            pass
-
-        if not all_audio:
-             # Just in case
              raise RuntimeError("No audio generated by MLX pipeline")
 
         final_audio = np.concatenate(all_audio)
@@ -183,11 +183,8 @@ def _synthesize_with_pytorch(
     Synthesize speech using PyTorch backend (standard).
     """
     from kokoro import KPipeline
-    import torch
     import numpy as np
     
-    _patch_kokoro_langs()
-
     # Map common language codes to Kokoro codes if needed
     pipeline_lang = map_lang_code(lang_code)
 
@@ -212,7 +209,8 @@ def _synthesize_with_pytorch(
             while not stop_event.is_set() or not playback_queue.empty():
                 try:
                     audio_file = playback_queue.get(timeout=0.1)
-                    if audio_file is None: break
+                    if audio_file is None:
+                        break
 
                     try:
                         subprocess.run(["afplay", audio_file], check=True)
@@ -220,12 +218,12 @@ def _synthesize_with_pytorch(
                         try:
                             subprocess.run(["ffplay", "-nodisp", "-autoexit", audio_file],
                                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                        except:
+                        except Exception:
                             pass
 
                     try:
                         os.remove(audio_file)
-                    except:
+                    except Exception:
                         pass
 
                     playback_queue.task_done()

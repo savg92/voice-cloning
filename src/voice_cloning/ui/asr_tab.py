@@ -1,6 +1,5 @@
 import gradio as gr
 import logging
-from typing import Optional, List
 
 logger = logging.getLogger(__name__)
 

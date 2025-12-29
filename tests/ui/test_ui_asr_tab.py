@@ -1,7 +1,7 @@
 import pytest
 import gradio as gr
 from unittest.mock import patch, MagicMock
-from src.voice_cloning.ui.asr_tab import create_asr_tab, transcribe_speech
+from voice_cloning.ui.asr_tab import create_asr_tab, transcribe_speech
 
 def test_create_asr_tab_returns_component():
     """Test that create_asr_tab returns a Gradio Component."""
@@ -9,7 +9,7 @@ def test_create_asr_tab_returns_component():
         tab = create_asr_tab()
         assert isinstance(tab, gr.blocks.BlockContext) or isinstance(tab, gr.components.Component)
 
-@patch("src.voice_cloning.asr.whisper.WhisperASR")
+@patch("voice_cloning.asr.whisper.WhisperASR")
 def test_transcribe_speech_whisper(MockWhisper):
     """Test that Whisper transcription calls the correct backend with params."""
     mock_instance = MockWhisper.return_value
@@ -25,7 +25,7 @@ def test_transcribe_speech_whisper(MockWhisper):
     mock_instance.transcribe.assert_called_with("audio.wav", lang="en", task="transcribe", timestamps=True)
     assert output == "Whisper transcript"
 
-@patch("src.voice_cloning.asr.granite.transcribe_file")
+@patch("voice_cloning.asr.granite.transcribe_file")
 @patch("builtins.open", new_callable=MagicMock)
 def test_transcribe_speech_granite(mock_open, mock_transcribe):
     """Test that Granite transcription calls the correct backend."""

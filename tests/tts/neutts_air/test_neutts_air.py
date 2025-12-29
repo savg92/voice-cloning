@@ -9,15 +9,15 @@ import tempfile
 from pathlib import Path
 import soundfile as sf
 
-# Add project root to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Add src to path
+sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / "src"))
 
-from src.voice_cloning.tts.neutts_air import NeuTTSAirTTS, synthesize_with_neutts_air
+from voice_cloning.tts.neutts_air import NeuTTSAirTTS, synthesize_with_neutts_air
 
 
 # Skip tests if neuttsair module not available
 try:
-    models_dir = Path(__file__).parent.parent / "models"
+    models_dir = Path(__file__).parent.parent.parent.parent / "models"
     if str(models_dir) not in sys.path:
         sys.path.insert(0, str(models_dir))
     from neuttsair.neutts import NeuTTSAir  # noqa: F401

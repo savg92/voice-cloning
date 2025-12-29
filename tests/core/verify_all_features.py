@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 logger = logging.getLogger(__name__)
 
 # Add src to path
-sys.path.append(str(Path(__file__).parent.parent))
+sys.path.append(str(Path(__file__).parent.parent.parent / "src"))
 
 class FeatureValidator:
     def __init__(self, output_dir: str = "outputs/verification"):
@@ -24,7 +24,7 @@ class FeatureValidator:
     def test_kokoro_pytorch(self):
         logger.info("Testing Kokoro (PyTorch)...")
         try:
-            from src.voice_cloning.tts.kokoro import synthesize_speech
+            from voice_cloning.tts.kokoro import synthesize_speech
             out = self.output_dir / "kokoro_pytorch.wav"
             out_str = str(out)
             
@@ -49,7 +49,7 @@ class FeatureValidator:
             return
             
         try:
-            from src.voice_cloning.tts.kokoro import synthesize_speech
+            from voice_cloning.tts.kokoro import synthesize_speech
             
             # Test English
             out_en = self.output_dir / "kokoro_mlx_en.wav"
@@ -86,7 +86,7 @@ class FeatureValidator:
     def test_asr_whisper(self):
         logger.info("Testing Whisper ASR...")
         try:
-            from src.voice_cloning.asr.whisper import WhisperASR
+            from voice_cloning.asr.whisper import WhisperASR
             model = WhisperASR(model_id="openai/whisper-tiny") # Fast test
             model.load_model()
             

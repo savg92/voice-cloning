@@ -55,21 +55,21 @@ def main():
         sys.exit(0)
 
     try:
-        from src.voice_cloning.tts.kitten_nano import ensure_espeak_compatibility
+        from voice_cloning.tts.kitten_nano import ensure_espeak_compatibility
         ensure_espeak_compatibility()
-        from src.voice_cloning.tts.kitten_nano import KittenNanoTTS
+        from voice_cloning.tts.kitten_nano import KittenNanoTTS
     except Exception as e:
-        print("Failed to import KittenNanoTTS. Ensure 'kittentts' and required dependencies are installed.")
-        print("Install kittentts: pip install https://github.com/KittenML/KittenTTS/releases/download/0.1/kittentts-0.1.0-py3-none-any.whl")
-        print("If you hit phonemizer/Espeak-related errors (e.g. 'EspeakWrapper.set_data_path'), try:")
-        print("  pip install --upgrade phonemizer espeakng-loader")
-        print("And install system espeak-ng (Linux): sudo apt-get install espeak-ng OR macOS: brew install espeak")
-        sys.exit(1)
+        logger.error(f"Import failed: {e}")
+        raise e
 
     out_path = Path(args.output)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    tts = KittenNanoTTS(model_id=args.model, device=args.device, cache_dir=args.cache_dir)
+    try:
+        tts = KittenNanoTTS(model_id=args.model, device=args.device, cache_dir=args.cache_dir)
+    except Exception as e:
+        logger.error(f"Failed to initialize Kitten TTS: {e}")
+        sys.exit(1)
 
     if args.check:
         # Print versions and EspeakWrapper details
@@ -98,7 +98,7 @@ def main():
         print(f"✓ Synthesis completed — saved to: {out_path}")
     except Exception as e:
         print(f"✗ Synthesis failed: {e}")
-        sys.exit(1)
+        raise e
 
 
 if __name__ == "__main__":

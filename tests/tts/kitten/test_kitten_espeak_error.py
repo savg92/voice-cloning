@@ -1,6 +1,10 @@
 import sys
+from pathlib import Path
 import types
 import pytest
+
+# Add src to path
+sys.path.append(str(Path(__file__).parent.parent.parent.parent / "src"))
 
 
 def test_kitten_cli_espeak_attribute_error(monkeypatch, tmp_path, capsys):
