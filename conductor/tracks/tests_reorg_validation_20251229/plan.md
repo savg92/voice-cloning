@@ -6,10 +6,10 @@
 - [x] Task: Identify and delete obsolete/redundant test files from the root `tests/` directory. 3b98d44
 - [x] Task: Conductor - User Manual Verification 'Foundation and Reorganization' (Protocol in workflow.md) 10db901
 
-## Phase 2: Kokoro Comprehensive Validation
+## Phase 2: Kokoro Comprehensive Validation [checkpoint: 0f3e98f]
 - [x] Task: Refine `tests/tts/kokoro/test_kokoro_full.py` to cover all 9 languages and both backends (MLX/PyTorch). 009afba
 - [x] Task: Implement validation for Kokoro streaming and speed features. 009afba
-- [ ] Task: Conductor - User Manual Verification 'Kokoro Comprehensive Validation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Kokoro Comprehensive Validation' (Protocol in workflow.md) 0f3e98f
 
 ## Phase 3: Model-by-Model Feature Validation Plan
 - [ ] Task: Create standardized test suites for **Kitten TTS** (testing multiple versions and voices).
