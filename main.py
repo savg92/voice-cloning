@@ -12,8 +12,8 @@ from pathlib import Path
 
 def main():
     parser = argparse.ArgumentParser(description="Voice Cloning & ASR CLI - Test and compare speech models")
-    parser.add_argument("--model", choices=["chatterbox", "kitten", "kitten-0.1", "kitten-0.2", "openvoice", "openvoice2", "kokoro", "canary", "parakeet", "granite", "whisper", "humaware", "marvis", "supertone", "neutts-air", "dia2", "cosyvoice", "web"], required=True,
-                        help="Model to use (TTS: cosyvoice, chatterbox, kitten[-0.1|-0.2], kokoro, marvis, supertone, neutts-air, dia2 | ASR: canary, parakeet, granite, whisper | VAD: humaware | UI: web)")
+    parser.add_argument("--model", choices=["chatterbox", "kitten", "kitten-0.1", "kitten-0.2", "openvoice", "openvoice2", "kokoro", "canary", "parakeet", "granite", "whisper", "humaware", "marvis", "supertone", "neutts-air", "dia2", "cosyvoice", "web"], default="web",
+                        help="Model to use (TTS: cosyvoice, chatterbox, kitten[-0.1|-0.2], kokoro, marvis, supertone, neutts-air, dia2 | ASR: canary, parakeet, granite, whisper | VAD: humaware | UI: web). Default: web")
     parser.add_argument("--device", choices=["cuda", "mps", "cpu"], default=None,
                         help="Device to run model on (cuda/mps/cpu). Auto-detects if not specified.")
     parser.add_argument("--text", type=str, help="Text to synthesize (for TTS models)")
