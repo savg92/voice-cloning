@@ -10,10 +10,10 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md) [checkpoint: 86024f5]
 
 ## Phase 2: Comprehensive Validation Suite
-- [ ] Task: Create a comprehensive verification script `tests/verify_all_features.py`.
-    - [ ] Subtask: Test Kokoro (PyTorch & MLX) with multiple languages.
-    - [ ] Subtask: Test Voice Cloning (Chatterbox, Marvis, CosyVoice).
-    - [ ] Subtask: Test Streaming feature for all supporting models.
-    - [ ] Subtask: Test ASR models with different languages.
-- [ ] Task: Run the validation suite and fix any discovered regressions.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
+- [x] Task: Create a comprehensive verification script `tests/verify_all_features.py`.
+    - [x] Subtask: Test Kokoro (PyTorch & MLX) with multiple languages.
+    - [x] Subtask: Test Voice Cloning (Chatterbox, Marvis, CosyVoice).
+    - [x] Subtask: Test Streaming feature for all supporting models.
+    - [x] Subtask: Test ASR models with different languages.
+- [x] Task: Run the validation suite and fix any discovered regressions.
+- [x] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md) [checkpoint: ]

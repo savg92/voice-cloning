@@ -4,8 +4,13 @@
 # """
 
 import soundfile as sf
-from typing import Optional
+import os
+import shutil
+import subprocess
+import tempfile
+import sys
 import logging
+from typing import Optional
 from .utils import map_lang_code
 
 logger = logging.getLogger(__name__)
@@ -55,11 +60,6 @@ def _synthesize_with_mlx(
     """
     Synthesize speech using MLX backend (optimized for Apple Silicon).
     """
-    import subprocess
-    import tempfile
-    import os
-    import sys
-    
     try:
         import mlx_audio
     except ImportError:
@@ -122,7 +122,6 @@ def _synthesize_with_mlx(
                     raise RuntimeError(f"MLX did not generate expected output file")
             
             # Move to final output
-            import shutil
             shutil.move(generated_file, output_path)
             
         except subprocess.CalledProcessError as e:
@@ -150,8 +149,6 @@ def _synthesize_with_pytorch(
     import torch
     import numpy as np
 
-    use_cuda = torch.cuda.is_available()
-
     # Map common language codes to Kokoro codes if needed
     pipeline_lang = map_lang_code(lang_code)
 
@@ -168,9 +165,6 @@ def _synthesize_with_pytorch(
     if stream:
         import threading
         import queue
-        import subprocess
-        import tempfile
-        import os
 
         playback_queue = queue.Queue()
         stop_event = threading.Event()
@@ -225,6 +219,13 @@ def _synthesize_with_pytorch(
         return None
 
     final_audio = np.concatenate(all_audio)
+    logger.info(f"Writing final audio ({len(final_audio)} samples) to {output_path}")
 
     sf.write(output_path, final_audio, 24000)
+    
+    if os.path.exists(output_path):
+        logger.info(f"✓ Successfully wrote {output_path}")
+    else:
+        logger.error(f"✗ Failed to write {output_path}")
+
     return output_path
