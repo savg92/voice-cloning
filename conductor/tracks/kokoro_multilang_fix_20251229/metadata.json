@@ -1,0 +1,6 @@
+{
+  "type": "bugfix",
+  "description": "Fix Kokoro TTS failures for German, Chinese, Japanese, Russian, and Turkish.",
+  "creator": "user",
+  "created_at": "2025-12-29"
+}
