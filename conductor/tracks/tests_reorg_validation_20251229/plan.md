@@ -14,8 +14,8 @@
 ## Phase 3: Model-by-Model Feature Validation Plan
 - [x] Task: Create standardized test suites for **Kitten TTS** (testing multiple versions and voices). dd0bf1c
 - [x] Task: Create standardized test suites for **Chatterbox/Marvis** (testing voice cloning and MLX specific features). ff87ab9
-- [ ] Task: Create standardized test suites for **Supertone/NeuTTS Air** (testing specific ONNX/GGUF backends).
-- [ ] Task: Create standardized test suites for **ASR Models** (Parakeet, Canary, Whisper) across multiple languages and formats.
+- [x] Task: Create standardized test suites for **Supertone/NeuTTS Air** (testing specific ONNX/GGUF backends). e65816d
+- [~] Task: Create standardized test suites for **ASR Models** (Parakeet, Canary, Whisper) across multiple languages and formats.
 - [ ] Task: Create standardized test suites for **HumAware VAD** (testing sensitivity thresholds).
 - [ ] Task: Conductor - User Manual Verification 'Model-by-Model Feature Validation Plan' (Protocol in workflow.md)
 
