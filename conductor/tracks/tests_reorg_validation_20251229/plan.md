@@ -7,9 +7,8 @@
 - [x] Task: Conductor - User Manual Verification 'Foundation and Reorganization' (Protocol in workflow.md) 10db901
 
 ## Phase 2: Kokoro Comprehensive Validation
-- [ ] Task: Refine `tests/tts/kokoro/test_kokoro_full.py` to cover all 9 languages and both backends (MLX/PyTorch).
-- [ ] Task: Implement validation for Kokoro streaming and speed features.
-- [ ] Task: Verify all Kokoro tests pass with robust output checks (file size > 0).
+- [x] Task: Refine `tests/tts/kokoro/test_kokoro_full.py` to cover all 9 languages and both backends (MLX/PyTorch). 009afba
+- [x] Task: Implement validation for Kokoro streaming and speed features. 009afba
 - [ ] Task: Conductor - User Manual Verification 'Kokoro Comprehensive Validation' (Protocol in workflow.md)
 
 ## Phase 3: Model-by-Model Feature Validation Plan
