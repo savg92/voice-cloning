@@ -11,12 +11,12 @@
 - [x] Task: Implement validation for Kokoro streaming and speed features. 009afba
 - [x] Task: Conductor - User Manual Verification 'Kokoro Comprehensive Validation' (Protocol in workflow.md) 0f3e98f
 
-## Phase 3: Model-by-Model Feature Validation Plan
+## Phase 3: Model-by-Model Feature Validation Plan [checkpoint: cfe96ff]
 - [x] Task: Create standardized test suites for **Kitten TTS** (testing multiple versions and voices). dd0bf1c
 - [x] Task: Create standardized test suites for **Chatterbox/Marvis** (testing voice cloning and MLX specific features). ff87ab9
 - [x] Task: Create standardized test suites for **Supertone/NeuTTS Air** (testing specific ONNX/GGUF backends). e65816d
 - [x] Task: Create standardized test suites for **ASR Models** (Parakeet, Canary, Whisper) across multiple languages and formats. 43fbe55
-- [~] Task: Create standardized test suites for **HumAware VAD** (testing sensitivity thresholds).
+- [x] Task: Create standardized test suites for **HumAware VAD** (testing sensitivity thresholds). cfe96ff
 - [ ] Task: Conductor - User Manual Verification 'Model-by-Model Feature Validation Plan' (Protocol in workflow.md)
 
 ## Phase 4: UI and Integration Finalization
