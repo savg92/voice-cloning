@@ -2,6 +2,8 @@ import os
 import sys
 import logging
 import pytest
+import numpy as np
+import soundfile as sf
 from pathlib import Path
 
 # Add src to path
@@ -26,14 +28,32 @@ TEST_CASES = {
     "z": "你好，这是中文语音的测试。"
 }
 
+# Voices for each language (example ones)
+VOICE_MAP = {
+    "a": "af_heart",
+    "b": "bf_isabella",
+    "e": "ef_dora",
+    "f": "ff_siwis",
+    "h": "hf_alpha",
+    "i": "if_sara",
+    "j": "jf_alpha",
+    "p": "pf_dora",
+    "z": "zf_xiaobei"
+}
+
+@pytest.fixture
+def output_dir():
+    path = Path("outputs/tests/kokoro")
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
 @pytest.mark.parametrize("lang_code", TEST_CASES.keys())
 @pytest.mark.parametrize("use_mlx", [True, False] if sys.platform == "darwin" else [False])
-def test_kokoro_all_languages(lang_code, use_mlx):
+def test_kokoro_all_languages(lang_code, use_mlx, output_dir):
     """Test Kokoro with all supported languages and backends."""
     text = TEST_CASES[lang_code]
+    voice = VOICE_MAP.get(lang_code, "af_heart")
     backend = "MLX" if use_mlx else "PyTorch"
-    output_dir = Path("outputs/tests/kokoro")
-    output_dir.mkdir(parents=True, exist_ok=True)
     
     filename = f"kokoro_{lang_code}_{backend.lower()}.wav"
     output_path = output_dir / filename
@@ -41,58 +61,118 @@ def test_kokoro_all_languages(lang_code, use_mlx):
     if output_path.exists():
         output_path.unlink()
         
-    logger.info(f"Testing {lang_code} ({backend})...")
+    logger.info(f"Testing {lang_code} ({backend}) with voice {voice}...")
     
     try:
         result = synthesize_speech(
             text=text,
             output_path=str(output_path),
             lang_code=lang_code,
+            voice=voice,
             use_mlx=use_mlx
         )
         
         assert result == str(output_path)
         assert output_path.exists()
         assert output_path.stat().st_size > 0
+        
+        # Verify audio properties
+        info = sf.info(str(output_path))
+        assert info.samplerate == 24000
+        assert info.frames > 0
+        
         logger.info(f"✅ Success: {filename}")
         
     except Exception as e:
         pytest.fail(f"❌ Failed {lang_code} ({backend}): {e}")
 
-def test_kokoro_streaming():
+@pytest.mark.parametrize("use_mlx", [True, False] if sys.platform == "darwin" else [False])
+def test_kokoro_streaming(use_mlx, output_dir):
     """Test Kokoro streaming option."""
     text = "This is a short test for streaming."
-    output_path = "outputs/tests/kokoro/kokoro_stream_test.wav"
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    backend = "mlx" if use_mlx else "pytorch"
+    output_path = output_dir / f"kokoro_stream_{backend}.wav"
     
-    if os.path.exists(output_path):
-        os.remove(output_path)
+    if output_path.exists():
+        output_path.unlink()
         
-    logger.info("Testing streaming (PyTorch)...")
+    logger.info(f"Testing streaming ({backend})...")
     synthesize_speech(
         text=text,
-        output_path=output_path,
+        output_path=str(output_path),
         lang_code="a",
         stream=True,
-        use_mlx=False
+        use_mlx=use_mlx
     )
-    assert os.path.exists(output_path)
-    assert os.path.getsize(output_path) > 0
+    assert output_path.exists()
+    assert output_path.stat().st_size > 0
 
-def test_kokoro_speed():
-    """Test Kokoro speed control."""
-    text = "Testing speed control at 1.5x."
-    output_path = "outputs/tests/kokoro/kokoro_speed_test.wav"
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+@pytest.mark.parametrize("speed", [0.5, 1.5, 2.0])
+def test_kokoro_speed_pytorch(speed, output_dir):
+    """Test Kokoro speed control on PyTorch."""
+    text = f"Testing speed control at {speed}x."
+    output_path = output_dir / f"kokoro_speed_{speed}x_pt.wav"
     
+    if output_path.exists():
+        output_path.unlink()
+        
     synthesize_speech(
         text=text,
-        output_path=output_path,
+        output_path=str(output_path),
         lang_code="a",
-        speed=1.5
+        speed=speed,
+        use_mlx=False
     )
-    assert os.path.exists(output_path)
+    assert output_path.exists()
+    assert output_path.stat().st_size > 0
 
-if __name__ == "__main__":
-    # If run directly, run a quick smoke test for US English
-    test_kokoro_all_languages("a", use_mlx=(sys.platform == "darwin"))
+def test_kokoro_empty_text(output_dir):
+    """Test Kokoro with empty text (should not crash, might return silence or error)."""
+    output_path = output_dir / "kokoro_empty.wav"
+    if output_path.exists():
+        output_path.unlink()
+        
+    # Depending on implementation, it might raise error or return silence
+    # Currently it seems to return None or empty audio if no chunks generated
+    try:
+        result = synthesize_speech(
+            text="",
+            output_path=str(output_path),
+            lang_code="a"
+        )
+        if result and os.path.exists(result):
+            assert os.path.getsize(result) >= 0
+    except Exception as e:
+        logger.info(f"Empty text handled via exception: {e}")
+
+def test_kokoro_invalid_lang(output_dir):
+    """Test Kokoro with invalid language code."""
+    output_path = output_dir / "kokoro_invalid_lang.wav"
+    
+    with pytest.raises(Exception):
+        synthesize_speech(
+            text="Hello",
+            output_path=str(output_path),
+            lang_code="invalid"
+        )
+
+def test_kokoro_long_text(output_dir):
+    """Test Kokoro with a longer paragraph to verify multi-chunk generation."""
+    text = (
+        "This is a longer paragraph designed to test the multi-chunk generation capabilities of the Kokoro TTS engine. "
+        "It contains several sentences that should be processed as individual segments and then concatenated together "
+        "into a single, seamless audio output file. This ensures that the pipeline correctly handles larger blocks of "
+        "text without losing data or producing artifacts between the combined segments."
+    )
+    output_path = output_dir / "kokoro_long_text.wav"
+    
+    if output_path.exists():
+        output_path.unlink()
+        
+    result = synthesize_speech(
+        text=text,
+        output_path=str(output_path),
+        lang_code="a"
+    )
+    assert os.path.exists(result)
+    assert os.path.getsize(result) > 10000 # Expect significant size
