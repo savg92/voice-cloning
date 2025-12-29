@@ -9,7 +9,6 @@ GitHub: https://github.com/nari-labs/dia2
 """
 
 import logging
-from typing import Optional
 
 import numpy as np
 import torch
@@ -33,7 +32,7 @@ class Dia2TTS:
     def __init__(
         self,
         model_name: str = "nari-labs/Dia2-1B",
-        device: Optional[str] = None,
+        device: str | None = None,
         dtype: str = "bfloat16"
     ):
         self.model_name = model_name
@@ -88,14 +87,14 @@ class Dia2TTS:
     def synthesize(
         self,
         text: str,
-        output_path: Optional[str] = None,
+        output_path: str | None = None,
         cfg_scale: float = 2.0,
         temperature: float = 0.8,
         top_k: int = 50,
         use_cuda_graph: bool = True,
         verbose: bool = False,
-        prefix_speaker_1: Optional[str] = None,
-        prefix_speaker_2: Optional[str] = None,
+        prefix_speaker_1: str | None = None,
+        prefix_speaker_2: str | None = None,
     ) -> np.ndarray:
         """
         Synthesize speech from text using Dia2.

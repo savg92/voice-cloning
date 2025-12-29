@@ -1,9 +1,6 @@
-from typing import Tuple, Dict, Any
-import numpy as np
+from typing import Any
 import soundfile as sf
-import os
 import shutil
-import glob
 from pathlib import Path
 from ..base import ModelBenchmark, BenchmarkType
 
@@ -17,7 +14,7 @@ class MarvisBenchmark(ModelBenchmark):
     def warmup(self, output_dir: str):
         pass
 
-    def run_test(self, input_data: Any, output_path: str) -> Dict[str, Any]:
+    def run_test(self, input_data: Any, output_path: str) -> dict[str, Any]:
         from src.voice_cloning.tts.marvis import MarvisTTS
         model = MarvisTTS()
         

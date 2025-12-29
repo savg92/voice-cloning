@@ -1,5 +1,4 @@
-from typing import Tuple, Dict, Any
-import numpy as np
+from typing import Any
 import soundfile as sf
 from ..base import ModelBenchmark, BenchmarkType
 import torch
@@ -27,7 +26,7 @@ class NeuTTSBenchmark(ModelBenchmark):
             ref_text_path=self.ref_text_path
         )
 
-    def run_test(self, input_data: Any, output_path: str) -> Dict[str, Any]:
+    def run_test(self, input_data: Any, output_path: str) -> dict[str, Any]:
         if not self.ref_audio_path:
              raise ValueError("NeuTTS requires reference audio")
 

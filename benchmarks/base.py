@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Tuple, Dict, Union
-import numpy as np
+from typing import Any
 
 class BenchmarkType:
     TTS = "TTS"
@@ -27,7 +26,7 @@ class ModelBenchmark(ABC):
         pass
 
     @abstractmethod
-    def run_test(self, input_data: Any, output_path: str) -> Dict[str, Any]:
+    def run_test(self, input_data: Any, output_path: str) -> dict[str, Any]:
         """
         Run the benchmark test.
         

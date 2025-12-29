@@ -1,6 +1,5 @@
 import torch
 import torchaudio
-from typing import List, Optional, Dict
 import logging
 
 logger = logging.getLogger(__name__)
@@ -11,7 +10,7 @@ class HumAwareVAD:
     This model is a fine-tuned Silero VAD designed to distinguish speech from humming.
     """
     
-    def __init__(self, device: Optional[str] = None):
+    def __init__(self, device: str | None = None):
         self.device = device or ("mps" if torch.backends.mps.is_available() else "cpu")
         logger.info(f"Initializing HumAwareVAD on {self.device}")
         
@@ -53,7 +52,7 @@ class HumAwareVAD:
         min_silence_duration_ms: int = 100,
         speech_pad_ms: int = 30,
         window_size_samples: int = 512,
-    ) -> List[Dict[str, int]]:
+    ) -> list[dict[str, int]]:
         """
         Standalone implementation of get_speech_timestamps.
         Returns speech segments as list of dicts with 'start' and 'end' in samples.
@@ -133,7 +132,7 @@ class HumAwareVAD:
 
         return speeches
 
-    def detect_speech(self, audio_path: str, threshold: float = 0.5, min_speech_duration_ms: int = 250, min_silence_duration_ms: int = 100, speech_pad_ms: int = 30) -> List[dict]:
+    def detect_speech(self, audio_path: str, threshold: float = 0.5, min_speech_duration_ms: int = 250, min_silence_duration_ms: int = 100, speech_pad_ms: int = 30) -> list[dict]:
         """
         Detect speech segments in the audio file.
         

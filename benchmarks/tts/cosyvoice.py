@@ -1,8 +1,6 @@
-from typing import Tuple, Dict, Any
-import numpy as np
+from typing import Any
 import soundfile as sf
 from ..base import ModelBenchmark, BenchmarkType
-import platform
 
 class CosyVoiceBenchmark(ModelBenchmark):
     def __init__(self, use_mlx: bool = True):
@@ -22,7 +20,7 @@ class CosyVoiceBenchmark(ModelBenchmark):
             use_mlx=self.use_mlx
         )
 
-    def run_test(self, input_data: Any, output_path: str) -> Dict[str, Any]:
+    def run_test(self, input_data: Any, output_path: str) -> dict[str, Any]:
         from src.voice_cloning.tts.cosyvoice import synthesize_speech
         synthesize_speech(
             input_data,

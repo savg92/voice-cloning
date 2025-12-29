@@ -5,7 +5,7 @@ A powerful 1-billion parameter model for speech transcription and translation ac
 
 import logging
 from pathlib import Path
-from typing import Optional, Union, Dict, Any
+from typing import Any
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -75,7 +75,7 @@ class CanaryASR:
             logger.error(f"Failed to load Canary model: {e}")
             return False
 
-    def get_supported_languages(self) -> Dict[str, str]:
+    def get_supported_languages(self) -> dict[str, str]:
         """Get Dict of supported language codes and names."""
         return self.languages_map
 
@@ -85,12 +85,12 @@ class CanaryASR:
     
     def transcribe(
         self, 
-        audio_path: Union[str, Path],
+        audio_path: str | Path,
         source_lang: str = "en",
         target_lang: str = "en",
         timestamps: bool = False,
         batch_size: int = 1
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Transcribe or translate audio using Canary-1B-v2.
         
@@ -157,8 +157,8 @@ class CanaryASR:
     
     def transcribe_file(
         self, 
-        audio_path: Union[str, Path],
-        output_path: Optional[Union[str, Path]] = None,
+        audio_path: str | Path,
+        output_path: str | Path | None = None,
         source_lang: str = "en",
         target_lang: str = "en",
         timestamps: bool = False
@@ -219,8 +219,8 @@ def get_canary() -> CanaryASR:
 
 
 def transcribe_to_file(
-    audio_path: Union[str, Path], 
-    output_path: Union[str, Path],
+    audio_path: str | Path, 
+    output_path: str | Path,
     source_lang: str = "en",
     target_lang: str = "en"
 ) -> str:

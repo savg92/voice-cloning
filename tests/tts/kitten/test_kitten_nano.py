@@ -36,7 +36,7 @@ def test_kitten_nano_synthesize_file(tmp_path, monkeypatch):
     # Now instantiate the wrapper and synthesize
     tts = KittenNanoTTS()
     out_file = tmp_path / "kitten_test.wav"
-    path = tts.synthesize_to_file("Hello from tests", out_file)
+    tts.synthesize_to_file("Hello from tests", out_file)
 
     assert out_file.exists(), "Expected synthesized file to exist"
     info = sf.info(str(out_file))

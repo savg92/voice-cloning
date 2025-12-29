@@ -2,7 +2,6 @@ import gradio as gr
 import tempfile
 import logging
 import torch
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -34,8 +33,8 @@ KOKORO_LANGS = {
 def generate_speech(
     model_name: str, 
     text: str, 
-    reference_audio: Optional[str],
-    reference_text: Optional[str],
+    reference_audio: str | None,
+    reference_text: str | None,
     speed: float,
     use_mlx: bool,
     stream: bool,

@@ -1,9 +1,6 @@
 import argparse
 import logging
-import sys
-import os
 import platform
-import shutil
 from pathlib import Path
 from .runner import BenchmarkRunner, BenchmarkConfig
 from .config import OUTPUT_DIR, ensure_output_dir, TEST_TEXT

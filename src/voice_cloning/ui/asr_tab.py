@@ -72,7 +72,7 @@ def transcribe_speech(
             import tempfile
             out_txt = tempfile.mktemp(suffix=".txt")
             transcribe_file(audio_path, out_txt)
-            with open(out_txt, "r") as f:
+            with open(out_txt) as f:
                 result_text = f.read()
             
         else:

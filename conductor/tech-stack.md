@@ -17,7 +17,7 @@
 
 ## Audio Processing & Utilities
 *   **Audio Manipulation:** `librosa`, `pydub`, `soundfile`, `scipy`, `pyloudnorm`.
-*   **Phonetics:** `phonemizer`, `misaki`.
+*   **Phonetics:** `phonemizer`, `misaki`, `unidic`.
 *   **CLI & Interface:** `typer`, `gradio`.
 
 ## Infrastructure & Architecture

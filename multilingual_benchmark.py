@@ -15,7 +15,6 @@ Models tested:
 import time
 import logging
 from pathlib import Path
-from typing import Dict, List
 import soundfile as sf
 
 logging.basicConfig(

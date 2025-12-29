@@ -16,7 +16,6 @@ import torch
 import torchaudio as ta
 import os
 import logging
-from typing import Optional
 from .utils import map_lang_code
 
 logger = logging.getLogger(__name__)
@@ -61,7 +60,7 @@ class ChatterboxWrapper:
     Supports both English-only and Multilingual variants.
     """
     
-    def __init__(self, device: Optional[str] = None, multilingual: bool = False):
+    def __init__(self, device: str | None = None, multilingual: bool = False):
         """
         Initialize Chatterbox TTS.
         
@@ -99,10 +98,10 @@ class ChatterboxWrapper:
     def generate(
         self,
         text: str,
-        audio_prompt_path: Optional[str] = None,
+        audio_prompt_path: str | None = None,
         exaggeration: float = 0.5,
         cfg_weight: float = 0.5,
-        language_id: Optional[str] = None
+        language_id: str | None = None
     ) -> torch.Tensor:
         """
         Generate speech from text.
@@ -149,10 +148,10 @@ class ChatterboxWrapper:
 def _synthesize_with_pytorch(
     text: str,
     output_wav: str,
-    source_wav: Optional[str] = None,
+    source_wav: str | None = None,
     exaggeration: float = 0.5,
     cfg_weight: float = 0.5,
-    language: Optional[str] = None,
+    language: str | None = None,
     multilingual: bool = False
 ):
     """
@@ -179,12 +178,12 @@ def _synthesize_with_pytorch(
 def _synthesize_with_mlx(
     text: str,
     output_wav: str,
-    source_wav: Optional[str] = None,
+    source_wav: str | None = None,
     exaggeration: float = 0.5,
     cfg_weight: float = 0.5,
-    language: Optional[str] = None,
-    model_id: Optional[str] = None,
-    voice: Optional[str] = None,
+    language: str | None = None,
+    model_id: str | None = None,
+    voice: str | None = None,
     speed: float = 1.0,
     stream: bool = False
 ):
@@ -353,14 +352,14 @@ def _synthesize_with_mlx(
 def synthesize_with_chatterbox(
     text: str,
     output_wav: str,
-    source_wav: Optional[str] = None,
+    source_wav: str | None = None,
     exaggeration: float = 0.5,
     cfg_weight: float = 0.5,
-    language: Optional[str] = None,
+    language: str | None = None,
     multilingual: bool = False,
     use_mlx: bool = False,
-    model_id: Optional[str] = None,
-    voice: Optional[str] = None,
+    model_id: str | None = None,
+    voice: str | None = None,
     speed: float = 1.0,
     stream: bool = False
 ):

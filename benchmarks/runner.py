@@ -3,16 +3,12 @@ import logging
 import psutil
 import torch
 import gc
-import numpy as np
 import soundfile as sf
-import platform
 import os
 from pathlib import Path
-from dataclasses import dataclass, field
-from typing import List, Optional, Any
-from datetime import datetime
+from dataclasses import dataclass
 
-from .config import OUTPUT_DIR, BENCHMARK_FILE, ensure_output_dir
+from .config import OUTPUT_DIR, ensure_output_dir
 from .base import ModelBenchmark, BenchmarkType
 
 logger = logging.getLogger(__name__)
@@ -32,20 +28,20 @@ class BenchmarkConfig:
     include_cloning: bool = False
     include_memory: bool = True
     output_dir: Path = OUTPUT_DIR
-    reference_audio_path: Optional[str] = None # For ASR/VAD
+    reference_audio_path: str | None = None # For ASR/VAD
     test_text: str = ""
 
 class BenchmarkRunner:
     def __init__(self, config: BenchmarkConfig):
         self.config = config
-        self.results: List[BenchmarkResult] = []
+        self.results: list[BenchmarkResult] = []
         ensure_output_dir()
 
     def _get_memory_usage(self):
         try:
             process = psutil.Process(os.getpid())
             return process.memory_info().rss / 1024 / 1024  # MB
-        except:
+        except Exception:
             return 0.0
 
     def _get_device(self):
@@ -111,7 +107,7 @@ class BenchmarkRunner:
                 try:
                     info = sf.info(input_data)
                     duration = info.duration
-                except:
+                except Exception:
                     duration = 0 # Fallback
             
             rtf = (latency / 1000) / duration if duration > 0 else 0

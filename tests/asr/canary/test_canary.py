@@ -3,7 +3,6 @@
 Test script for NVIDIA Canary-1B-v2 ASR and Translation model
 """
 
-import os
 import sys
 from pathlib import Path
 
@@ -14,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / "src"))
 ROOT_DIR = Path(__file__).parent.parent.parent.parent
 AUDIO_PATH = ROOT_DIR / "samples" / "anger.wav"
 
-from voice_cloning.asr.canary import get_canary, transcribe_to_file, CanaryASR
+from voice_cloning.asr.canary import get_canary, transcribe_to_file, CanaryASR  # noqa: E402
 
 # Compatibility aliases
 CanaryV2Model = CanaryASR
@@ -35,7 +34,7 @@ def test_canary_asr():
     print(f"✓ ASR transcription saved to: {output_path}")
     
     # Read and display result
-    with open(output_path, 'r') as f:
+    with open(output_path) as f:
         content = f.read()
         lines = content.split('\n')
         print(f"Transcription: {lines[4] if len(lines) > 4 else 'Error reading result'}")

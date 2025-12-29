@@ -6,7 +6,6 @@ Voice cloning TTS using NeuTTS Air (Neuphonic)
 import logging
 import os
 from pathlib import Path
-from typing import Optional
 
 import soundfile as sf
 
@@ -93,7 +92,7 @@ class NeuTTSAirTTS:
         text: str,
         output_path: str,
         ref_audio_path: str,
-        ref_text_path: Optional[str] = None,
+        ref_text_path: str | None = None,
     ) -> str:
         """
         Synthesize speech with voice cloning.
@@ -125,7 +124,7 @@ class NeuTTSAirTTS:
             )
         
         print(f"DEBUG: Loading reference text from: {ref_text_path}")
-        with open(ref_text_path, 'r') as f:
+        with open(ref_text_path) as f:
             ref_text = f.read().strip()
         print(f"DEBUG: Reference text loaded ({len(ref_text)} chars)")
         
@@ -156,7 +155,7 @@ def synthesize_with_neutts_air(
     text: str,
     output_path: str,
     ref_audio: str,
-    ref_text: Optional[str] = None,
+    ref_text: str | None = None,
     backbone: str = "neuphonic/neutts-air-q4-gguf",
     device: str = "cpu"
 ) -> str:

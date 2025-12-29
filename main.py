@@ -1,14 +1,13 @@
 import argparse
 import sys
-import os
 import logging
+from pathlib import Path
 
 # Configure logging to show INFO level messages
 logging.basicConfig(
     level=logging.INFO,
     format='%(message)s'
 )
-from pathlib import Path
 
 def main():
     parser = argparse.ArgumentParser(description="Voice Cloning & ASR CLI - Test and compare speech models")

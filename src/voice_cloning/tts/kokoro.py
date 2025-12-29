@@ -8,7 +8,6 @@ import os
 import subprocess
 import tempfile
 import logging
-from typing import Optional
 from .utils import map_lang_code
 
 logger = logging.getLogger(__name__)
@@ -16,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 def synthesize_speech(
     text: str,
-    audio_sample_path: Optional[str] = None,
+    audio_sample_path: str | None = None,
     output_path: str = "kokoro_output.wav",
     lang_code: str = "a",
     voice: str = "af_heart",

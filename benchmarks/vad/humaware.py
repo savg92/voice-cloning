@@ -1,5 +1,4 @@
-from typing import Tuple, Dict, Any
-import numpy as np
+from typing import Any
 import json
 from ..base import ModelBenchmark, BenchmarkType
 
@@ -15,7 +14,7 @@ class HumAwareBenchmark(ModelBenchmark):
     def warmup(self, output_dir: str):
         pass
 
-    def run_test(self, input_data: Any, output_path: str) -> Dict[str, Any]:
+    def run_test(self, input_data: Any, output_path: str) -> dict[str, Any]:
         timestamp_list = self.model_instance.detect_speech(input_data)
         
         # Save result

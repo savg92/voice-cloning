@@ -9,5 +9,5 @@ def test_ui_package_exists():
 
 def test_ui_package_is_package():
     """Test that voice_cloning.ui is actually a package (has __path__)."""
-    import voice_cloning.ui
-    assert hasattr(src.voice_cloning.ui, "__path__")
+    from voice_cloning import ui
+    assert hasattr(ui, "__path__")

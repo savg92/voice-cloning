@@ -9,7 +9,6 @@ import logging
 import os
 import re
 from pathlib import Path
-from typing import Optional, List, Tuple
 from unicodedata import normalize
 
 import numpy as np
@@ -22,7 +21,7 @@ class UnicodeProcessor:
     """Text processor for converting text to character IDs."""
     
     def __init__(self, unicode_indexer_path: str):
-        with open(unicode_indexer_path, "r") as f:
+        with open(unicode_indexer_path) as f:
             self.indexer = json.load(f)
     
     def _preprocess_text(self, text: str) -> str:
@@ -74,7 +73,7 @@ class UnicodeProcessor:
         
         return text
     
-    def __call__(self, text_list: List[str]) -> Tuple[np.ndarray, np.ndarray]:
+    def __call__(self, text_list: list[str]) -> tuple[np.ndarray, np.ndarray]:
         """Convert list of texts to text_ids and masks."""
         text_list = [self._preprocess_text(t) for t in text_list]
         text_ids_lengths = np.array([len(text) for text in text_list], dtype=np.int64)
@@ -108,7 +107,7 @@ class SupertoneTTS:
     Ultra-fast on-device TTS with ONNX Runtime.
     """
     
-    def __init__(self, model_dir: Optional[str] = None):
+    def __init__(self, model_dir: str | None = None):
         """
         Initialize Supertonic TTS.
         
@@ -141,7 +140,7 @@ class SupertoneTTS:
         
         # Load config
         cfg_path = self.onnx_dir / "tts.json"
-        with open(cfg_path, 'r') as f:
+        with open(cfg_path) as f:
             self.cfgs = json.load(f)
         
         # Initialize text processor
@@ -187,7 +186,7 @@ class SupertoneTTS:
             logger.warning(f"Style not found: {voice_style_name}, using F1")
             style_path = self.voice_styles_dir / "F1.json"
         
-        with open(style_path, "r") as f:
+        with open(style_path) as f:
             voice_style = json.load(f)
         
         ttl_data = np.array(voice_style["style_ttl"]["data"], dtype=np.float32).flatten()
@@ -204,13 +203,13 @@ class SupertoneTTS:
         
         return Style(ttl_style, dp_style)
     
-    def list_voice_styles(self) -> List[str]:
+    def list_voice_styles(self) -> list[str]:
         """List available voice styles."""
         if not self.voice_styles_dir.exists():
             return []
         return [f.stem for f in self.voice_styles_dir.glob("*.json")]
     
-    def _sample_noisy_latent(self, duration: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    def _sample_noisy_latent(self, duration: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         """Sample initial noisy latent for diffusion."""
         bsz = len(duration)
         wav_len_max = duration.max() * self.sample_rate
@@ -392,8 +391,8 @@ class SupertoneTTS:
 def synthesize_with_supertone(
     text: str,
     output_path: str,
-    model_dir: Optional[str] = None,
-    preset: Optional[str] = None,
+    model_dir: str | None = None,
+    preset: str | None = None,
     steps: int = 8,
     cfg_scale: float = 1.0,
     stream: bool = False,

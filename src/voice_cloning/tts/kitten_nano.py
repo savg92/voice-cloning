@@ -1,7 +1,6 @@
 import logging
 import soundfile as sf
 import os
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +54,7 @@ class KittenNanoTTS:
     """
     Wrapper for KittenML/kitten-tts-nano models.
     """
-    def __init__(self, model_id: str = "KittenML/kitten-tts-nano-0.2", device: Optional[str] = None, cache_dir: Optional[str] = None):
+    def __init__(self, model_id: str = "KittenML/kitten-tts-nano-0.2", device: str | None = None, cache_dir: str | None = None):
         self.model_id = model_id
         self.cache_dir = cache_dir
         

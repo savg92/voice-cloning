@@ -7,9 +7,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / "src"))
 def test_parakeet_import():
     # Test lightweight wrapper import
     from voice_cloning.asr.parakeet import get_parakeet, ParakeetASR
-    p = get_parakeet()
+    get_parakeet()
     print('lightweight import ok')
     
     # Compatibility with existing test code
-    mod = type('obj', (object,), {'ParakeetModel': ParakeetASR})
+    type('obj', (object,), {'ParakeetModel': ParakeetASR})
     print('full import ok', True)

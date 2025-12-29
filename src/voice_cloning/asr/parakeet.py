@@ -2,7 +2,6 @@ import logging
 import os
 import sys
 import shutil
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -14,11 +13,11 @@ class ParakeetASR:
     - nvidia/parakeet-tdt-0.6b-v3 (NVIDIA NeMo)
     """
     
-    def __init__(self, device: Optional[str] = None):
+    def __init__(self, device: str | None = None):
         self.device = device
         self.backend = self._determine_backend()
         self.model = None
-        self.err_msg: Optional[str] = None
+        self.err_msg: str | None = None
         self._load_model()
         
     def _determine_backend(self) -> str:
@@ -174,7 +173,7 @@ class ParakeetASR:
         return ""
 
 
-def get_parakeet(device: Optional[str] = None) -> ParakeetASR:
+def get_parakeet(device: str | None = None) -> ParakeetASR:
     """Compatibility helper used by some tests.
 
     Returns a ParakeetASR instance wrapped by a simple function so older tests that import

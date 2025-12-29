@@ -24,7 +24,7 @@ def patch_sesame():
         print(f"❌ Could not find sesame.py at {sesame_path}")
         return False
     
-    with open(sesame_path, 'r') as f:
+    with open(sesame_path) as f:
         content = f.read()
     
     if '# PATCHED: Complete rope_scaling/rope_parameters fix' in content:

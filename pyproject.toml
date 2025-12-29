@@ -80,3 +80,8 @@ allow-direct-references = true
 
 [tool.uv.sources]
 kittentts = { url = "https://github.com/KittenML/KittenTTS/releases/download/0.1/kittentts-0.1.0-py3-none-any.whl" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = [".", "src"]
+norecursedirs = ["models", ".venv", ".git"]

@@ -22,7 +22,7 @@ def patch_mlx_audio_utils():
         print(f"❌ Could not find utils.py at {utils_path}")
         return False
     
-    with open(utils_path, 'r') as f:
+    with open(utils_path) as f:
         content = f.read()
     
     if '# PATCHED: Fixed quantization predicate signature' in content:

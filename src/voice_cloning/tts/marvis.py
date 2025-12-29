@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 from .utils import map_lang_code
 
 logger = logging.getLogger(__name__)
@@ -9,7 +8,7 @@ class MarvisTTS:
     Wrapper for Marvis-AI/marvis-tts-250m-v0.2.
     """
     
-    def __init__(self, device: Optional[str] = None):
+    def __init__(self, device: str | None = None):
         self.device = device
         self.backend = "mlx" # Force MLX
         self.model = None
@@ -22,10 +21,10 @@ class MarvisTTS:
         # No-op for MLX subprocess approach
         pass
 
-    def synthesize(self, text: str, output_path: str, ref_audio: Optional[str] = None, 
-                   ref_text: Optional[str] = None, stream: bool = False, 
-                   speed: Optional[float] = None, temperature: Optional[float] = None,
-                   quantized: bool = True, lang_code: str = "en", voice: Optional[str] = None):
+    def synthesize(self, text: str, output_path: str, ref_audio: str | None = None, 
+                   ref_text: str | None = None, stream: bool = False, 
+                   speed: float | None = None, temperature: float | None = None,
+                   quantized: bool = True, lang_code: str = "en", voice: str | None = None):
         """
         Synthesize text to speech.
         

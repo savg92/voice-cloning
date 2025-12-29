@@ -8,7 +8,6 @@ import os
 import logging
 import sys
 import torch
-from typing import Optional
 
 # Add local CosyVoice repo to path if it exists
 # This allows using the PyTorch backend without system-wide installation
@@ -31,13 +30,13 @@ def synthesize_speech(
     text: str,
     output_path: str = "cosyvoice_output.wav",
     model_id: str = "mlx-community/CosyVoice2-0.5B-4bit",
-    ref_audio_path: Optional[str] = None,
-    ref_text: Optional[str] = None,
-    instruct_text: Optional[str] = None,
-    source_audio_path: Optional[str] = None,
+    ref_audio_path: str | None = None,
+    ref_text: str | None = None,
+    instruct_text: str | None = None,
+    source_audio_path: str | None = None,
     speed: float = 1.0,
     use_mlx: bool = True
-) -> Optional[str]:
+) -> str | None:
     """
     Synthesizes speech using the CosyVoice2 model.
 
@@ -70,10 +69,10 @@ def _synthesize_with_mlx(
     text: str,
     output_path: str,
     model_id: str,
-    ref_audio_path: Optional[str],
-    ref_text: Optional[str],
-    instruct_text: Optional[str],
-    source_audio_path: Optional[str],
+    ref_audio_path: str | None,
+    ref_text: str | None,
+    instruct_text: str | None,
+    source_audio_path: str | None,
     speed: float
 ) -> str:
     """
@@ -186,10 +185,10 @@ def _synthesize_with_pytorch(
     text: str,
     output_path: str,
     model_id: str,
-    ref_audio_path: Optional[str],
-    ref_text: Optional[str],
-    instruct_text: Optional[str],
-    source_audio_path: Optional[str],
+    ref_audio_path: str | None,
+    ref_text: str | None,
+    instruct_text: str | None,
+    source_audio_path: str | None,
     speed: float
 ) -> str:
     """
