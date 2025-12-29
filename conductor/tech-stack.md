@@ -7,7 +7,7 @@
 *   **uv:** Fast Python package manager used for dependency management and environment isolation.
 
 ## Core AI & Machine Learning
-*   **Apple Silicon Optimization (MLX):** `mlx`, `mlx-audio`, `mlx-lm` are used for high-performance inference on M-series chips.
+*   **Apple Silicon Optimization (MLX):** `mlx`, `mlx-audio`, `mlx-lm` are used for high-performance inference on M-series chips. `mlx-audio` is specifically used for optimized TTS (Kokoro, Marvis, Chatterbox).
 *   **Deep Learning Frameworks:** `torch` (PyTorch), `torchaudio`, and `pytorch-lightning`.
 *   **Model Integration:** `transformers` (Hugging Face), `huggingface-hub`, `safetensors`.
 *   **Engines:**
