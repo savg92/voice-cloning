@@ -16,4 +16,4 @@
     - [x] Subtask: Test Streaming feature for all supporting models.
     - [x] Subtask: Test ASR models with different languages.
 - [x] Task: Run the validation suite and fix any discovered regressions.
-- [x] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md) [checkpoint: ]
+- [x] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md) [checkpoint: 1659453]
