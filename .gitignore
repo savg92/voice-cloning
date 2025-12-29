@@ -95,3 +95,6 @@ __MACOSX/
 !AGENTS.md
 !walkthrough.md
 !docs/**/*.md
+
+
+.ruff_cache
