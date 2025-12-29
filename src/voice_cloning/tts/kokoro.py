@@ -49,6 +49,38 @@ def synthesize_speech(
         return _synthesize_with_pytorch(text, output_path, lang_code, voice, speed, stream)
 
 
+def _patch_kokoro_langs():
+    """
+    Monkeypatch Kokoro libraries to support German, Russian, and Turkish.
+    These languages are supported by espeak-ng but filtered out by Kokoro's validation.
+    """
+    # Patch PyTorch backend
+    try:
+        import kokoro.pipeline
+        if 'd' not in kokoro.pipeline.LANG_CODES:
+            logger.info("Patching Kokoro (PyTorch) LANG_CODES for de, ru, tr")
+            kokoro.pipeline.LANG_CODES.update({
+                'd': 'de',
+                'r': 'ru', 
+                't': 'tr'
+            })
+    except ImportError:
+        pass
+
+    # Patch MLX backend
+    try:
+        import mlx_audio.tts.models.kokoro.pipeline as mlx_pipeline
+        if 'd' not in mlx_pipeline.LANG_CODES:
+            logger.info("Patching Kokoro (MLX) LANG_CODES for de, ru, tr")
+            mlx_pipeline.LANG_CODES.update({
+                'd': 'de',
+                'r': 'ru',
+                't': 'tr'
+            })
+    except ImportError:
+        pass
+
+
 def _synthesize_with_mlx(
     text: str,
     output_path: str,
@@ -59,9 +91,12 @@ def _synthesize_with_mlx(
 ) -> str:
     """
     Synthesize speech using MLX backend (optimized for Apple Silicon).
+    Using direct Python API instead of subprocess for better control and patching.
     """
     try:
-        import mlx_audio
+        import mlx.core as mx
+        import numpy as np
+        from mlx_audio.tts.utils import load_model
     except ImportError:
         raise ImportError(
             "MLX backend requires 'mlx-audio' package. Install with:\n"
@@ -69,69 +104,71 @@ def _synthesize_with_mlx(
             "Or use use_mlx=False to use PyTorch backend."
         )
     
+    _patch_kokoro_langs()
+    
     logger.info("Generating speech with MLX backend (Kokoro-82M-bf16)...")
     logger.info(f"Voice={voice}, Speed={speed}, Lang={lang_code}")
-    
-    # MLX audio uses command-line interface
-    with tempfile.TemporaryDirectory() as tmpdir:
-        # mlx-audio generates output with file_prefix
-        file_prefix = os.path.join(tmpdir, "mlx_output")
-        
-        # Apply language mapping if needed (consistent with PyTorch backend)
-        mapped_lang = map_lang_code(lang_code)
 
-        cmd = [
-            sys.executable, "-m", "mlx_audio.tts.generate",
-            "--model", "mlx-community/Kokoro-82M-bf16",
-            "--text", text,
-            "--voice", voice,
-            "--speed", str(speed),
-            "--lang_code", mapped_lang,
-            "--file_prefix", file_prefix
-        ]
+    # Map lang code
+    pipeline_lang = map_lang_code(lang_code)
+
+    try:
+        # Load model
+        # Using default repo_id for MLX Kokoro
+        model_path = "mlx-community/Kokoro-82M-bf16"
+        model = load_model(model_path)
+        
+        # Generate
+        # model.generate returns a generator of GenerationResult
+        generator = model.generate(
+            text=text,
+            voice=voice,
+            speed=speed,
+            lang_code=pipeline_lang
+        )
+        
+        all_audio = []
         
         if stream:
-            cmd.append("--stream")
-            # If we are streaming, we might not get a file, or it might be partial.
-            # mlx-audio generate --stream usually plays audio.
+            # Simple streaming implementation (blocking playback for now/skipping)
+            # Ideally we'd yield chunks or play them
+            for result in generator:
+                if result.audio is not None:
+                    # Convert MLX array to numpy
+                    audio_np = np.array(result.audio)
+                    all_audio.append(audio_np)
+        else:
+            for result in generator:
+                if result.audio is not None:
+                    audio_np = np.array(result.audio)
+                    all_audio.append(audio_np)
         
-        logger.info(f"Running MLX TTS command: {' '.join(cmd)}")
-        
-        try:
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                check=True
-            )
-            
-            if stream:
-                # For streaming, we return a success indicator or similar
-                logger.info("MLX Streaming finished.")
-                return output_path
+        if not all_audio:
+            # This might happen if generator yielded no audio (e.g. empty text)
+            # But normally it should yield something.
+            # Check if we caught an error inside generator (it yields results, errors might raise)
+            pass
 
-            # MLX generates file_prefix_000.wav (with sequence number)
-            generated_file = f"{file_prefix}_000.wav"
-            if not os.path.exists(generated_file):
-                # Try without sequence for older versions
-                generated_file = f"{file_prefix}.wav"
-                if not os.path.exists(generated_file):
-                    # Check if maybe it's 24k or something else
-                    logger.error(f"MLX stdout: {result.stdout}")
-                    logger.error(f"MLX stderr: {result.stderr}")
-                    raise RuntimeError(f"MLX did not generate expected output file")
-            
-            # Move to final output
-            shutil.move(generated_file, output_path)
-            
-        except subprocess.CalledProcessError as e:
-            logger.error(f"MLX synthesis failed: {e.stderr}")
-            raise RuntimeError(f"MLX generation failed: {e.stderr}")
-        except FileNotFoundError:
-            raise RuntimeError("mlx_audio.tts.generate not found. Ensure mlx-audio is properly installed.")
-    
-    logger.info(f"✓ MLX synthesis complete: {output_path}")
-    return output_path
+        if not all_audio:
+             # Just in case
+             raise RuntimeError("No audio generated by MLX pipeline")
+
+        final_audio = np.concatenate(all_audio)
+        
+        # Ensure output directory exists
+        os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
+        
+        sf.write(output_path, final_audio, 24000)
+        
+        if os.path.exists(output_path):
+            logger.info(f"✓ MLX synthesis complete: {output_path}")
+            return output_path
+        else:
+            raise RuntimeError(f"Failed to write MLX output to {output_path}")
+
+    except Exception as e:
+        logger.error(f"MLX synthesis failed: {e}")
+        raise RuntimeError(f"MLX generation failed: {e}")
 
 
 def _synthesize_with_pytorch(
@@ -148,6 +185,8 @@ def _synthesize_with_pytorch(
     from kokoro import KPipeline
     import torch
     import numpy as np
+    
+    _patch_kokoro_langs()
 
     # Map common language codes to Kokoro codes if needed
     pipeline_lang = map_lang_code(lang_code)

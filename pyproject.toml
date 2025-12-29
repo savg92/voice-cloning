@@ -44,7 +44,10 @@ dependencies = [
     "typer",
     "typer-slim",
     "spacy",
-    "misaki",
+    "misaki[ja,zh]",
+    "ordered-set",
+    "pyopenjtalk",
+    "ipadic",
     "mlx-lm>=0.28.3",
     "safetensors>=0.3.0",
     "transformers>=4.49.0",  # Required by mlx-audio>=0.2.6, Granite ASR, etc.

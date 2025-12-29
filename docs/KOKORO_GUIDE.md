@@ -110,7 +110,14 @@ uv run python main.py --model kokoro \
 | `f` | French | `j` | Japanese |
 | `z` | Mandarin Chinese | `e` | Spanish |
 | `i` | Italian | `p` | Brazilian Portuguese |
-| `h` | Hindi | | |
+| `h` | Hindi | `d` | German |
+| `r` | Russian | `t` | Turkish |
+
+**Note for Japanese (`j`)**: 
+Requires `unidic` dictionary. Run:
+```bash
+uv run python -m unidic download
+```
 
 ## Available Voices
 
