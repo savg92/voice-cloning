@@ -7,7 +7,7 @@
 - [x] Task: Consolidate `lang_map` in Kokoro and ensure consistency across backends. bf9aec0
 - [x] Task: Verify Marvis and Chatterbox MLX backends for missing flags (e.g. `lang_code`). bf9aec0
 - [x] Task: Fix `main.py` CLI to default to `web` model for easier UI launch.
-- [x] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md) [checkpoint: 17b9c96]
+- [x] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md) [checkpoint: 86024f5]
 
 ## Phase 2: Comprehensive Validation Suite
 - [ ] Task: Create a comprehensive verification script `tests/verify_all_features.py`.
