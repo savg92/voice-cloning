@@ -5,7 +5,7 @@
 - [x] Task: Conductor - User Manual Verification 'Audit and Gap Identification' (Protocol in workflow.md) [f1c3aa6]
 
 ## Phase 2: TTS Model Alignment (Primary)
-- [ ] Task: Align **Kokoro & Kitten**: Fill gaps in tests (streaming, multilingual) or guides.
+- [x] Task: Align **Kokoro & Kitten**: Fill gaps in tests (streaming, multilingual) or guides. [fbc02b2]
 - [ ] Task: Align **Supertone & NeuTTS Air**: Fill gaps in tests (styles, cloning) or guides.
 - [ ] Task: Align **Chatterbox & Marvis**: Fill gaps in tests (MLX features, cloning) or guides.
 - [ ] Task: Align **CosyVoice & Dia2**: Fill gaps in tests (instruct, custom backends) or guides.
