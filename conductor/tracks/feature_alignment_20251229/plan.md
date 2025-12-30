@@ -12,8 +12,9 @@
 - [x] Task: Conductor - User Manual Verification 'TTS Model Alignment' (Protocol in workflow.md) [e7530b6]
 
 ## Phase 3: Benchmark Synchronization
-- [ ] Task: Extract Latency, RTF, and TTFA metrics from the latest successful outputs/logs.
-- [ ] Task: Update `docs/BENCHMARK_RESULTS.md` with quantitative data and qualitative "Verification Notes".
+- [x] Task: Extract Latency, RTF, and TTFA metrics from the latest successful outputs/logs. [b895781]
+- [x] Task: Update `docs/BENCHMARK_RESULTS.md` with quantitative data and qualitative "Verification Notes". [b895781]
+- [ ] Task: Conductor - User Manual Verification 'Benchmark Synchronization' (Protocol in workflow.md)
 - [ ] Task: Conductor - User Manual Verification 'Benchmark Synchronization' (Protocol in workflow.md)
 
 ## Phase 4: Secondary Scope and Final Review
