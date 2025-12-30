@@ -18,6 +18,6 @@
 - [ ] Task: Conductor - User Manual Verification 'Benchmark Synchronization' (Protocol in workflow.md)
 
 ## Phase 4: Secondary Scope and Final Review
-- [ ] Task: Audit and align ASR (Whisper, Parakeet, Canary) and VAD (HumAware) models.
+- [x] Task: Audit and align ASR (Whisper, Parakeet, Canary) and VAD (HumAware) models. [7ddeb0a]
 - [ ] Task: Perform a final project-wide documentation consistency check.
 - [ ] Task: Conductor - User Manual Verification 'Secondary Scope and Final Review' (Protocol in workflow.md)
