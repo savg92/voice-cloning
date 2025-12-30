@@ -11,8 +11,8 @@
 *   **Deep Learning Frameworks:** `torch` (PyTorch), `torchaudio`, and `pytorch-lightning`.
 *   **Model Integration:** `transformers` (Hugging Face), `huggingface-hub`, `safetensors`.
 *   **Engines:**
-    *   **ASR:** `nemo-toolkit`, `faster-whisper`, `whisper-timestamped`.
-    *   **TTS:** `kokoro`, `kittentts`, `onnxruntime` (for Supertone).
+    *   **ASR:** `nemo-toolkit`, `faster-whisper`, `whisper-timestamped`, `mlx-whisper`.
+    *   **TTS:** `kokoro`, `kittentts`, `onnxruntime` (for Supertone), `chatterbox-tts`, `cosyvoice`, `mlx-audio-plus` (for CosyVoice2), `llama-cpp-python` (for NeuTTS Air), `dia2`.
     *   **VAD:** `pyannote-audio`.
 
 ## Audio Processing & Utilities
