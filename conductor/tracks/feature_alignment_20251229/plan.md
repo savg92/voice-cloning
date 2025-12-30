@@ -6,7 +6,7 @@
 
 ## Phase 2: TTS Model Alignment (Primary)
 - [x] Task: Align **Kokoro & Kitten**: Fill gaps in tests (streaming, multilingual) or guides. [fbc02b2]
-- [ ] Task: Align **Supertone & NeuTTS Air**: Fill gaps in tests (styles, cloning) or guides.
+- [x] Task: Align **Supertone & NeuTTS Air**: Fill gaps in tests (styles, cloning) or guides. [0b7aabd]
 - [ ] Task: Align **Chatterbox & Marvis**: Fill gaps in tests (MLX features, cloning) or guides.
 - [ ] Task: Align **CosyVoice & Dia2**: Fill gaps in tests (instruct, custom backends) or guides.
 - [ ] Task: Conductor - User Manual Verification 'TTS Model Alignment' (Protocol in workflow.md)
