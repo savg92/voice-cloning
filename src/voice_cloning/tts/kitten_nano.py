@@ -11,7 +11,6 @@ def ensure_espeak_compatibility():
     """
     try:
         import os
-        import logging
         from phonemizer.backend.espeak.wrapper import EspeakWrapper
         
         # 1. Patch set_data_path if missing (for older misaki/phonemizer versions)
@@ -30,12 +29,10 @@ def ensure_espeak_compatibility():
             "/usr/lib/x86_64-linux-gnu/libespeak-ng.so"
         ]
         
-        found_lib = False
         for lib in lib_paths:
             if os.path.exists(lib):
                 logger.info(f"Using system espeak-ng library at {lib}")
                 os.environ["PHONEMIZER_ESPEAK_LIBRARY"] = lib
-                found_lib = True
                 break
         
         # 3. Find and set data path

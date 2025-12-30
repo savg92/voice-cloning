@@ -1,7 +1,5 @@
-import os
 import sys
 import pytest
-import torch
 from pathlib import Path
 
 # Add src to path

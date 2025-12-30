@@ -1,7 +1,5 @@
-import os
 import sys
 import pytest
-import torch
 from pathlib import Path
 
 # Add src to path
@@ -24,8 +22,6 @@ def sample_audio():
 
 def test_whisper_basic_pytorch(output_dir, sample_audio):
     """Test basic transcription with PyTorch backend (tiny model for speed)."""
-    output_path = output_dir / "whisper_basic_pt.txt"
-    
     # Use tiny model for fast testing
     model = WhisperASR(model_id="openai/whisper-tiny", use_mlx=False)
     text = model.transcribe(sample_audio)
@@ -39,7 +35,7 @@ def test_whisper_mlx(output_dir, sample_audio):
     """Test transcription with MLX backend."""
     # MLX whisper might be slow or require specific setup
     try:
-        import mlx_whisper
+        import mlx_whisper as _ # noqa: F401
     except ImportError:
         pytest.skip("mlx-whisper package not installed")
         

@@ -1,16 +1,14 @@
 import pytest
 import gradio as gr
-from unittest.mock import patch, MagicMock
-import tempfile
+from unittest.mock import patch
 import os
-from pathlib import Path
 
 # UI components use local imports within functions. 
 # We target the module exactly as it is imported in the code being tested.
 
 from voice_cloning.ui.app import create_interface
 from voice_cloning.ui.asr_tab import create_asr_tab, transcribe_speech
-from voice_cloning.ui.tts_tab import create_tts_tab, generate_speech
+from voice_cloning.ui.tts_tab import generate_speech
 from voice_cloning.ui.vad_tab import create_vad_tab, detect_speech_segments
 
 class TestUIFull:

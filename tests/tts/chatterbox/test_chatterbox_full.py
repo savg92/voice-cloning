@@ -4,7 +4,7 @@ import torch
 from pathlib import Path
 
 try:
-    import chatterbox
+    import chatterbox as _ # noqa: F401
     HAS_CHATTERBOX = True
 except ImportError:
     HAS_CHATTERBOX = False
@@ -12,7 +12,7 @@ except ImportError:
 # Add src to path
 sys.path.append(str(Path(__file__).parent.parent.parent.parent / "src"))
 
-from voice_cloning.tts.chatterbox import ChatterboxWrapper, synthesize_with_chatterbox
+from voice_cloning.tts.chatterbox import synthesize_with_chatterbox
 
 pytestmark = pytest.mark.skipif(not HAS_CHATTERBOX, reason="chatterbox-tts package not installed")
 
