@@ -64,7 +64,30 @@ def test_neutts_air_auto_ref_text(model_exists, dave_sample, output_dir):
         text="Testing auto-detection of reference text.",
         output_path=str(output_path),
         ref_audio_path=audio_ref
-        # ref_text_path is None, should find .txt automatically
     )
     
     assert output_path.exists()
+
+def test_neutts_air_backbone(model_exists, dave_sample, output_dir):
+    """Test NeuTTS Air backbone selection parameter."""
+    audio_ref, text_ref = dave_sample
+    output_path = output_dir / "neutts_backbone.wav"
+    
+    # We test that the parameter is accepted. 
+    # NOTE: We use the default backbone string to avoid downloading a new 2GB model just for this test,
+    # unless we want to verify the switch logic. The guide mentions q4 and q8. 
+    # If we use q4 (default), it should be cached from first run.
+    backbone = "neuphonic/neutts-air-q4-gguf" 
+    
+    synthesize_with_neutts_air(
+        text="Testing backbone parameter.",
+        output_path=str(output_path),
+        ref_audio=audio_ref,
+        ref_text=text_ref,
+        backbone=backbone
+    )
+    
+    assert output_path.exists()
+    assert output_path.stat().st_size > 0
+
+

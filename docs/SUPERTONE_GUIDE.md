@@ -7,7 +7,7 @@
 - ⚡ **Lightning Fast**: 167× real-time on M4 Pro, fastest TTS available
 - 🪶 **Ultra Lightweight**: Only 66M parameters
 - 📱 **On-Device**: Complete privacy, zero latency
-- ⚙️ **Configurable**: Adjustable inference steps and CFG scale
+- ⚙️ **Configurable**: Adjustable inference steps
 - 🎨 **Natural Text Handling**: Handles numbers, dates, abbreviations
 
 ## Installation
@@ -61,14 +61,7 @@ uv run python main.py --model supertone \
   --output outputs/high_quality.wav
 ```
 
-### 4. Adjust CFG Scale
-Controls guidance strength (default: 1.0).
-```bash
-uv run python main.py --model supertone \
-  --text "Adjusted CFG scale." \
-  --cfg-scale 1.5 \
-  --output outputs/cfg.wav
-### 5. Streaming Playback
+### 4. Streaming Playback
 Enable pseudo-streaming to play sentences as they are generated.
 ```bash
 uv run python main.py --model supertone \

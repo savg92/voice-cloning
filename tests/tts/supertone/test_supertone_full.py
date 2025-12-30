@@ -77,3 +77,19 @@ def test_supertone_speed(speed, model_exists, output_dir):
     
     assert output_path.exists()
     assert output_path.stat().st_size > 0
+
+def test_supertone_parameters(model_exists, output_dir):
+    """Test Supertone advanced parameters (steps)."""
+    output_path = output_dir / "supertone_params.wav"
+    text = "Testing inference steps."
+    
+    tts = SupertoneTTS()
+    # Use fewer steps to be faster, but non-default to verify it accepts it
+    tts.synthesize(
+        text=text,
+        output_path=str(output_path),
+        steps=4
+    )
+    
+    assert output_path.exists()
+    assert output_path.stat().st_size > 0
