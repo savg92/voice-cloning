@@ -102,9 +102,20 @@ class WhisperASR:
 def transcribe_to_file(audio_path: str, output_path: str, language: str = None, task: str = "transcribe", timestamps: bool = False, use_mlx: bool = False, model_id: str = None):
     model = WhisperASR(model_id=model_id, use_mlx=use_mlx)
     
+    result = None
     if use_mlx:
-        text = model.transcribe(audio_path, lang=language, task=task, timestamps=timestamps)
-        # MLX whisper transcribe returns text directly in our wrapper
+        import mlx_whisper
+        # Use provided model ID or default based on MLX flag (handled in WhisperASR)
+        mid = model.model_id
+        logger.info(f"Transcribing {audio_path} with MLX Whisper ({mid}) for file output...")
+        result = mlx_whisper.transcribe(
+            audio_path,
+            path_or_hf_repo=mid,
+            language=language,
+            task=task,
+            verbose=False
+        )
+        text = result["text"]
     else:
         model.load_model()
         result = model.pipe(
@@ -114,16 +125,22 @@ def transcribe_to_file(audio_path: str, output_path: str, language: str = None, 
         )
         text = result["text"]
     
-    # If timestamps requested, append them to text or save separately?
-    # For consistency with other tools, let's append them if it's a txt file, or just save text.
-    # The user asked for "all features", so let's try to be helpful.
-    
-    if timestamps and not use_mlx and "chunks" in result:
+    # If timestamps requested, append them to text
+    if timestamps and result:
         text += "\n\n--- Timestamps ---\n"
-        for chunk in result["chunks"]:
-            start, end = chunk["timestamp"]
-            chunk_text = chunk["text"]
-            text += f"[{start:.2f}s -> {end:.2f}s] {chunk_text}\n"
+        if use_mlx and "segments" in result:
+            for seg in result["segments"]:
+                start = seg.get("start", 0)
+                end = seg.get("end", 0)
+                seg_text = seg.get("text", "").strip()
+                text += f"[{start:.2f}s -> {end:.2f}s] {seg_text}\n"
+        elif not use_mlx and "chunks" in result:
+            for chunk in result["chunks"]:
+                ts = chunk.get("timestamp")
+                if ts:
+                    start, end = ts
+                    chunk_text = chunk["text"]
+                    text += f"[{start:.2f}s -> {end:.2f}s] {chunk_text}\n"
 
     with open(output_path, "w") as f:
         f.write(text)

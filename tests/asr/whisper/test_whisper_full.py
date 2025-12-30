@@ -77,3 +77,30 @@ def test_whisper_to_file(output_dir, sample_audio):
     
     assert output_path.exists()
     assert output_path.stat().st_size > 0
+
+def test_whisper_timestamps(sample_audio):
+    """Test transcription with timestamps."""
+    model = WhisperASR(model_id="openai/whisper-tiny", use_mlx=False)
+    # Testing that it doesn't crash and returns text
+    text = model.transcribe(sample_audio, timestamps=True)
+    assert len(text) > 0
+
+def test_whisper_to_file_timestamps(output_dir, sample_audio):
+    """Test transcribe_to_file with timestamps."""
+    output_path = output_dir / "whisper_timestamps.txt"
+    if output_path.exists():
+        output_path.unlink()
+        
+    transcribe_to_file(
+        audio_path=sample_audio,
+        output_path=str(output_path),
+        model_id="openai/whisper-tiny",
+        timestamps=True,
+        use_mlx=False
+    )
+    
+    assert output_path.exists()
+    content = output_path.read_text()
+    assert "--- Timestamps ---" in content
+
+    
