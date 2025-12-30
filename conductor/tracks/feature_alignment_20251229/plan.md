@@ -4,12 +4,12 @@
 - [x] Task: Audit `docs/*.md` and `tests/` to create a comprehensive "Feature Coverage Gap Report" for all models. [0a2efc6]
 - [x] Task: Conductor - User Manual Verification 'Audit and Gap Identification' (Protocol in workflow.md) [f1c3aa6]
 
-## Phase 2: TTS Model Alignment (Primary)
+## Phase 2: TTS Model Alignment (Primary) [checkpoint: e7530b6]
 - [x] Task: Align **Kokoro & Kitten**: Fill gaps in tests (streaming, multilingual) or guides. [fbc02b2]
 - [x] Task: Align **Supertone & NeuTTS Air**: Fill gaps in tests (styles, cloning) or guides. [0b7aabd]
 - [x] Task: Align **Chatterbox & Marvis**: Fill gaps in tests (MLX features, cloning) or guides. [f5a593a]
 - [x] Task: Align **CosyVoice & Dia2**: Fill gaps in tests (instruct, custom backends) or guides. [a5db0e7]
-- [~] Task: Conductor - User Manual Verification 'TTS Model Alignment' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'TTS Model Alignment' (Protocol in workflow.md) [e7530b6]
 
 ## Phase 3: Benchmark Synchronization
 - [ ] Task: Extract Latency, RTF, and TTFA metrics from the latest successful outputs/logs.
