@@ -72,6 +72,19 @@ def verify_mlx():
         )
         if out_clone.exists():
             logger.info(f"✓ Zero-shot cloning successful: {out_clone}")
+
+        # 3. Instruct Mode (Emotion)
+        logger.info("3. Testing Instruct Mode (Emotion)...")
+        out_instruct = output_dir / "mlx_instruct.wav"
+        synthesize_speech(
+            "This is a test of instruct mode.",
+            output_path=str(out_instruct),
+            ref_audio_path=str(ref_path),
+            instruct_text="Speak in a happy and excited tone",
+            use_mlx=True
+        )
+        if out_instruct.exists():
+            logger.info(f"✓ Instruct mode successful: {out_instruct}")
             
     except ImportError as e:
         logger.error(f"Skipping MLX verification: {e}")
