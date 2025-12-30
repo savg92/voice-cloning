@@ -11,10 +11,10 @@
 - [x] Task: Align **CosyVoice & Dia2**: Fill gaps in tests (instruct, custom backends) or guides. [a5db0e7]
 - [x] Task: Conductor - User Manual Verification 'TTS Model Alignment' (Protocol in workflow.md) [e7530b6]
 
-## Phase 3: Benchmark Synchronization
+## Phase 3: Benchmark Synchronization [checkpoint: 4a4406c]
 - [x] Task: Extract Latency, RTF, and TTFA metrics from the latest successful outputs/logs. [b895781]
 - [x] Task: Update `docs/BENCHMARK_RESULTS.md` with quantitative data and qualitative "Verification Notes". [b895781]
-- [~] Task: Conductor - User Manual Verification 'Benchmark Synchronization' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Benchmark Synchronization' (Protocol in workflow.md) [4a4406c]
 - [ ] Task: Conductor - User Manual Verification 'Benchmark Synchronization' (Protocol in workflow.md)
 
 ## Phase 4: Secondary Scope and Final Review
