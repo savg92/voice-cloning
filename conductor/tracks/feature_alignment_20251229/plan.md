@@ -14,7 +14,7 @@
 ## Phase 3: Benchmark Synchronization
 - [x] Task: Extract Latency, RTF, and TTFA metrics from the latest successful outputs/logs. [b895781]
 - [x] Task: Update `docs/BENCHMARK_RESULTS.md` with quantitative data and qualitative "Verification Notes". [b895781]
-- [ ] Task: Conductor - User Manual Verification 'Benchmark Synchronization' (Protocol in workflow.md)
+- [~] Task: Conductor - User Manual Verification 'Benchmark Synchronization' (Protocol in workflow.md)
 - [ ] Task: Conductor - User Manual Verification 'Benchmark Synchronization' (Protocol in workflow.md)
 
 ## Phase 4: Secondary Scope and Final Review
