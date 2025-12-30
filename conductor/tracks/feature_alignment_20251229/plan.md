@@ -9,7 +9,7 @@
 - [x] Task: Align **Supertone & NeuTTS Air**: Fill gaps in tests (styles, cloning) or guides. [0b7aabd]
 - [x] Task: Align **Chatterbox & Marvis**: Fill gaps in tests (MLX features, cloning) or guides. [f5a593a]
 - [x] Task: Align **CosyVoice & Dia2**: Fill gaps in tests (instruct, custom backends) or guides. [a5db0e7]
-- [ ] Task: Conductor - User Manual Verification 'TTS Model Alignment' (Protocol in workflow.md)
+- [~] Task: Conductor - User Manual Verification 'TTS Model Alignment' (Protocol in workflow.md)
 
 ## Phase 3: Benchmark Synchronization
 - [ ] Task: Extract Latency, RTF, and TTFA metrics from the latest successful outputs/logs.
