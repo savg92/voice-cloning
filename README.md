@@ -189,6 +189,12 @@ For detailed usage of each model, see the respective guide in `docs/`.
 - **Best for**: Distinguishing speech from non-speech
 - **Guide**: [docs/HUMAWARE_GUIDE.md](docs/HUMAWARE_GUIDE.md)
 
+### 13. CosyVoice2 🎭 Voice Cloning
+- **Type**: High-quality TTS & Zero-shot Cloning
+- **Best for**: Realistic voice cloning and emotion control
+- **Note**: Supports MLX optimization (`--use-mlx`)
+- **Guide**: [docs/COSYVOICE_GUIDE.md](docs/COSYVOICE_GUIDE.md)
+
 ## Installation
 
 1. **Clone the repository:**
@@ -251,16 +257,17 @@ python benchmark.py --device cpu   # CPU only
 - **[BENCHMARK_RESULTS.md](docs/BENCHMARK_RESULTS.md)**: Complete results on MacBook Pro M3 8GB
 - **[docs/BENCHMARK_GUIDE.md](docs/BENCHMARK_GUIDE.md)**: Comprehensive benchmarking guide
 
-### Sample Results (M3 MacBook Pro, 8GB)
+### Sample Results (M3 MacBook Pro, 8GB) - v1.1
 
 | Model | Latency | RTF | Speed |
 |-------|---------|-----|-------|
-| **Supertone** | 583ms | 0.08 | 12× real-time |
-| **KittenTTS** | 1.3s | 0.17 | 6× real-time |
-| **Kokoro** | 3.7s | 0.52 | 2× real-time |
+| **Supertone** | 319ms | 0.046 | 21.8× real-time |
+| **KittenTTS** | 1.0s | 0.13 | 7.7× real-time |
+| **Kokoro** | 3.3s | 0.50 | 2.0× real-time |
+| **CosyVoice2 (MLX)** | 6.6s | 0.96 | 1.04× real-time |
 | **Parakeet (ASR)** | 2.6s | 0.37 | 2.7× real-time |
 
-RTF < 1.0 means faster than real-time. See full results in [BENCHMARK_RESULTS.md](BENCHMARK_RESULTS.md).
+RTF < 1.0 means faster than real-time. See full results in [docs/BENCHMARK_RESULTS.md](docs/BENCHMARK_RESULTS.md).
 
 
 
