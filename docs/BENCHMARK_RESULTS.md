@@ -7,7 +7,7 @@
 - **OS**: macOS Sonoma
 - **Device**: MPS (Metal Performance Shaders)
 
-**Benchmark Version**: v1.0 (with memory tracking)
+**Benchmark Version**: v1.1 (Dec 30, 2025)
 
 ---
 
@@ -19,10 +19,10 @@ Performance benchmark of voice cloning models optimized for Apple Silicon (M3). 
 
 | Category | Winner | Metric |
 |----------|--------|--------|
-| **Fastest TTS** | Supertone | 583ms (12× real-time) |
-| **Lowest Memory** | KittenTTS | 244.9 MB |
+| **Fastest TTS** | Supertone | 319ms (21× real-time) |
+| **Lowest Memory** | KittenTTS | 67.5 MB |
 | **Fastest ASR** | Parakeet | 2.6s (2.7× real-time) |
-| **Fastest VAD** | HumAware | 911ms (7.8× real-time) |
+| **Fastest VAD** | HumAware | 891ms (8.0× real-time) |
 | **Best Balance** | KittenTTS | Fast + Low memory |
 
 ---
@@ -35,12 +35,12 @@ All results from MacBook Pro M3 8GB running on MPS (Metal Performance Shaders).
 
 | Model | Type | Latency (ms) | RTF | Memory (MB) | Audio Duration (s) | Speed Multiplier | Device |
 |-------|------|--------------|-----|-------------|-------------------|------------------|--------|
-| **Supertone** | TTS | 339 | 0.0488 | 280.5 | 6.95 | 20.5× | MPS |
+| **Supertone** | TTS | 319 | 0.0459 | 293.1 | 6.95 | 21.8× | MPS |
 | **KittenTTS Nano** | TTS | 1,006 | 0.1302 | 67.5 | 7.73 | 7.7× | MPS |
-| **Kokoro** | TTS | 3,377 | 0.4756 | 353.7 | 7.10 | 2.1× | MPS |
+| **Kokoro** | TTS | 3,340 | 0.5004 | 415.2 | 7.10 | 2.0× | MPS |
 | **Chatterbox (MLX)** | TTS | 15,044 | 0.8726 | 0.0 | 6.16 | 1.15× | MPS |
-| **CosyVoice2 (MLX)** | TTS | 6,957 | 0.8919 | 0.0 | 7.80 | 1.12× | MPS |
-| **Marvis (MLX)** | TTS | 12,205 | 1.734 | 0.0 | 7.10 | 0.58× | MPS |
+| **CosyVoice2 (MLX)** | TTS | 6,596 | 0.9644 | 0.0 | 7.80 | 1.04× | MPS |
+| **Marvis (MLX)** | TTS | 8,769 | 1.6360 | 0.0 | 7.10 | 0.61× | MPS |
 | **NeuTTS Air** | TTS | 22,877 | 2.6978 | 168.9 | 9.62 | 0.37× | MPS |
 | **CosyVoice2 (PyTorch)** | TTS | 82,564 | 5.1603 | 0.0 | 7.80 | 0.19× | MPS |
 | **Whisper Large-v3-Turbo (MLX)** | ASR | 4,851 | 0.6833 | 18.9 | 7.10 | 1.46× | MPS |
@@ -68,12 +68,12 @@ All results from MacBook Pro M3 8GB running on MPS (Metal Performance Shaders).
 
 | Model | Latency | RTF | Memory | Speed Multiplier | Notes |
 |-------|---------|-----|--------|------------------|-------|
-| **Supertone** | 339ms | 0.049 | 280.5 MB | **20.5× real-time** | ONNX-based, ultra-fast |
+| **Supertone** | 319ms | 0.046 | 293.1 MB | **21.8× real-time** | ONNX-based, ultra-fast |
 | **KittenTTS Nano** | 1,006ms | 0.130 | 67.5 MB | **7.7× real-time** | Lowest memory, CPU-friendly |
-| **Kokoro** | 3,377ms | 0.476 | 353.7 MB | **2.1× real-time** | High quality, multilingual |
+| **Kokoro** | 3,340ms | 0.500 | 415.2 MB | **2.0× real-time** | High quality, multilingual |
 | **Chatterbox (MLX)** | 15,044ms | 0.873 | 0.0 MB | **1.15× real-time** | Good quality, sub-realtime |
-| **CosyVoice2 (MLX)** | 6,957ms | 0.892 | 0.0 MB | **1.12× real-time** | **Recommended for cloning** |
-| **Marvis (MLX)** | 11,626ms | 1.734 | 0.0 MB | **0.58× real-time** |
+| **CosyVoice2 (MLX)** | 6,596ms | 0.964 | 0.0 MB | **1.04× real-time** | **Recommended for cloning** |
+| **Marvis (MLX)** | 8,769ms | 1.636 | 0.0 MB | **0.61× real-time** | Improved speed in v1.1 |
 | **NeuTTS Air** | 22,877ms | 2.698 | 168.9 MB | **0.37× real-time** | Voice cloning, slow but high quality |
 | **CosyVoice2 (PyTorch)** | 82,564ms | 5.160 | 0.0 MB | **0.19× real-time** | Very slow backend |
 
