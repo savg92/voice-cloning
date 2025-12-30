@@ -63,6 +63,7 @@ dependencies = [
     "llama-cpp-python>=0.3.0",  # Required by NeuTTS Air for GGUF models
     "pytest>=9.0.2",
     "pytest-cov>=7.0.0",
+    "modelscope>=1.15.0",
 ]
 
 [build-system]

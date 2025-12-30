@@ -236,18 +236,28 @@ def _synthesize_with_pytorch(
     
     # CosyVoice initialization
     try:
+        from modelscope import snapshot_download
+        
+        # Download model if it looks like a modelscope ID or HF ID
+        if "/" in model_id and not os.path.exists(model_id):
+            logger.info(f"Downloading model {model_id} via ModelScope...")
+            model_dir = snapshot_download(model_id)
+            model_id = model_dir
+            logger.info(f"Model downloaded to {model_id}")
+
         if "CosyVoice2" in model_id:
             from cosyvoice.cli.cosyvoice import CosyVoice2
             logger.info("Using CosyVoice2 class.")
             model = CosyVoice2(model_id)
         else:
-             model = CosyVoice(model_id)
+            model = CosyVoice(model_id)
              
     except Exception as e:
-        logger.warning(f"Failed to load model {model_id}: {e}")
-        # One last ditch effort: if we tried CosyVoice2 and it failed, maybe it's the wrong path check
-        # But if the file is missing, the class throws ValueError.
-        raise e
+        logger.error(f"Failed to load CosyVoice model {model_id}: {e}")
+        raise RuntimeError(
+            f"Failed to load CosyVoice model. Ensure dependencies are installed and model path is correct.\n"
+            f"Error: {e}"
+        )
 
     logger.info("Generating speech...")
     

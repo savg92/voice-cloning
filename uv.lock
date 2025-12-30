@@ -2515,6 +2515,22 @@ wheels = [
 ]
 
 [[package]]
+name = "modelscope"
+version = "1.33.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "filelock" },
+    { name = "requests" },
+    { name = "setuptools" },
+    { name = "tqdm" },
+    { name = "urllib3" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d1/02/db35ce865e66fd212fcf0cb5b43db3a3474cf82fae8d835b56ce7dba9247/modelscope-1.33.0.tar.gz", hash = "sha256:5d9ca8eb934cabea236104ed774b3ddf352f96c705272876108aaa25a3bb0b38", size = 4558673, upload-time = "2025-12-10T03:50:01.05Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/86/05/63f01821681b2be5d1739b4aad7b186c28d4ead2c5c99a9fc4aa53c13c19/modelscope-1.33.0-py3-none-any.whl", hash = "sha256:d9bdd566303f813d762e133410007eaf1b78f065c871228ab38640919b707489", size = 6050040, upload-time = "2025-12-10T03:49:58.428Z" },
+]
+
+[[package]]
 name = "mojimoji"
 version = "0.0.13"
 source = { registry = "https://pypi.org/simple" }
@@ -5498,6 +5514,7 @@ dependencies = [
     { name = "mlx" },
     { name = "mlx-audio" },
     { name = "mlx-lm" },
+    { name = "modelscope" },
     { name = "nemo-toolkit" },
     { name = "neucodec" },
     { name = "omegaconf" },
@@ -5557,6 +5574,7 @@ requires-dist = [
     { name = "mlx", specifier = ">=0.29.4" },
     { name = "mlx-audio", git = "https://github.com/Blaizzy/mlx-audio.git" },
     { name = "mlx-lm", specifier = ">=0.28.3" },
+    { name = "modelscope", specifier = ">=1.15.0" },
     { name = "nemo-toolkit", specifier = ">=2.4.0" },
     { name = "neucodec", specifier = ">=0.0.4" },
     { name = "omegaconf", specifier = ">=2.3.0" },

@@ -318,6 +318,19 @@ def create_tts_tab():
             ]
         )
         
+        # Ensure correct visibility on page load
+        tts_layout.load(
+            fn=on_model_change,
+            inputs=[model_dropdown],
+            outputs=[
+                ref_audio_input, ref_text_input, 
+                kokoro_params, kitten_params, chatter_params, 
+                marvis_params, cosy_params, neutts_params, 
+                supertone_params, dia2_params,
+                use_mlx, stream
+            ]
+        )
+        
         kokoro_lang.change(
             fn=on_kokoro_lang_change,
             inputs=[kokoro_lang],
