@@ -19,7 +19,7 @@
 - [x] Task: Create standardized test suites for **HumAware VAD** (testing sensitivity thresholds). cfe96ff
 - [x] Task: Conductor - User Manual Verification 'Model-by-Model Feature Validation Plan' (Protocol in workflow.md) c3a252d
 
-## Phase 4: UI and Integration Finalization
+## Phase 4: UI and Integration Finalization [checkpoint: 0fc5b45]
 - [x] Task: Consolidate UI tests in `tests/ui/` ensuring integration with the new organized backend tests. 3200b0d
-- [~] Task: Perform a final end-to-end verification of the Web UI with all models.
-- [ ] Task: Conductor - User Manual Verification 'UI and Integration Finalization' (Protocol in workflow.md)
+- [x] Task: Perform a final end-to-end verification of the Web UI with all models. 3fdc5fd
+- [x] Task: Conductor - User Manual Verification 'UI and Integration Finalization' (Protocol in workflow.md) 0fc5b45
