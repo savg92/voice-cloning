@@ -2477,15 +2477,19 @@ wheels = [
 ]
 
 [[package]]
-name = "mlx-audio"
-version = "0.2.9"
-source = { git = "https://github.com/Blaizzy/mlx-audio.git#ead9d507657d0ead82ff83eacc2d508498de819d" }
+name = "mlx-audio-plus"
+version = "0.1.7"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "hf-transfer" },
     { name = "huggingface-hub" },
     { name = "mlx" },
     { name = "numpy" },
     { name = "transformers" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f0/c5/3186f10f1649d2253cf59fb4ba900f0c4e5a2b936919c23c35f17ac1a138/mlx_audio_plus-0.1.7.tar.gz", hash = "sha256:38681133d7761a5716d8bf32e2ff9bfaa10012d6856e461c06a92e067ef80c1c", size = 550064, upload-time = "2025-12-22T15:02:22.645Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bb/4d/655f6426f377871ea862c9b4cd8123014dac6b013a46515870a86c81e52d/mlx_audio_plus-0.1.7-py3-none-any.whl", hash = "sha256:9126fdc8c98bf0c00bfb4b8c5962a225c747b1ab38fff547ae66c0238d9851d3", size = 657860, upload-time = "2025-12-22T15:02:21.162Z" },
 ]
 
 [[package]]
@@ -5512,7 +5516,7 @@ dependencies = [
     { name = "llama-cpp-python" },
     { name = "misaki", extra = ["ja", "zh"] },
     { name = "mlx" },
-    { name = "mlx-audio" },
+    { name = "mlx-audio-plus" },
     { name = "mlx-lm" },
     { name = "modelscope" },
     { name = "nemo-toolkit" },
@@ -5572,7 +5576,7 @@ requires-dist = [
     { name = "llama-cpp-python", specifier = ">=0.3.0" },
     { name = "misaki", extras = ["ja", "zh"] },
     { name = "mlx", specifier = ">=0.29.4" },
-    { name = "mlx-audio", git = "https://github.com/Blaizzy/mlx-audio.git" },
+    { name = "mlx-audio-plus", specifier = ">=0.1.7" },
     { name = "mlx-lm", specifier = ">=0.28.3" },
     { name = "modelscope", specifier = ">=1.15.0" },
     { name = "nemo-toolkit", specifier = ">=2.4.0" },

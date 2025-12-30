@@ -2,7 +2,7 @@
 
 ## Phase 1: Audit and Gap Identification
 - [x] Task: Audit `docs/*.md` and `tests/` to create a comprehensive "Feature Coverage Gap Report" for all models. [0a2efc6]
-- [ ] Task: Conductor - User Manual Verification 'Audit and Gap Identification' (Protocol in workflow.md)
+- [~] Task: Conductor - User Manual Verification 'Audit and Gap Identification' (Protocol in workflow.md)
 
 ## Phase 2: TTS Model Alignment (Primary)
 - [ ] Task: Align **Kokoro & Kitten**: Fill gaps in tests (streaming, multilingual) or guides.

@@ -195,22 +195,22 @@ def _synthesize_with_pytorch(
     Synthesize using PyTorch backend (requires 'cosyvoice' package or cloned repo).
     """
     
-    # Attempt to import CosyVoice
+    # Attempt to import CosyVoice classes from the local repository
     try:
-        from cosyvoice.cli.cosyvoice import CosyVoice
-    except ImportError:
-        try:
-             # Check if we can find it in python path, maybe user has it in a weird place
-             from cosyvoice import CosyVoice
-        except ImportError:
-            raise ImportError(
-                "PyTorch backend requires 'cosyvoice' package.\n"
-                "Please clone the repo and install it:\n"
-                "  git clone --recursive https://github.com/FunAudioLLM/CosyVoice.git models/CosyVoice\n"
-                "  cd models/CosyVoice && pip install -r requirements.txt\n"
-                "  export PYTHONPATH=$PYTHONPATH:$(pwd)\n"
-                "Or install unofficial package: pip install cosyvoice-package"
-            )
+        import sys
+        # Add the models directory to sys.path to ensure local cosyvoice is found
+        cosyvoice_repo_path = os.path.join(os.getcwd(), "models", "CosyVoice")
+        if os.path.exists(cosyvoice_repo_path) and cosyvoice_repo_path not in sys.path:
+            sys.path.append(cosyvoice_repo_path)
+            logger.info(f"Added {cosyvoice_repo_path} to sys.path")
+
+        from cosyvoice.cli.cosyvoice import CosyVoice, CosyVoice2
+    except ImportError as e:
+        logger.error(f"Failed to import CosyVoice from local repo: {e}")
+        raise ImportError(
+            "PyTorch backend requires 'cosyvoice' package. Please ensure 'models/CosyVoice' is cloned correctly.\n"
+            "Full error: " + str(e)
+        )
 
     # Local robust load_wav to avoid torchaudio backend issues (TorchCodec error)
     def load_wav(wav_path, target_sr):

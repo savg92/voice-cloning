@@ -38,7 +38,7 @@ dependencies = [
     "editdistance>=0.8.1",
     "ipython>=8.37.0",
     "mlx>=0.29.4",
-    "mlx-audio @ git+https://github.com/Blaizzy/mlx-audio.git",
+    "mlx-audio-plus>=0.1.7",
     "sounddevice",
     "pyloudnorm",
     "typer",
