@@ -28,9 +28,7 @@ def run_model_test(model_name, text, reference=None, output_suffix="test"):
     if reference and os.path.exists(reference):
         cmd_parts.extend(["--reference", reference])
     
-    if model_name == "openvoice2":
-        cmd_parts.extend(["--language", "EN_NEWEST"])
-    elif model_name == "kokoro":
+    if model_name == "kokoro":
         cmd_parts.extend(["--voice", "af_heart", "--speed", "1.0"])
     
     cmd = " ".join(cmd_parts)
@@ -78,8 +76,6 @@ def main():
     # Test each model
     models_to_test = [
         ("kokoro", False),      # Kokoro doesn't need reference audio
-        ("openvoice", True),    # OpenVoice v1 needs reference audio
-        ("openvoice2", True),   # OpenVoice v2 needs reference audio
         ("chatterbox", True)    # Chatterbox needs reference audio
     ]
     

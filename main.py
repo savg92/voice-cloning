@@ -11,7 +11,7 @@ logging.basicConfig(
 
 def main():
     parser = argparse.ArgumentParser(description="Voice Cloning & ASR CLI - Test and compare speech models")
-    parser.add_argument("--model", choices=["chatterbox", "kitten", "kitten-0.1", "kitten-0.2", "openvoice", "openvoice2", "kokoro", "canary", "parakeet", "granite", "whisper", "humaware", "marvis", "supertone", "neutts-air", "dia2", "cosyvoice", "web"], default="web",
+    parser.add_argument("--model", choices=["chatterbox", "kitten", "kitten-0.1", "kitten-0.2", "kokoro", "canary", "parakeet", "granite", "whisper", "humaware", "marvis", "supertone", "neutts-air", "dia2", "cosyvoice", "web"], default="web",
                         help="Model to use (TTS: cosyvoice, chatterbox, kitten[-0.1|-0.2], kokoro, marvis, supertone, neutts-air, dia2 | ASR: canary, parakeet, granite, whisper | VAD: humaware | UI: web). Default: web")
     parser.add_argument("--device", choices=["cuda", "mps", "cpu"], default=None,
                         help="Device to run model on (cuda/mps/cpu). Auto-detects if not specified.")
@@ -28,12 +28,12 @@ def main():
     
     # Chatterbox Arguments
     parser.add_argument("--language", default="en", 
-                        help="Source language code (OpenVoice/Canary/Chatterbox). Default: 'en'")
+                        help="Source language code (Canary/Chatterbox). Default: 'en'")
     parser.add_argument("--target-language", default=None,
                         help="Target language code for translation (Canary only). If not set, performs transcription.")
     # The original speed argument is now replaced by the new one above.
     parser.add_argument("--checkpoints", default="checkpoints_v2", 
-                        help="Path to OpenVoice checkpoints directory (OpenVoice only)")
+                        help="Path to checkpoints directory")
     # The original lang_code and voice arguments are now replaced by the new ones above.
     parser.add_argument("--emotion", default="",
                         help="Emotion tag for Maya1 (e.g., 'laugh', 'sad')")

@@ -18,6 +18,57 @@ KOKORO_VOICES = {
     "z": ["zf_xiaobei", "zf_xiaoni", "zf_xiaoxiao", "zf_xiaoyi", "zm_yunjian", "zm_yunxi", "zm_yunxia", "zm_yunyang"]
 }
 
+# Chatterbox Constants
+try:
+    from src.voice_cloning.tts.chatterbox import VOICE_PRESETS
+    CHATTERBOX_VOICES = list(VOICE_PRESETS.keys())
+except ImportError:
+    CHATTERBOX_VOICES = ["af_heart", "ef_dora", "ff_siwis"] # Fallback
+
+CHATTERBOX_LANGS = [
+    ("English", "en"),
+    ("Arabic", "ar"),
+    ("Chinese", "zh"),
+    ("Czech", "cs"),
+    ("Danish", "da"),
+    ("Dutch", "nl"),
+    ("Finnish", "fi"),
+    ("French", "fr"),
+    ("German", "de"),
+    ("Greek", "el"),
+    ("Hebrew", "he"),
+    ("Hindi", "hi"),
+    ("Hungarian", "hu"),
+    ("Italian", "it"),
+    ("Japanese", "ja"),
+    ("Korean", "ko"),
+    ("Malay", "ms"),
+    ("Norwegian", "no"),
+    ("Polish", "pl"),
+    ("Portuguese", "pt"),
+    ("Russian", "ru"),
+    ("Spanish", "es"),
+    ("Swedish", "sv"),
+    ("Swahili", "sw"),
+    ("Turkish", "tr")
+]
+
+CHATTERBOX_MODELS = [
+    "mlx-community/chatterbox-4bit",
+    "mlx-community/chatterbox-turbo-4bit"
+]
+
+MODEL_DESCRIPTIONS = {
+    "Kokoro": "⚡ **Fast & High Quality** (82M params). Best overall for English/European languages. Supports streaming.",
+    "Kitten": "🐱 **Lightweight** (30M params). Optimized for very low latency.",
+    "Chatterbox": "🗣️ **Voice Cloning & Emotion**. Supports 23 languages and zero-shot cloning from audio.",
+    "Marvis": "🤖 **Minimalist**. Simple English TTS.",
+    "CosyVoice": "🎙️ **Advanced Generation**. Instruct-based control.",
+    "NeuTTS Air": "💨 **CPU Optimized**. GGUF based models.",
+    "Supertone": "🎛️ **Controllable**. Step-based generation with CFG.",
+    "Dia2": "🎹 **High Fidelity**. Diffusion-based (Requires CUDA).",
+}
+
 KOKORO_LANGS = {
     "a": "US English",
     "b": "British English",
@@ -74,7 +125,7 @@ def generate_speech(
     if not text.strip():
         raise gr.Error("Please enter some text to synthesize.")
         
-    cloning_models = ["Chatterbox", "Marvis", "CosyVoice", "NeuTTS Air", "OpenVoice", "OpenVoice2"]
+    cloning_models = ["Chatterbox", "Marvis", "CosyVoice", "NeuTTS Air"]
     if model_name in cloning_models and not reference_audio:
         raise gr.Error(f"Reference audio is required for model '{model_name}'.")
 
@@ -158,10 +209,6 @@ def generate_speech(
                 )
             except ImportError:
                 raise gr.Error("Dia2 library not found. Please install it to use this model.")
-        
-        elif model_name in ["OpenVoice", "OpenVoice2"]:
-            # Note: OpenVoice is mentioned in PRD but not yet implemented in tts/
-            raise gr.Error(f"{model_name} is currently not implemented in the backend.")
             
         else:
             raise ValueError(f"Unknown model: {model_name}")
@@ -175,13 +222,15 @@ def generate_speech(
 
 def on_model_change(model_name: str):
     """Updates visibility of model-specific parameter groups."""
-    cloning_models = ["Chatterbox", "Marvis", "CosyVoice", "NeuTTS Air", "OpenVoice", "OpenVoice2"]
+    cloning_models = ["Chatterbox", "Marvis", "CosyVoice", "NeuTTS Air"]
     ref_text_models = ["Marvis", "CosyVoice", "NeuTTS Air"]
     
     # Models that support MLX
     mlx_models = ["Kokoro", "Chatterbox", "CosyVoice"]
     # Models that support Streaming
-    stream_models = ["Kokoro", "Kitten", "Supertone", "Marvis"]
+    stream_models = ["Kokoro", "Kitten", "Supertone", "Marvis", "Chatterbox"]
+    
+    desc = MODEL_DESCRIPTIONS.get(model_name, "")
     
     return [
         gr.update(visible=(model_name in cloning_models)), # ref_audio
@@ -195,7 +244,8 @@ def on_model_change(model_name: str):
         gr.update(visible=(model_name == "Supertone")),
         gr.update(visible=(model_name == "Dia2")),
         gr.update(visible=(model_name in mlx_models)), # use_mlx
-        gr.update(visible=(model_name in stream_models)) # stream
+        gr.update(visible=(model_name in stream_models)), # stream
+        gr.update(value=desc, visible=bool(desc)) # description
     ]
 
 def on_kokoro_lang_change(lang_code: str):
@@ -212,15 +262,17 @@ def create_tts_tab():
             with gr.Column(scale=1):
                 model_dropdown = gr.Dropdown(
                     label="Model Engine",
-                    choices=["Kokoro", "Kitten", "Chatterbox", "Marvis", "CosyVoice", "NeuTTS Air", "Supertone", "Dia2", "OpenVoice", "OpenVoice2"],
+                    choices=["Kokoro", "Kitten", "Chatterbox", "Marvis", "CosyVoice", "NeuTTS Air", "Supertone", "Dia2"],
                     value="Kokoro",
                     interactive=True
                 )
                 
+                model_desc = gr.Markdown(value=MODEL_DESCRIPTIONS["Kokoro"])
+
                 text_input = gr.Textbox(label="Input Text", placeholder="Text to synthesize...", lines=4)
                 
                 ref_audio_input = gr.Audio(label="Reference Audio (Cloning)", type="filepath", visible=False)
-                ref_text_input = gr.Textbox(label="Reference Text (Optional transcript)", visible=False)
+                ref_text_input = gr.Textbox(label="Reference Text (Required if no .txt file exists next to audio)", visible=False)
 
                 with gr.Accordion("⚙️ Global Settings", open=True):
                     with gr.Row():
@@ -264,11 +316,11 @@ def create_tts_tab():
                         chatter_exaggeration = gr.Slider(label="Exaggeration", minimum=0.0, maximum=1.0, value=0.7)
                         chatter_cfg = gr.Slider(label="CFG Weight", minimum=0.0, maximum=1.0, value=0.5)
                     with gr.Row():
-                        chatter_lang = gr.Textbox(label="Language", value="en")
+                        chatter_lang = gr.Dropdown(label="Language", choices=CHATTERBOX_LANGS, value="en", allow_custom_value=True)
                         chatter_multi = gr.Checkbox(label="Multilingual Mode", value=False)
                     with gr.Row():
-                        chatter_model_id = gr.Textbox(label="Model ID (Optional)")
-                        chatter_voice = gr.Textbox(label="Voice Preset (Optional)")
+                        chatter_model_id = gr.Dropdown(label="Model ID", choices=CHATTERBOX_MODELS, value="mlx-community/chatterbox-turbo-4bit", allow_custom_value=True)
+                        chatter_voice = gr.Dropdown(label="Voice Preset (Optional)", choices=CHATTERBOX_VOICES, allow_custom_value=True)
 
                 with gr.Group(visible=False) as marvis_params:
                     gr.Markdown("### Marvis Settings")
@@ -287,7 +339,7 @@ def create_tts_tab():
 
                 with gr.Group(visible=False) as supertone_params:
                     gr.Markdown("### Supertone Settings")
-                    supertone_preset = gr.Textbox(label="Voice Preset (e.g. F1, M1)")
+                    supertone_preset = gr.Dropdown(label="Voice Preset", choices=["F1", "F2", "M1", "M2"], value="F1")
                     with gr.Row():
                         supertone_steps = gr.Slider(label="Inference Steps", minimum=1, maximum=50, value=8, step=1)
                         supertone_cfg = gr.Slider(label="CFG Scale", minimum=0.0, maximum=5.0, value=1.0)
@@ -314,7 +366,7 @@ def create_tts_tab():
                 kokoro_params, kitten_params, chatter_params, 
                 marvis_params, cosy_params, neutts_params, 
                 supertone_params, dia2_params,
-                use_mlx, stream
+                use_mlx, stream, model_desc
             ]
         )
         
@@ -325,6 +377,12 @@ def create_tts_tab():
             outputs=[kokoro_voice]
         )
         
+        chatter_lang.change(
+            fn=on_chatter_lang_change,
+            inputs=[chatter_lang],
+            outputs=[chatter_voice]
+        )
+
         generate_btn.click(
             fn=generate_speech,
             inputs=[
@@ -342,3 +400,37 @@ def create_tts_tab():
         )
         
     return tts_layout
+
+def on_chatter_lang_change(lang_code: str):
+    """Filters Chatterbox voices based on language."""
+    # Prefix mapping
+    prefixes = {
+        "en": ("af_", "bf_", "am_", "bm_", "en"),
+        "es": ("ef_", "em_", "es"),
+        "fr": ("ff_", "fr"),
+        "it": ("if_", "im_", "it"),
+        "pt": ("pf_", "pm_", "pt"),
+        "de": ("de_", "df_", "dm_"),
+        "ru": ("ru_", "rf_", "rm_"),
+        "tr": ("tr_", "tf_", "tm_"),
+        "hi": ("hi_", "hf_", "hm_"),
+        "ja": ("jf_", "jm_", "ja"),
+        "zh": ("zf_", "zm_", "zh"),
+    }
+    
+    valid_prefixes = prefixes.get(lang_code, (lang_code,))
+    
+    filtered_voices = [
+        v for v in CHATTERBOX_VOICES 
+        if v.startswith(valid_prefixes) or v == lang_code
+    ]
+    
+    # Always include the language code itself as a preset if it exists in VOICES
+    if lang_code in CHATTERBOX_VOICES and lang_code not in filtered_voices:
+        filtered_voices.insert(0, lang_code)
+        
+    if not filtered_voices:
+        # Fallback to all voices if no match (or empty)
+        filtered_voices = CHATTERBOX_VOICES
+        
+    return gr.update(choices=filtered_voices, value=filtered_voices[0] if filtered_voices else None)

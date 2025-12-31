@@ -102,31 +102,44 @@ class NeuTTSAirTTS:
             output_path: Path to save output WAV
             ref_audio_path: Path to reference audio (3+ seconds recommended)
             ref_text_path: Path to reference text file (transcript of ref audio)
-                          If None, will look for .txt file with same name as ref_audio
+                          OR the literal transcript text itself.
+                          If None/empty, will look for .txt file with same name as ref_audio
             
         Returns:
             Path to output file
         """
         print("DEBUG: Starting synthesis...")
         
-        # Load reference text
-        if ref_text_path is None:
+        ref_text = None
+        
+        # 1. Handle None or empty string - trigger auto-detection
+        if not ref_text_path:
             # Try to find matching .txt file
             ref_audio_pathlib = Path(ref_audio_path)
-            ref_text_path = ref_audio_pathlib.with_suffix('.txt')
-            print(f"DEBUG: Auto-detected ref_text_path: {ref_text_path}")
+            detected_path = ref_audio_pathlib.with_suffix('.txt')
+            print(f"DEBUG: No reference text provided, checking for auto-detection: {detected_path}")
             
-        if not os.path.exists(ref_text_path):
-            print(f"DEBUG: Reference text not found at: {ref_text_path}")
-            raise FileNotFoundError(
-                f"Reference text not found: {ref_text_path}\n"
-                f"Please provide a transcript of the reference audio."
-            )
+            if detected_path.exists():
+                print(f"DEBUG: Auto-detected ref_text_path: {detected_path}")
+                with open(detected_path) as f:
+                    ref_text = f.read().strip()
+            else:
+                print(f"DEBUG: Auto-detection failed, no .txt file found at: {detected_path}")
+                raise FileNotFoundError(
+                    f"Reference text not provided and no matching .txt file found at {detected_path}.\n"
+                    f"Please provide a transcript of the reference audio."
+                )
         
-        print(f"DEBUG: Loading reference text from: {ref_text_path}")
-        with open(ref_text_path) as f:
-            ref_text = f.read().strip()
-        print(f"DEBUG: Reference text loaded ({len(ref_text)} chars)")
+        # 2. Check if the provided string is an existing file path
+        elif os.path.exists(ref_text_path):
+            print(f"DEBUG: Loading reference text from file: {ref_text_path}")
+            with open(ref_text_path) as f:
+                ref_text = f.read().strip()
+        
+        # 3. Otherwise, treat it as the literal transcript text
+        else:
+            print(f"DEBUG: Using provided string as literal reference text")
+            ref_text = ref_text_path.strip()
         
         logger.info(f"Reference audio: {ref_audio_path}")
         logger.info(f"Reference text: {ref_text[:50]}...")
