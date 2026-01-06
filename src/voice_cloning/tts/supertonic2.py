@@ -28,7 +28,10 @@ class UnicodeProcessor:
     
     def _preprocess_text(self, text: str) -> str:
         """Normalize and clean text."""
-        text = normalize("NFKD", text)
+        # Use NFC to preserve composed characters (e.g. Korean syllables) unless
+        # decomposition is explicitly required by the model. 
+        # Stuttering might be caused by decomposing characters that should stay together.
+        text = normalize("NFC", text)
         
         # Remove emojis
         emoji_pattern = re.compile(
@@ -422,6 +425,11 @@ class Supertonic2TTS:
         # Trim to actual duration
         duration_samples = int(self.sample_rate * dur[0])
         wav = wav[0, :duration_samples]
+        
+        # Normalize audio to prevent clipping/distortion
+        max_val = np.abs(wav).max()
+        if max_val > 1.0:
+            wav = wav / max_val
         
         return wav
 
