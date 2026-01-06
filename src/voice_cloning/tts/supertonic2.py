@@ -290,6 +290,7 @@ class Supertonic2TTS:
         steps: int = 8,
         speed: float = 1.0,
         stream: bool = False,
+        use_cpu: bool = False # Kept for API compatibility, but handled in init
     ) -> str:
         """
         Synthesize speech from text.
@@ -421,7 +422,9 @@ class Supertonic2TTS:
         
         for step in range(steps):
             current_step = np.array([step] * bsz, dtype=np.float32)
-            xt, *_ = self.vector_est_ort.run(
+            
+            # The model predicts the vector field (velocity) v_t
+            vt, *_ = self.vector_est_ort.run(
                 None,
                 {
                     "noisy_latent": xt,
@@ -433,6 +436,11 @@ class Supertonic2TTS:
                     "total_step": total_step_np,
                 }
             )
+            
+            # Euler integration: x_{t+1} = x_t + v_t * dt
+            # Flow Matching typically goes from Noise (t=0) to Data (t=1)
+            dt = 1.0 / steps
+            xt = xt + vt * dt
         
         # Vocoder
         wav, *_ = self.vocoder_ort.run(None, {"latent": xt})
