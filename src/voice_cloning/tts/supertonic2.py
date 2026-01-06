@@ -85,9 +85,22 @@ class UnicodeProcessor:
         
         for i, text in enumerate(text_list):
             unicode_vals = np.array([ord(char) for char in text], dtype=np.uint16)
-            text_ids[i, :len(unicode_vals)] = np.array(
-                [self.indexer[val] if self.indexer[val] != -1 else 0 for val in unicode_vals], dtype=np.int64
-            )
+            
+            # Check for unknown chars
+            mapped_vals = []
+            for char_val in unicode_vals:
+                if char_val >= len(self.indexer):
+                    logger.warning(f"Character {chr(char_val)} ({char_val}) out of indexer range")
+                    mapped_vals.append(0)
+                else:
+                    idx = self.indexer[char_val]
+                    if idx == -1:
+                        # logger.warning(f"Character {chr(char_val)} ({char_val}) mapped to unknown (-1)")
+                        mapped_vals.append(0)
+                    else:
+                        mapped_vals.append(idx)
+                        
+            text_ids[i, :len(unicode_vals)] = np.array(mapped_vals, dtype=np.int64)
         
         # Create mask
         max_len = text_ids_lengths.max()
@@ -111,12 +124,13 @@ class Supertonic2TTS:
     Ultra-fast on-device Multilingual TTS with ONNX Runtime.
     """
     
-    def __init__(self, model_dir: str | None = None):
+    def __init__(self, model_dir: str | None = None, use_cpu: bool = False):
         """
         Initialize Supertonic-2 TTS.
         
         Args:
             model_dir: Directory containing ONNX models and voice styles.
+            use_cpu: Force CPU execution (disable CoreML/others).
         """
         try:
             import onnxruntime as ort
@@ -161,13 +175,15 @@ class Supertonic2TTS:
         
         # Prefer CoreML on macOS if available, otherwise CPU
         providers = ['CPUExecutionProvider']
-        if sys.platform == "darwin":
+        if not use_cpu and sys.platform == "darwin":
             try:
                 # Check if CoreML is available
                 if 'CoreMLExecutionProvider' in ort.get_available_providers():
                     providers.insert(0, 'CoreMLExecutionProvider')
             except Exception:
                 pass
+        
+        logger.info(f"Using providers: {providers}")
         
         self.dp_ort = ort.InferenceSession(
             str(self.onnx_dir / "duration_predictor.onnx"),
@@ -442,12 +458,13 @@ def synthesize_speech(
     steps: int = 8,
     speed: float = 1.0,
     stream: bool = False,
+    use_cpu: bool = False,
     **kwargs
 ) -> str:
     """
     Convenience function for Supertonic-2 TTS.
     """
-    tts = Supertonic2TTS(model_dir=model_dir)
+    tts = Supertonic2TTS(model_dir=model_dir, use_cpu=use_cpu)
     return tts.synthesize(
         text=text,
         output_path=output_path,
