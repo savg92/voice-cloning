@@ -28,10 +28,9 @@ class UnicodeProcessor:
     
     def _preprocess_text(self, text: str) -> str:
         """Normalize and clean text."""
-        # Use NFC to preserve composed characters (e.g. Korean syllables) unless
-        # decomposition is explicitly required by the model. 
-        # Stuttering might be caused by decomposing characters that should stay together.
-        text = normalize("NFC", text)
+        # Use NFKD to decompose characters (needed for Korean Jamo)
+        # The unicode_indexer supports Jamo (e.g. 4352) but not Syllables (e.g. 44032)
+        text = normalize("NFKD", text)
         
         # Remove emojis
         emoji_pattern = re.compile(
