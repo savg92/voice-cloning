@@ -14,14 +14,14 @@
     - [x] Sub-task: Run tests to verify core functionality.
 - [x] Task: Conductor - User Manual Verification 'Core Implementation' (Protocol in workflow.md)
 
-## Phase 2: Benchmarking Integration
-- [ ] Task: Create `benchmarks/tts/supertonic2.py`
-    - [ ] Sub-task: Implement `Supertonic2Benchmark` class inheriting from `TTSBenchmark`.
-    - [ ] Sub-task: Register benchmark in `benchmarks/config.py` (if applicable) or runner.
-- [ ] Task: Run Benchmarks
-    - [ ] Sub-task: Execute benchmark on Apple Silicon (if available) or current env.
-    - [ ] Sub-task: Verify RTF and Latency metrics are captured correctly.
-- [ ] Task: Conductor - User Manual Verification 'Benchmarking Integration' (Protocol in workflow.md)
+## Phase 2: Benchmarking Integration [checkpoint: 74c4b2b]
+- [x] Task: Create benchmarks/tts/supertonic2.py c25dbca
+    - [x] Sub-task: Implement Supertonic2Benchmark class inheriting from TTSBenchmark.
+    - [x] Sub-task: Register benchmark in benchmarks/config.py (if applicable) or runner.
+- [x] Task: Run Benchmarks c25dbca
+    - [x] Sub-task: Execute benchmark on Apple Silicon (if available) or current env.
+    - [x] Sub-task: Verify RTF and Latency metrics are captured correctly.
+- [x] Task: Conductor - User Manual Verification 'Benchmarking Integration' (Protocol in workflow.md)
 
 ## Phase 3: UI & Documentation
 - [ ] Task: UI Integration
