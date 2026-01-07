@@ -23,12 +23,12 @@
     - [x] Sub-task: Verify RTF and Latency metrics are captured correctly.
 - [x] Task: Conductor - User Manual Verification 'Benchmarking Integration' (Protocol in workflow.md)
 
-## Phase 3: UI & Documentation
-- [ ] Task: UI Integration
-    - [ ] Sub-task: Update Gradio interface (likely in `src/voice_cloning/ui/` or `main.py`) to include Supertonic-2.
-    - [ ] Sub-task: Add Language Dropdown, Speed Slider, and Steps control.
-    - [ ] Sub-task: Add "Voice" dropdown if multiple speaker files are found in the model config (conditional feature).
-- [ ] Task: Documentation
-    - [ ] Sub-task: Create `docs/SUPERTONIC2_GUIDE.md`.
-    - [ ] Sub-task: Update `README.md` to list Supertonic-2 support.
-- [ ] Task: Conductor - User Manual Verification 'UI & Documentation' (Protocol in workflow.md)
+## Phase 3: UI & Documentation [checkpoint: de098f9]
+- [x] Task: UI Integration de098f9
+    - [x] Sub-task: Update Gradio interface (likely in `src/voice_cloning/ui/` or `main.py`) to include Supertonic-2.
+    - [x] Sub-task: Add Language Dropdown, Speed Slider, and Steps control.
+    - [x] Sub-task: Add "Voice" dropdown if multiple speaker files are found in the model config (conditional feature).
+- [x] Task: Documentation de098f9
+    - [x] Sub-task: Create `docs/SUPERTONIC2_GUIDE.md`.
+    - [x] Sub-task: Update `README.md` to list Supertonic-2 support.
+- [x] Task: Conductor - User Manual Verification 'UI & Documentation' (Protocol in workflow.md)
