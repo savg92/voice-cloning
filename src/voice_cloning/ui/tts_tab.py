@@ -208,8 +208,8 @@ def generate_speech(
             # But here let's use the model's auto-detection (which prefers CoreML on Mac)
             tts = Supertonic2TTS()
             tts.synthesize(
-                text=text, output_path=output_path, voice=supertonic2_voice,
-                language=supertonic2_lang, speed=speed, steps=supertonic2_steps
+                text=text, output_path=output_path, voice_style=supertonic2_voice,
+                lang_code=supertonic2_lang, speed=speed, steps=supertonic2_steps
             )
 
         elif model_name == "Dia2":

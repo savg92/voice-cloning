@@ -36,6 +36,7 @@ All results from MacBook Pro M3 8GB running on MPS (Metal Performance Shaders).
 | Model | Type | Latency (ms) | RTF | Memory (MB) | Audio Duration (s) | Speed Multiplier | Device |
 |-------|------|--------------|-----|-------------|-------------------|------------------|--------|
 | **Supertone** | TTS | 319 | 0.0459 | 293.1 | 6.95 | 21.8× | MPS |
+| **Supertonic-2** | TTS | 1180.86 | 0.1849 | 365.20 | Device: mps |
 | **KittenTTS Nano** | TTS | 1,006 | 0.1302 | 67.5 | 7.73 | 7.7× | MPS |
 | **Kokoro** | TTS | 3,340 | 0.5004 | 415.2 | 7.10 | 2.0× | MPS |
 | **Chatterbox (MLX)** | TTS | 15,044 | 0.8726 | 0.0 | 6.16 | 1.15× | MPS |
@@ -69,6 +70,7 @@ All results from MacBook Pro M3 8GB running on MPS (Metal Performance Shaders).
 | Model | Latency | RTF | Memory | Speed Multiplier | Notes |
 |-------|---------|-----|--------|------------------|-------|
 | **Supertone** | 319ms | 0.046 | 293.1 MB | **21.8× real-time** | ONNX-based, ultra-fast |
+| **Supertonic-2** | 1,180ms | 0.185 | 365.2 MB | **5.4× real-time** | ONNX-based, multilingual |
 | **KittenTTS Nano** | 1,006ms | 0.130 | 67.5 MB | **7.7× real-time** | Lowest memory, CPU-friendly |
 | **Kokoro** | 3,340ms | 0.500 | 415.2 MB | **2.0× real-time** | High quality, multilingual |
 | **Chatterbox (MLX)** | 15,044ms | 0.873 | 0.0 MB | **1.15× real-time** | Good quality, sub-realtime |

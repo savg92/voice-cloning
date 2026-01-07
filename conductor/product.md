@@ -8,7 +8,7 @@ The primary users of this platform are **Application Developers**. They are look
 
 ## Core Goals
 1.  **Performance Optimization:** Provide detailed benchmarking of latency, Real-Time Factor (RTF), and memory usage, with a specific focus on Apple Silicon (MLX) performance.
-2.  **Model Selection:** Enable high-fidelity qualitative comparisons of voice cloning techniques, focusing on naturalness and prosody.
+2.  **Model Selection:** Enable high-fidelity qualitative comparisons of voice cloning and high-performance multilingual TTS techniques, focusing on naturalness and prosody.
 
 ## Critical Features
 *   **Unified Benchmarking Suite:** A standardized, automated system to measure and report critical performance metrics (Latency, RTF, TTFA) across all supported models.
