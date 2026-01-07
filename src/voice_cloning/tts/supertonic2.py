@@ -26,13 +26,12 @@ class UnicodeProcessor:
         with open(unicode_indexer_path) as f:
             self.indexer = json.load(f)
     
-    def _preprocess_text(self, text: str) -> str:
+    def _preprocess_text(self, text: str, lang: str) -> str:
         """Normalize and clean text."""
         # Use NFKD to decompose characters (needed for Korean Jamo)
-        # The unicode_indexer supports Jamo (e.g. 4352) but not Syllables (e.g. 44032)
         text = normalize("NFKD", text)
         
-        # Remove emojis
+        # Remove emojis (wide Unicode range)
         emoji_pattern = re.compile(
             "[\U0001f600-\U0001f64f"
             "\U0001f300-\U0001f5ff"
@@ -75,11 +74,17 @@ class UnicodeProcessor:
         text = re.sub(r"\s+", " ", text)
         text = text.strip()
         
+        # Add language tags
+        text = f"<{lang}>{text}</{lang}>"
+        
         return text
     
-    def __call__(self, text_list: list[str]) -> tuple[np.ndarray, np.ndarray]:
+    def __call__(self, text_list: list[str], lang_list: list[str] | None = None) -> tuple[np.ndarray, np.ndarray]:
         """Convert list of texts to text_ids and masks."""
-        text_list = [self._preprocess_text(t) for t in text_list]
+        if lang_list is None:
+             lang_list = ["en"] * len(text_list)
+             
+        text_list = [self._preprocess_text(t, l) for t, l in zip(text_list, lang_list)]
         text_ids_lengths = np.array([len(text) for text in text_list], dtype=np.int64)
         text_ids = np.zeros((len(text_list), text_ids_lengths.max()), dtype=np.int64)
         
@@ -362,7 +367,7 @@ class Supertonic2TTS:
             
             logger.info("Starting streaming generation...")
             for i, sentence in enumerate(sentences):
-                wav = self._generate_waveform(sentence, style, steps, speed)
+                wav = self._generate_waveform(sentence, style, steps, speed, lang_code=lang_code)
                 full_audio_parts.append(wav)
                 
                 # Save chunk to temp file for playback
@@ -386,7 +391,7 @@ class Supertonic2TTS:
             return str(output_path)
 
         else:
-            wav = self._generate_waveform(text, style, steps, speed)
+            wav = self._generate_waveform(text, style, steps, speed, lang_code=lang_code)
             
             # Ensure directory exists
             Path(output_path).parent.mkdir(parents=True, exist_ok=True)
@@ -395,10 +400,10 @@ class Supertonic2TTS:
             logger.info(f"✓ Audio saved to: {output_path}")
             return str(output_path)
 
-    def _generate_waveform(self, text: str, style: Style, steps: int, speed: float) -> np.ndarray:
+    def _generate_waveform(self, text: str, style: Style, steps: int, speed: float, lang_code: str = "en") -> np.ndarray:
         """Internal method to generate waveform from text."""
         # Process text
-        text_ids, text_mask = self.text_processor([text])
+        text_ids, text_mask = self.text_processor([text], [lang_code])
         
         # Duration prediction
         dur, *_ = self.dp_ort.run(
@@ -422,9 +427,7 @@ class Supertonic2TTS:
         
         for step in range(steps):
             current_step = np.array([step] * bsz, dtype=np.float32)
-            
-            # The model predicts the vector field (velocity) v_t
-            vt, *_ = self.vector_est_ort.run(
+            xt, *_ = self.vector_est_ort.run(
                 None,
                 {
                     "noisy_latent": xt,
@@ -436,11 +439,6 @@ class Supertonic2TTS:
                     "total_step": total_step_np,
                 }
             )
-            
-            # Euler integration: x_{t+1} = x_t + v_t * dt
-            # Flow Matching typically goes from Noise (t=0) to Data (t=1)
-            dt = 1.0 / steps
-            xt = xt + vt * dt
         
         # Vocoder
         wav, *_ = self.vocoder_ort.run(None, {"latent": xt})
