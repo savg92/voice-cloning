@@ -1,6 +1,6 @@
 # Voice Cloning Project
 
-This project provides a comprehensive testing and comparison platform for multiple text-to-speech (TTS) models: Chatterbox, Kitten TTS Nano, Kokoro, Marvis TTS, Parakeet ASR, Canary ASR, Granite ASR, and Whisper ASR. It enables easy voice cloning and synthesis with different models to evaluate their performance and quality.
+This project provides a comprehensive testing and comparison platform for multiple text-to-speech (TTS) models: Chatterbox, Kitten TTS Nano, Kokoro, Marvis TTS, Supertone, Supertonic-2, Parakeet ASR, Canary ASR, Granite ASR, and Whisper ASR. It enables easy voice cloning and synthesis with different models to evaluate their performance and quality.
 
 ## Features
 
@@ -62,6 +62,12 @@ git clone https://huggingface.co/Supertone/supertonic models/supertonic
 uv run python main.py --model supertone \
   --text "Super fast synthesis!" \
   --output outputs/supertone.wav
+
+# Supertonic-2 - Fast & Multilingual (Auto-downloads)
+uv run python main.py --model supertonic2 \
+  --text "Hello, I can speak multiple languages now." \
+  --language en \
+  --output outputs/supertonic2.wav
 
 # Dia2-1B - Multi-speaker dialogue (⚠️ CUDA only, slow on macOS)
 uv run python main.py --model dia2 \
@@ -359,7 +365,7 @@ uv run python main.py --model humaware --reference samples/speech.wav --output o
 
 ### Available Options
 
-- `--model`: Choose from `chatterbox`, `kitten` (defaults to 0.2), `kitten-0.1`, `kitten-0.2`, `kokoro`, `parakeet`, `marvis`, `humaware`
+- `--model`: Choose from `chatterbox`, `kitten` (defaults to 0.2), `kitten-0.1`, `kitten-0.2`, `kokoro`, `parakeet`, `marvis`, `humaware`, `supertone`, `supertonic2`, `cosyvoice`, `neutts-air`, `dia2`, `canary`, `granite`, `whisper`
 - `--text`: Text to synthesize (required)
 - `--reference`: Reference audio file for voice cloning (required for voice cloning models)
 - `--output`: Output file path (required)
