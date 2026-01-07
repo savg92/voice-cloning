@@ -65,7 +65,8 @@ MODEL_DESCRIPTIONS = {
     "Marvis": "🤖 **Minimalist**. Simple English TTS.",
     "CosyVoice": "🎙️ **Advanced Generation**. Instruct-based control.",
     "NeuTTS Air": "💨 **CPU Optimized**. GGUF based models.",
-    "Supertone": "🎛️ **Controllable**. Step-based generation with CFG.",
+    "Supertone": "🎛️ **Controllable**. Step-based generation with CFG (v1).",
+    "Supertonic-2": "🎙️ **Fast & Multilingual**. New v2 model supporting EN, KO, ES, PT, FR via ONNX.",
     "Dia2": "🎹 **High Fidelity**. Diffusion-based (Requires CUDA).",
 }
 
@@ -114,6 +115,10 @@ def generate_speech(
     supertone_preset: str,
     supertone_steps: int,
     supertone_cfg: float,
+    # Supertonic-2
+    supertonic2_lang: str,
+    supertonic2_voice: str,
+    supertonic2_steps: int,
     # Dia2
     dia2_cfg: float,
     dia2_temp: float,
@@ -197,6 +202,16 @@ def generate_speech(
                 steps=supertone_steps, cfg_scale=supertone_cfg, stream=stream
             )
 
+        elif model_name == "Supertonic-2":
+            from src.voice_cloning.tts.supertonic2 import Supertonic2TTS
+            # Note: We use CPU if torch isn't available or if on Apple Silicon to ensure stability
+            # But here let's use the model's auto-detection (which prefers CoreML on Mac)
+            tts = Supertonic2TTS()
+            tts.synthesize(
+                text=text, output_path=output_path, voice=supertonic2_voice,
+                language=supertonic2_lang, speed=speed, steps=supertonic2_steps
+            )
+
         elif model_name == "Dia2":
             if not torch.cuda.is_available():
                 raise gr.Error("Dia2 model requires an NVIDIA GPU with CUDA. CUDA was not detected.")
@@ -242,6 +257,7 @@ def on_model_change(model_name: str):
         gr.update(visible=(model_name == "CosyVoice")),
         gr.update(visible=(model_name == "NeuTTS Air")),
         gr.update(visible=(model_name == "Supertone")),
+        gr.update(visible=(model_name == "Supertonic-2")),
         gr.update(visible=(model_name == "Dia2")),
         gr.update(visible=(model_name in mlx_models)), # use_mlx
         gr.update(visible=(model_name in stream_models)), # stream
@@ -262,7 +278,7 @@ def create_tts_tab():
             with gr.Column(scale=1):
                 model_dropdown = gr.Dropdown(
                     label="Model Engine",
-                    choices=["Kokoro", "Kitten", "Chatterbox", "Marvis", "CosyVoice", "NeuTTS Air", "Supertone", "Dia2"],
+                    choices=["Kokoro", "Kitten", "Chatterbox", "Marvis", "CosyVoice", "NeuTTS Air", "Supertone", "Supertonic-2", "Dia2"],
                     value="Kokoro",
                     interactive=True
                 )
@@ -344,6 +360,21 @@ def create_tts_tab():
                         supertone_steps = gr.Slider(label="Inference Steps", minimum=1, maximum=50, value=8, step=1)
                         supertone_cfg = gr.Slider(label="CFG Scale", minimum=0.0, maximum=5.0, value=1.0)
 
+                with gr.Group(visible=False) as supertonic2_params:
+                    gr.Markdown("### Supertonic-2 Settings")
+                    with gr.Row():
+                        supertonic2_lang = gr.Dropdown(
+                            label="Language", 
+                            choices=[("English", "en"), ("Korean", "ko"), ("Spanish", "es"), ("Portuguese", "pt"), ("French", "fr")], 
+                            value="en"
+                        )
+                        supertonic2_voice = gr.Dropdown(
+                            label="Voice", 
+                            choices=["F1", "F2", "M1", "M2"], 
+                            value="F1"
+                        )
+                    supertonic2_steps = gr.Slider(label="Inference Steps", minimum=1, maximum=30, value=10, step=1)
+
                 with gr.Group(visible=False) as dia2_params:
                     gr.Markdown("### Dia2 Settings (CUDA Required)")
                     with gr.Row():
@@ -365,7 +396,7 @@ def create_tts_tab():
                 ref_audio_input, ref_text_input, 
                 kokoro_params, kitten_params, chatter_params, 
                 marvis_params, cosy_params, neutts_params, 
-                supertone_params, dia2_params,
+                supertone_params, supertonic2_params, dia2_params,
                 use_mlx, stream, model_desc
             ]
         )
@@ -394,6 +425,7 @@ def create_tts_tab():
                 cosy_instruct,
                 neutts_backbone,
                 supertone_preset, supertone_steps, supertone_cfg,
+                supertonic2_lang, supertonic2_voice, supertonic2_steps,
                 dia2_cfg, dia2_temp, dia2_top_k
             ],
             outputs=[audio_output]

@@ -4,7 +4,7 @@ This project provides a comprehensive testing and comparison platform for multip
 
 ## Features
 
-- **Multiple TTS Models**: Support for Chatterbox, Kitten TTS Nano, Kokoro, Marvis TTS, Supertone, NeuTTS Air, Dia2-1B (CUDA only)
+- **Multiple TTS Models**: Support for Chatterbox, Kitten TTS Nano, Kokoro, Marvis TTS, Supertone, Supertonic-2, NeuTTS Air, Dia2-1B (CUDA only)
 - **Multiple ASR Models**: Parakeet, Canary, Granite, Whisper
 - **VAD**: HumAware-VAD
 - **Voice Cloning**: Clone voices using reference audio samples. Models like Chatterbox and Marvis TTS support voice cloning.
@@ -111,7 +111,7 @@ For detailed usage of each model, see the respective guide in `docs/`.
 - **Dia2**: Multi-speaker dialogue (CUDA only)
 
 ### 🌍 Multilingual Models
-- **TTS**: Chatterbox (23 langs), Kokoro (8 langs), Marvis (EN/FR/DE)
+- **TTS**: Chatterbox (23 langs), Kokoro (8 langs), Marvis (EN/FR/DE), Supertonic-2 (EN/KO/ES/PT/FR)
 - **ASR**: Parakeet (100+ langs), Whisper (99+ langs), Canary (25 langs)
 
 ### 🍎 Apple Silicon Optimized (MLX)
@@ -195,6 +195,11 @@ For detailed usage of each model, see the respective guide in `docs/`.
 - **Note**: Supports MLX optimization (`--use-mlx`)
 - **Guide**: [docs/COSYVOICE_GUIDE.md](docs/COSYVOICE_GUIDE.md)
 
+### 14. Supertonic-2 TTS 🌍 Multilingual ⚡
+- **Type**: Fast, Multilingual ONNX TTS
+- **Best for**: Fast inference across multiple languages (EN, KO, ES, PT, FR)
+- **Guide**: [docs/SUPERTONIC2_GUIDE.md](docs/SUPERTONIC2_GUIDE.md)
+
 ## Installation
 
 1. **Clone the repository:**
@@ -262,6 +267,7 @@ python benchmark.py --device cpu   # CPU only
 | Model | Latency | RTF | Speed |
 |-------|---------|-----|-------|
 | **Supertone** | 319ms | 0.046 | 21.8× real-time |
+| **Supertonic-2** | 1.1s | 0.18 | 5.5× real-time |
 | **KittenTTS** | 1.0s | 0.13 | 7.7× real-time |
 | **Kokoro** | 3.3s | 0.50 | 2.0× real-time |
 | **CosyVoice2 (MLX)** | 6.6s | 0.96 | 1.04× real-time |

@@ -11,8 +11,8 @@ logging.basicConfig(
 
 def main():
     parser = argparse.ArgumentParser(description="Voice Cloning & ASR CLI - Test and compare speech models")
-    parser.add_argument("--model", choices=["chatterbox", "kitten", "kitten-0.1", "kitten-0.2", "kokoro", "canary", "parakeet", "granite", "whisper", "humaware", "marvis", "supertone", "neutts-air", "dia2", "cosyvoice", "web"], default="web",
-                        help="Model to use (TTS: cosyvoice, chatterbox, kitten[-0.1|-0.2], kokoro, marvis, supertone, neutts-air, dia2 | ASR: canary, parakeet, granite, whisper | VAD: humaware | UI: web). Default: web")
+    parser.add_argument("--model", choices=["chatterbox", "kitten", "kitten-0.1", "kitten-0.2", "kokoro", "canary", "parakeet", "granite", "whisper", "humaware", "marvis", "supertone", "supertonic2", "neutts-air", "dia2", "cosyvoice", "web"], default="web",
+                        help="Model to use (TTS: cosyvoice, chatterbox, kitten[-0.1|-0.2], kokoro, marvis, supertone, supertonic2, neutts-air, dia2 | ASR: canary, parakeet, granite, whisper | VAD: humaware | UI: web). Default: web")
     parser.add_argument("--device", choices=["cuda", "mps", "cpu"], default=None,
                         help="Device to run model on (cuda/mps/cpu). Auto-detects if not specified.")
     parser.add_argument("--text", type=str, help="Text to synthesize (for TTS models)")
@@ -320,6 +320,35 @@ def main():
                 print(f"✗ Error: {e}")
                 print("\nInstall onnxruntime:")
                 print("  uv pip install onnxruntime")
+                sys.exit(1)
+        
+        elif args.model == "supertonic2":
+            print("Loading Supertonic-2 TTS model...")
+            from voice_cloning.tts.supertonic2 import Supertonic2TTS
+            
+            try:
+                # Map lang_code if necessary, or pass directly
+                # Supertonic2 uses language codes like 'en', 'ko', 'es', 'pt', 'fr'
+                # main.py defaults lang_code to 'e' for Kokoro. We might need to adjust.
+                lang = args.language if args.language != "en" else "en"
+                # If user passed --lang-code instead of --language
+                if args.lang_code and args.lang_code != "e":
+                    # map common ones
+                    lang_map = {"e": "en", "en": "en", "ko": "ko", "es": "es", "pt": "pt", "fr": "fr"}
+                    lang = lang_map.get(args.lang_code, args.lang_code)
+
+                tts = Supertonic2TTS(use_cpu=(args.device == "cpu"))
+                result = tts.synthesize(
+                    text=args.text,
+                    output_path=args.output,
+                    voice=args.voice if args.voice else "F1",
+                    language=lang,
+                    speed=args.speed,
+                    steps=args.steps
+                )
+                print(f"✓ Supertonic-2 synthesis completed! Output saved to: {result}")
+            except Exception as e:
+                print(f"✗ Error: {e}")
                 sys.exit(1)
         
         elif args.model == "kokoro":

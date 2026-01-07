@@ -68,7 +68,7 @@ class TestUIFull:
 
     # 3. TTS Tab Tests
     def get_default_tts_args(self):
-        # Must match generate_speech signature exactly: 28 arguments.
+        # Must match generate_speech signature exactly: 31 arguments.
         return [
             "Kokoro", "Text", None, None, 1.0, True, False, # basic (7)
             "a", "af_heart", # kokoro (2)
@@ -78,6 +78,7 @@ class TestUIFull:
             "", # cosy (1)
             "backbone", # neutts (1)
             "preset", 8, 1.0, # supertone (3)
+            "en", "F1", 10, # supertonic2 (3)
             2.0, 0.8, 50 # dia2 (3)
         ]
 
@@ -115,6 +116,18 @@ class TestUIFull:
         
         generate_speech(*args)
         mock_supertone.assert_called()
+
+    @patch("src.voice_cloning.tts.supertonic2.Supertonic2TTS")
+    @patch("tempfile.mktemp")
+    def test_generate_speech_supertonic2(self, mock_mktemp, MockTTS):
+        mock_mktemp.return_value = "output.wav"
+        mock_instance = MockTTS.return_value
+        args = self.get_default_tts_args()
+        args[0] = "Supertonic-2"
+        args[1] = "Hello Supertonic"
+        
+        generate_speech(*args)
+        mock_instance.synthesize.assert_called()
 
     # 4. VAD Tab Tests
     def test_create_vad_tab(self):
