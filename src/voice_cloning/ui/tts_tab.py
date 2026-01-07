@@ -119,6 +119,8 @@ def generate_speech(
     supertonic2_lang: str,
     supertonic2_voice: str,
     supertonic2_steps: int,
+    supertonic2_pitch: float,
+    supertonic2_energy: float,
     # Dia2
     dia2_cfg: float,
     dia2_temp: float,
@@ -209,7 +211,8 @@ def generate_speech(
             tts = Supertonic2TTS()
             tts.synthesize(
                 text=text, output_path=output_path, voice_style=supertonic2_voice,
-                lang_code=supertonic2_lang, speed=speed, steps=supertonic2_steps
+                lang_code=supertonic2_lang, speed=speed, steps=supertonic2_steps,
+                pitch_shift=supertonic2_pitch, energy_scale=supertonic2_energy
             )
 
         elif model_name == "Dia2":
@@ -374,6 +377,10 @@ def create_tts_tab():
                             value="F1"
                         )
                     supertonic2_steps = gr.Slider(label="Inference Steps", minimum=1, maximum=30, value=10, step=1)
+                    with gr.Accordion("🎛️ Prosody Controls", open=False):
+                        with gr.Row():
+                            supertonic2_pitch = gr.Slider(label="Pitch Shift (semitones)", minimum=-12, maximum=12, value=0, step=0.5)
+                            supertonic2_energy = gr.Slider(label="Energy/Emphasis", minimum=0.5, maximum=2.0, value=1.0, step=0.1)
 
                 with gr.Group(visible=False) as dia2_params:
                     gr.Markdown("### Dia2 Settings (CUDA Required)")
@@ -425,7 +432,7 @@ def create_tts_tab():
                 cosy_instruct,
                 neutts_backbone,
                 supertone_preset, supertone_steps, supertone_cfg,
-                supertonic2_lang, supertonic2_voice, supertonic2_steps,
+                supertonic2_lang, supertonic2_voice, supertonic2_steps, supertonic2_pitch, supertonic2_energy,
                 dia2_cfg, dia2_temp, dia2_top_k
             ],
             outputs=[audio_output]

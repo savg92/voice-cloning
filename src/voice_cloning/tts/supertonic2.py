@@ -129,6 +129,21 @@ class Supertonic2TTS:
     Ultra-fast on-device Multilingual TTS with ONNX Runtime.
     """
     
+    # Supported languages
+    SUPPORTED_LANGUAGES = {'en', 'ko', 'es', 'pt', 'fr'}
+    
+    # Language name mapping for error messages
+    LANGUAGE_NAMES = {
+        'en': 'English',
+        'ko': 'Korean',
+        'es': 'Spanish',
+        'pt': 'Portuguese',
+        'fr': 'French'
+    }
+    
+    # Voice style cache (class-level to share across instances)
+    _voice_style_cache = {}
+    
     def __init__(self, model_dir: str | None = None, use_cpu: bool = False):
         """
         Initialize Supertonic-2 TTS.
@@ -178,17 +193,14 @@ class Supertonic2TTS:
         sess_options = ort.SessionOptions()
         sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
         
-        # Prefer CoreML on macOS if available, otherwise CPU
-        providers = ['CPUExecutionProvider']
-        if not use_cpu and sys.platform == "darwin":
-            try:
-                # Check if CoreML is available
-                if 'CoreMLExecutionProvider' in ort.get_available_providers():
-                    providers.insert(0, 'CoreMLExecutionProvider')
-            except Exception:
-                pass
+        # Enable threading optimizations for CPU
+        sess_options.inter_op_num_threads = 0  # Auto-select
+        sess_options.intra_op_num_threads = 0  # Auto-select
         
-        logger.info(f"Using providers: {providers}")
+        # Smart execution provider selection
+        providers = self._get_optimal_providers(use_cpu)
+        
+        logger.info(f"Using execution providers: {providers}")
         
         self.dp_ort = ort.InferenceSession(
             str(self.onnx_dir / "duration_predictor.onnx"),
@@ -215,6 +227,48 @@ class Supertonic2TTS:
         
         logger.info("✓ Supertonic-2 models loaded successfully")
     
+    def _get_optimal_providers(self, use_cpu: bool) -> list[str]:
+        """Intelligently select the best available execution providers."""
+        if use_cpu:
+            return ['CPUExecutionProvider']
+        
+        available = self.ort.get_available_providers()
+        providers = []
+        
+        # Priority: TensorRT > CUDA > DirectML > ROCm > CoreML > CPU
+        # TensorRT (NVIDIA - best performance)
+        if 'TensorrtExecutionProvider' in available:
+            providers.append('TensorrtExecutionProvider')
+            logger.info("Using TensorRT for optimal NVIDIA GPU performance")
+        
+        # CUDA (NVIDIA - good general performance)
+        elif 'CUDAExecutionProvider' in available:
+            providers.append('CUDAExecutionProvider')
+            logger.info("Using CUDA for NVIDIA GPU acceleration")
+        
+        # DirectML (Windows - cross-vendor GPU)
+        elif 'DmlExecutionProvider' in available:
+            providers.append('DmlExecutionProvider')
+            logger.info("Using DirectML for Windows GPU acceleration")
+        
+        # ROCm (AMD GPU)
+        elif 'ROCMExecutionProvider' in available:
+            providers.append('ROCMExecutionProvider')
+            logger.info("Using ROCm for AMD GPU acceleration")
+        
+        # CoreML (Apple Silicon/macOS)
+        elif 'CoreMLExecutionProvider' in available and sys.platform == "darwin":
+            providers.append('CoreMLExecutionProvider')
+            logger.info("Using CoreML for Apple Silicon acceleration")
+        
+        # Always add CPU as fallback
+        providers.append('CPUExecutionProvider')
+        
+        if len(providers) == 1:
+            logger.warning("No GPU acceleration available, using CPU only. This may be slower.")
+        
+        return providers
+    
     def download_models(self):
         """Download Supertonic-2 models from Hugging Face."""
         try:
@@ -229,17 +283,31 @@ class Supertonic2TTS:
             raise
             
     def load_voice_style(self, voice_style_name: str) -> Style:
-        """Load voice style from JSON file."""
+        """Load voice style from JSON file with caching."""
+        # Check cache first
+        cache_key = f"{self.voice_styles_dir}/{voice_style_name}"
+        if cache_key in self._voice_style_cache:
+            return self._voice_style_cache[cache_key]
+        
         style_path = self.voice_styles_dir / f"{voice_style_name}.json"
         
         if not style_path.exists():
             # Try to find any available style
             available_styles = self.list_voice_styles()
             if available_styles:
-                logger.warning(f"Style not found: {voice_style_name}, using {available_styles[0]}")
-                style_path = self.voice_styles_dir / f"{available_styles[0]}.json"
+                logger.warning(
+                    f"Voice style '{voice_style_name}' not found. "
+                    f"Using '{available_styles[0]}' instead. "
+                    f"Available styles: {', '.join(available_styles)}"
+                )
+                voice_style_name = available_styles[0]
+                style_path = self.voice_styles_dir / f"{voice_style_name}.json"
+                cache_key = f"{self.voice_styles_dir}/{voice_style_name}"
             else:
-                raise FileNotFoundError(f"No voice styles found in {self.voice_styles_dir}")
+                raise FileNotFoundError(
+                    f"No voice styles found in {self.voice_styles_dir}. "
+                    f"Please check that the model files were downloaded correctly."
+                )
         
         with open(style_path) as f:
             voice_style = json.load(f)
@@ -256,7 +324,11 @@ class Supertonic2TTS:
         ttl_style = np.expand_dims(ttl_style, axis=0)
         dp_style = np.expand_dims(dp_style, axis=0)
         
-        return Style(ttl_style, dp_style)
+        # Create and cache the style
+        style = Style(ttl_style, dp_style)
+        self._voice_style_cache[cache_key] = style
+        
+        return style
     
     def list_voice_styles(self) -> list[str]:
         """List available voice styles."""
@@ -286,6 +358,68 @@ class Supertonic2TTS:
         noisy_latent = noisy_latent * latent_mask
         return noisy_latent, latent_mask
     
+    def _apply_pitch_shift(self, wav: np.ndarray, semitones: float) -> np.ndarray:
+        """Apply pitch shifting to audio using librosa."""
+        if semitones == 0:
+            return wav
+        
+        try:
+            import librosa
+            return librosa.effects.pitch_shift(
+                wav, sr=self.sample_rate, n_steps=semitones
+            )
+        except ImportError:
+            logger.warning("librosa not available, skipping pitch shift")
+            return wav
+    
+    def _apply_energy_scale(self, wav: np.ndarray, scale: float) -> np.ndarray:
+        """Scale audio energy/amplitude."""
+        if scale == 1.0:
+            return wav
+        
+        scaled = wav * scale
+        
+        # Prevent clipping
+        max_val = np.abs(scaled).max()
+        if max_val > 1.0:
+            scaled = scaled / max_val
+            logger.warning(f"Energy scaling caused clipping, normalized to prevent distortion")
+        
+        return scaled
+    
+    def _crossfade_audio(self, audio1: np.ndarray, audio2: np.ndarray, overlap_samples: int) -> np.ndarray:
+        """Crossfade two audio segments for smooth transitions."""
+        if overlap_samples <= 0 or len(audio1) < overlap_samples:
+            # No overlap, just concatenate
+            return np.concatenate([audio1, audio2])
+        
+        # Create fade curves using Hann window
+        fade_out = np.hanning(overlap_samples * 2)[:overlap_samples]
+        fade_in = np.hanning(overlap_samples * 2)[overlap_samples:]
+        
+        # Split audio1 into main part and tail
+        main1 = audio1[:-overlap_samples]
+        tail1 = audio1[-overlap_samples:]
+        
+        # Get head of audio2
+        if len(audio2) < overlap_samples:
+            # audio2 is shorter than overlap, adjust
+            actual_overlap = len(audio2)
+            fade_out = fade_out[:actual_overlap]
+            fade_in = fade_in[:actual_overlap]
+            tail1 = tail1[-actual_overlap:]
+            head2 = audio2
+            rest2 = np.array([])
+        else:
+            head2 = audio2[:overlap_samples]
+            rest2 = audio2[overlap_samples:]
+        
+        # Apply crossfade
+        crossfaded = tail1 * fade_out + head2 * fade_in
+        
+        # Concatenate: main1 + crossfaded + rest2
+        return np.concatenate([main1, crossfaded, rest2])
+    
     def synthesize(
         self,
         text: str,
@@ -295,9 +429,10 @@ class Supertonic2TTS:
         steps: int = 8,
         speed: float = 1.0,
         stream: bool = False,
-        use_cpu: bool = False # Kept for API compatibility, but handled in init
+        pitch_shift: float = 0.0,
+        energy_scale: float = 1.0,
+        use_cpu: bool = False  # Kept for API compatibility, but handled in init
     ) -> str:
-        """
         Synthesize speech from text.
         
         Args:
@@ -308,15 +443,55 @@ class Supertonic2TTS:
             steps: Inference steps (higher = better quality)
             speed: Speech speed (higher = faster, default: 1.0)
             stream: Enable pseudo-streaming (play sentences as they generate)
+            pitch_shift: Pitch shift in semitones (-12 to +12)
+            energy_scale: Energy/amplitude scale (0.5 to 2.0)
             
         Returns:
             Path to output file
         """
+        # Input validation
+        # Validate text
+        if not text or not text.strip():
+            raise ValueError("Text cannot be empty. Please provide text to synthesize.")
+        
+        # Validate language code
+        if lang_code not in self.SUPPORTED_LANGUAGES:
+            lang_names = ', '.join(f"{code} ({self.LANGUAGE_NAMES[code]})" 
+                                   for code in sorted(self.SUPPORTED_LANGUAGES))
+            raise ValueError(
+                f"Unsupported language code: '{lang_code}'. "
+                f"Supported languages: {lang_names}"
+            )
+        
+        # Validate steps
+        if not (1 <= steps <= 50):
+            raise ValueError(
+                f"Steps must be between 1 and 50, got {steps}. "
+                f"Recommended: 8-10 for speed, 20-30 for quality."
+            )
+        
+        # Validate speed
+        if speed <= 0:
+            raise ValueError(f"Speed must be positive, got {speed}.")
+        
+        if speed < 0.5 or speed > 2.0:
+            logger.warning(
+                f"Speed {speed} is outside the recommended range (0.5-2.0). "
+                f"Audio quality may be affected."
+            )
+        
+        # Get voice style
         if voice_style is None:
             styles = self.list_voice_styles()
-            voice_style = styles[0] if styles else "F1"
+            if not styles:
+                raise RuntimeError(
+                    f"No voice styles found in {self.voice_styles_dir}. "
+                    f"Please ensure the model was downloaded correctly."
+                )
+            voice_style = styles[0]
+            logger.info(f"No voice style specified, using default: {voice_style}")
 
-        # Load style
+        # Load style (with caching)
         style = self.load_voice_style(voice_style)
         
         if stream:
@@ -363,12 +538,30 @@ class Supertonic2TTS:
             player_thread = threading.Thread(target=playback_worker, daemon=True)
             player_thread.start()
             
+            # Calculate overlap for crossfading (50ms)
+            overlap_samples = int(0.05 * self.sample_rate)
+            
             full_audio_parts = []
             
-            logger.info("Starting streaming generation...")
+            logger.info("Starting streaming generation with crossfade...")
             for i, sentence in enumerate(sentences):
                 wav = self._generate_waveform(sentence, style, steps, speed, lang_code=lang_code)
-                full_audio_parts.append(wav)
+                
+                # Apply prosody controls
+                if pitch_shift != 0.0:
+                    wav = self._apply_pitch_shift(wav, pitch_shift)
+                if energy_scale != 1.0:
+                    wav = self._apply_energy_scale(wav, energy_scale)
+                
+                # Crossfade with previous chunk for smooth transitions
+                if i > 0 and len(full_audio_parts) > 0:
+                    # Combine previous with current using crossfade
+                    prev_wav = full_audio_parts[-1]
+                    combined = self._crossfade_audio(prev_wav, wav, overlap_samples)
+                    # Replace last chunk with combined
+                    full_audio_parts[-1] = combined
+                else:
+                    full_audio_parts.append(wav)
                 
                 # Save chunk to temp file for playback
                 with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
@@ -392,6 +585,12 @@ class Supertonic2TTS:
 
         else:
             wav = self._generate_waveform(text, style, steps, speed, lang_code=lang_code)
+            
+            # Apply prosody controls
+            if pitch_shift != 0.0:
+                wav = self._apply_pitch_shift(wav, pitch_shift)
+            if energy_scale != 1.0:
+                wav = self._apply_energy_scale(wav, energy_scale)
             
             # Ensure directory exists
             Path(output_path).parent.mkdir(parents=True, exist_ok=True)
@@ -453,6 +652,114 @@ class Supertonic2TTS:
             wav = wav / max_val
         
         return wav
+    
+    def synthesize_batch(
+        self,
+        texts: list[str],
+        output_paths: list[str] | None = None,
+        voice_style: str | None = None,
+        lang_codes: list[str] | None = None,
+        steps: int = 8,
+        speed: float = 1.0,
+        combine_output: bool = False,
+        output_path: str | None = None
+    ) -> list[str] | str:
+        """
+        Batch synthesize multiple texts efficiently.
+        
+        Args:
+            texts: List of input texts
+            output_paths: List of output paths (if None, auto-generate)
+            voice_style: Voice style name (applied to all)
+            lang_codes: Language codes per text (if None, all use 'en')
+            steps: Inference steps
+            speed: Speech speed
+            combine_output: If True, concatenate all audio into single file
+            output_path: Path for combined output (required if combine_output=True)
+            
+        Returns:
+            List of output paths, or single path if combine_output=True
+        """
+        # Validation
+        if not texts:
+            raise ValueError("texts list cannot be empty")
+        
+        if combine_output and not output_path:
+            raise ValueError("output_path required when combine_output=True")
+        
+        batch_size = len(texts)
+        
+        # Validate all texts
+        for i, text in enumerate(texts):
+            if not text or not text.strip():
+                raise ValueError(f"Text at index {i} is empty")
+        
+        # Setup language codes
+        if lang_codes is None:
+            lang_codes = ["en"] * batch_size
+        elif len(lang_codes) != batch_size:
+            raise ValueError(f"lang_codes length ({len(lang_codes)}) must match texts length ({batch_size})")
+        
+        # Validate all language codes
+        for i, lang_code in enumerate(lang_codes):
+            if lang_code not in self.SUPPORTED_LANGUAGES:
+                lang_names = ', '.join(f"{code} ({self.LANGUAGE_NAMES[code]})" 
+                                       for code in sorted(self.SUPPORTED_LANGUAGES))
+                raise ValueError(
+                    f"Unsupported language code '{lang_code}' at index {i}. "
+                    f"Supported: {lang_names}"
+                )
+        
+        # Validate steps and speed (same as single)
+        if not (1 <= steps <= 50):
+            raise ValueError(f"Steps must be between 1 and 50, got {steps}")
+        if speed <= 0:
+            raise ValueError(f"Speed must be positive, got {speed}")
+        
+        # Get voice style
+        if voice_style is None:
+            styles = self.list_voice_styles()
+            if not styles:
+                raise RuntimeError(f"No voice styles found in {self.voice_styles_dir}")
+            voice_style = styles[0]
+            logger.info(f"Using default voice style: {voice_style}")
+        
+        # Load style (with caching)
+        style = self.load_voice_style(voice_style)
+        
+        # Generate output paths if not provided
+        if output_paths is None and not combine_output:
+            import tempfile
+            output_paths = [tempfile.mktemp(suffix=".wav") for _ in range(batch_size)]
+        elif output_paths and len(output_paths) != batch_size:
+            raise ValueError(f"output_paths length ({len(output_paths)}) must match texts length ({batch_size})")
+        
+        logger.info(f"Batch synthesizing {batch_size} texts...")
+        
+        # Generate waveforms for all texts
+        waveforms = []
+        for i, (text, lang_code) in enumerate(zip(texts, lang_codes)):
+            wav = self._generate_waveform(text, style, steps, speed, lang_code=lang_code)
+            waveforms.append(wav)
+        
+        if combine_output:
+            # Concatenate all waveforms
+            combined_wav = np.concatenate(waveforms)
+            
+            # Save combined output
+            Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+            sf.write(output_path, combined_wav, self.sample_rate)
+            logger.info(f"✓ Combined audio saved to: {output_path}")
+            
+            return str(output_path)
+        else:
+            # Save individual outputs
+            for i, (wav, out_path) in enumerate(zip(waveforms, output_paths)):
+                Path(out_path).parent.mkdir(parents=True, exist_ok=True)
+                sf.write(out_path, wav, self.sample_rate)
+            
+            logger.info(f"✓ Batch synthesis complete: {batch_size} files")
+            return [str(p) for p in output_paths]
 
 
 def synthesize_speech(
