@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 from dataclasses import dataclass
 
-from .config import OUTPUT_DIR, ensure_output_dir
+from .config import OUTPUT_DIR, ensure_output_dir, BENCHMARK_FILE
 from .base import ModelBenchmark, BenchmarkType
 
 logger = logging.getLogger(__name__)
@@ -50,6 +50,32 @@ class BenchmarkRunner:
         elif torch.backends.mps.is_available():
             return "mps"
         return "cpu"
+
+    def add_result(self, result: BenchmarkResult):
+        self.results.append(result)
+
+    def save_report(self):
+        if not self.results:
+            logger.info("No results to save.")
+            return
+
+        header = "| Model | Type | Latency (ms) | RTF | Memory (MB) | Notes |\n|---|---|---|---|---|---|\n"
+        rows = []
+        for r in self.results:
+            rows.append(f"| {r.model} | {r.type} | {r.latency_ms:.2f} | {r.rtf:.4f} | {r.memory_mb:.2f} | {r.notes} |")
+        
+        content = header + "\n".join(rows) + "\n"
+        
+        print("\nBenchmark Results:")
+        print(content)
+        
+        try:
+            with open(BENCHMARK_FILE, "w") as f:
+                f.write("# Benchmark Results\n\n")
+                f.write(content)
+            logger.info(f"Report saved to {BENCHMARK_FILE}")
+        except Exception as e:
+            logger.error(f"Failed to save report: {e}")
 
     def run_benchmark(self, benchmark: ModelBenchmark):
         logger.info(f"Benchmarking: {benchmark.model_name}...")
