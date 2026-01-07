@@ -1,0 +1,8 @@
+{
+  "track_id": "supertonic2_integration_20260106",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-01-06T12:00:00Z",
+  "updated_at": "2026-01-06T12:00:00Z",
+  "description": "implement Supertone/supertonic-2 with all its features including test, benchmark, UI, docs. Separate model from v1."
+}

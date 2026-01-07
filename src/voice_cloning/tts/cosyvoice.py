@@ -193,6 +193,7 @@ def _synthesize_with_pytorch(
 ) -> str:
     """
     Synthesize using PyTorch backend (requires 'cosyvoice' package or cloned repo).
+    Improved for CPU stability and quality.
     """
     
     # Attempt to import CosyVoice classes from the local repository
@@ -212,27 +213,23 @@ def _synthesize_with_pytorch(
             "Full error: " + str(e)
         )
 
-    # Local robust load_wav to avoid torchaudio backend issues (TorchCodec error)
-    def load_wav(wav_path, target_sr):
-        import librosa
-        # Load with librosa (handles resampling)
-        audio, sr = librosa.load(wav_path, sr=target_sr)
-        # Convert to tensor (1, T)
-        audio = torch.from_numpy(audio).unsqueeze(0)
-        return audio
-
-    # Note: The model_id for PyTorch usually points to a local directory or modelscope ID.
-    # If the user passed the HF ID "FunAudioLLM/CosyVoice2-0.5B", we might need to handle download.
-    # But usually CosyVoice loads from a checklist or local path.
-    # For now, let's assume model_id is a path or the library handles it (it uses modelscope by default).
+    # Determine device and dtype
+    # CPU often produces noise with bfloat16/float16 in some kernels, force float32 for CPU
+    if torch.cuda.is_available():
+        device = 'cuda'
+    elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+        device = 'mps'
+    else:
+        device = 'cpu'
+        
+    fp16 = False if device == 'cpu' else True
     
     # If model_id is the default one for MLX, switch to PyTorch default
     if "mlx-community" in model_id:
         logger.info(f"Switching from MLX model {model_id} to PyTorch equivalent.")
-        # Default CosyVoice2 model on ModelScope (Official)
         model_id = "iic/CosyVoice2-0.5B" 
     
-    logger.info(f"Initializing CosyVoice (Model: {model_id})...")
+    logger.info(f"Initializing CosyVoice (Model: {model_id}, Device: {device}, fp16: {fp16})...")
     
     # CosyVoice initialization
     try:
@@ -248,9 +245,25 @@ def _synthesize_with_pytorch(
         if "CosyVoice2" in model_id:
             from cosyvoice.cli.cosyvoice import CosyVoice2
             logger.info("Using CosyVoice2 class.")
-            model = CosyVoice2(model_id)
+            # For CPU, we explicitly disable jit/trt/fp16 for stability
+            model = CosyVoice2(model_id, load_jit=False, load_trt=False, fp16=fp16)
         else:
-            model = CosyVoice(model_id)
+            model = CosyVoice(model_id, load_jit=False, load_trt=False, fp16=fp16)
+        
+        # Ensure all weights are on the correct device if it's MPS (since CosyVoice defaults to CPU if no CUDA)
+        if device == 'mps':
+            logger.info("Moving model to MPS device.")
+            model.model.device = torch.device('mps')
+            model.model.llm.to(model.model.device)
+            model.model.flow.to(model.model.device)
+            model.model.hift.to(model.model.device)
+
+        # If on CPU, ensure all weights are float32
+        if device == 'cpu':
+            logger.info("Forcing float32 on CPU for stability.")
+            if hasattr(model.model, 'llm'): model.model.llm.to(torch.float32)
+            if hasattr(model.model, 'flow'): model.model.flow.to(torch.float32)
+            if hasattr(model.model, 'hift'): model.model.hift.to(torch.float32)
              
     except Exception as e:
         logger.error(f"Failed to load CosyVoice model {model_id}: {e}")
@@ -259,18 +272,12 @@ def _synthesize_with_pytorch(
             f"Error: {e}"
         )
 
-    logger.info("Generating speech...")
+    logger.info(f"Generating speech (Text: {text[:50]}..., Speed: {speed})...")
     
-    # Fallback to default reference audio if needed (mirroring MLX logic)
-    # CosyVoice2 often requires reference audio (zero-shot) if SFT speakers are missing.
+    # Fallback to default reference audio if needed
     if not ref_audio_path and not source_audio_path:
-        # Check if we should inject a default
         default_ref = "samples/anger.wav"
         if os.path.exists(default_ref):
-             # Only inject if we think we might need it (e.g. SFT might fail).
-             # But for consistency, let's prefer zero-shot with default prompt if user provided nothing,
-             # OR we can try SFT first and catch error? No, that's messy.
-             # Let's check available speakers.
              has_speakers = False
              if hasattr(model, 'list_available_spks'):
                  spks = model.list_available_spks()
@@ -280,42 +287,40 @@ def _synthesize_with_pytorch(
              if not has_speakers:
                  logger.info(f"No SFT speakers found. Using default reference audio: {default_ref}")
                  ref_audio_path = default_ref
-                 ref_text = "The quick brown fox jumps over the lazy dog." # Need dummy ref text for zero shot usually, or use cross-lingual
-                 # Actually inference_cross_lingual uses prompt_wav but no prompt_text.
-                 # Let's use cross-lingual (zero-shot without prompt text) if we don't have ref_text.
     
     output = None
     
     # Different modes based on arguments
+    # Note: Use text_frontend=False if we want to bypass wetext/ttsfrd issues, but True is usually safer
+    # We use default sampling parameters from the model's yaml
+    
     if source_audio_path and ref_audio_path:
          # Voice Conversion
-         # CosyVoice V2/Frontend expects PATHS strings, not tensors.
-         output = model.inference_vc(source_audio_path, ref_audio_path)
+         output = model.inference_vc(source_audio_path, ref_audio_path, speed=speed)
          
     elif ref_audio_path and ref_text:
         # Zero-shot with text
-        # Pass path directly
         output = model.inference_zero_shot(text, ref_text, ref_audio_path, speed=speed)
         
     elif ref_audio_path:
         # Cross-lingual / Zero-shot without prompt text
-        # Pass path directly
         output = model.inference_cross_lingual(text, ref_audio_path, speed=speed)
         
     elif instruct_text:
         # Instruct mode
-        if hasattr(model, 'inference_instruct'):
-             output = model.inference_instruct(text, "default", instruct_text)
-        elif hasattr(model, 'inference_instruct2'):
+        if hasattr(model, 'inference_instruct2'):
              if ref_audio_path:
-                 # Pass path
-                 output = model.inference_instruct2(text, instruct_text, ref_audio_path)
+                 output = model.inference_instruct2(text, instruct_text, ref_audio_path, speed=speed)
              else:
-                 logger.error("CosyVoice2 instruct mode requires reference audio.")
-                 raise ValueError("CosyVoice2 instruct mode requires reference audio (ref_audio_path).")
+                 # CosyVoice2 instruct usually needs a ref wav for prompt
+                 default_ref = "samples/anger.wav"
+                 if os.path.exists(default_ref):
+                     output = model.inference_instruct2(text, instruct_text, default_ref, speed=speed)
+                 else:
+                     raise ValueError("CosyVoice2 instruct mode requires reference audio (ref_audio_path).")
+        elif hasattr(model, 'inference_instruct'):
+             output = model.inference_instruct(text, "default", instruct_text, speed=speed)
         else:
-             logger.warning("Instruct mode requested but method not found. Using SFT.")
-             # For SFT, spk_id is a string, so safe.
              output = model.inference_sft(text, "default", speed=speed)
              
     else:
@@ -325,28 +330,20 @@ def _synthesize_with_pytorch(
             spks = model.list_available_spks()
             if spks and "default" not in spks:
                 spk_id = spks[0]
-                logger.info(f"Speaker 'default' not found. Using '{spk_id}'.")
         
         output = model.inference_sft(text, spk_id, speed=speed)
 
-    # Output is usually a list of dicts or a generator {'tts_speech': tensor, ...}
-    # We need to save it.
-    
     generated_audio = []
     for item in output:
         if 'tts_speech' in item:
-            # Flatten to 1D array (samples,)
             generated_audio.append(item['tts_speech'].cpu().numpy().flatten())
     
     if not generated_audio:
         raise RuntimeError("No audio generated by CosyVoice pytorch backend")
         
     import numpy as np
-    
     final_audio = np.concatenate(generated_audio)
-    
-    # Save using model's sample rate if available
-    sr = getattr(model, 'sample_rate', 24000) # Default to 24000 for CV2
+    sr = getattr(model, 'sample_rate', 24000)
     
     sf.write(output_path, final_audio, sr) 
     
