@@ -39,7 +39,7 @@ All results from MacBook Pro M3 8GB running on MPS (Metal Performance Shaders).
 | **Supertonic-2** | TTS | 1180.86 | 0.1849 | 365.20 | Device: mps |
 | **KittenTTS Nano** | TTS | 1,006 | 0.1302 | 67.5 | 7.73 | 7.7× | MPS |
 | **Kokoro** | TTS | 3,340 | 0.5004 | 415.2 | 7.10 | 2.0× | MPS |
-| **Chatterbox (MLX)** | TTS | 15,044 | 0.8726 | 0.0 | 6.16 | 1.15× | MPS |
+| **Chatterbox (MLX)** | TTS | 6992.47 | 0.9904 | 0.00 | 7.06 | 1.0× | MPS |
 | **CosyVoice2 (MLX)** | TTS | 6,596 | 0.9644 | 0.0 | 7.80 | 1.04× | MPS |
 | **Marvis (MLX)** | TTS | 8,769 | 1.6360 | 0.0 | 7.10 | 0.61× | MPS |
 | **NeuTTS Air** | TTS | 22,877 | 2.6978 | 168.9 | 9.62 | 0.37× | MPS |
@@ -49,6 +49,7 @@ All results from MacBook Pro M3 8GB running on MPS (Metal Performance Shaders).
 | **Parakeet** | ASR | 9,394 | 1.3231 | 0.0 | 7.10 | 0.75× | MPS |
 | **Canary** | ASR | 46,637 | 6.5687 | 0.0 | 7.10 | 0.15× | MPS |
 | **HumAware VAD** | VAD | 891 | 0.1254 | 411.9 | 7.10 | 8.0× | MPS |
+| **Chatterbox Turbo (MLX)** | TTS | 2771.16 | 0.4763 | 0.00 | 5.82 | 2.1× | MPS |
 
 **Legend:**
 - **Latency**: Total processing time in milliseconds
@@ -73,11 +74,12 @@ All results from MacBook Pro M3 8GB running on MPS (Metal Performance Shaders).
 | **Supertonic-2** | 1,180ms | 0.185 | 365.2 MB | **5.4× real-time** | ONNX-based, multilingual |
 | **KittenTTS Nano** | 1,006ms | 0.130 | 67.5 MB | **7.7× real-time** | Lowest memory, CPU-friendly |
 | **Kokoro** | 3,340ms | 0.500 | 415.2 MB | **2.0× real-time** | High quality, multilingual |
-| **Chatterbox (MLX)** | 15,044ms | 0.873 | 0.0 MB | **1.15× real-time** | Good quality, sub-realtime |
+| **Chatterbox (MLX)** | 6992.47ms | 0.990 | 0.00 MB | **1.0× real-time** | Device: mps |
 | **CosyVoice2 (MLX)** | 6,596ms | 0.964 | 0.0 MB | **1.04× real-time** | **Recommended for cloning** |
 | **Marvis (MLX)** | 8,769ms | 1.636 | 0.0 MB | **0.61× real-time** | Improved speed in v1.1 |
 | **NeuTTS Air** | 22,877ms | 2.698 | 168.9 MB | **0.37× real-time** | Voice cloning, slow but high quality |
 | **CosyVoice2 (PyTorch)** | 82,564ms | 5.160 | 0.0 MB | **0.19× real-time** | Very slow backend |
+| **Chatterbox Turbo (MLX)** | 2771.16ms | 0.476 | 0.00 MB | **2.1× real-time** | Device: mps |
 
 **Test Text**: "The quick brown fox jumps over the lazy dog. This is a benchmark test to measure synthesis speed." (7.1 seconds of audio)
 

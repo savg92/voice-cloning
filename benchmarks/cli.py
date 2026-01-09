@@ -73,6 +73,13 @@ def main():
         except Exception as e:
             logger.warning(f"Skipping Chatterbox: {e}")
 
+    if should_run("chatterbox-turbo"):
+        try:
+            from .tts.chatterbox_turbo import ChatterboxTurboBenchmark
+            runner.run_benchmark(ChatterboxTurboBenchmark())
+        except Exception as e:
+            logger.warning(f"Skipping Chatterbox Turbo: {e}")
+
     if should_run("kitten"):
         try:
             from .tts.kitten import KittenBenchmark

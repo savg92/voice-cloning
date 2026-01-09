@@ -12,7 +12,7 @@
 *   **Model Integration:** `transformers` (Hugging Face), `huggingface-hub`, `safetensors`.
 *   **Engines:**
     *   **ASR:** `nemo-toolkit`, `faster-whisper`, `whisper-timestamped`, `mlx-whisper`.
-    *   **TTS:** `kokoro`, `kittentts`, `onnxruntime` (for Supertone & Supertonic-2), `chatterbox-tts`, `cosyvoice`, `mlx-audio-plus` (for CosyVoice2), `llama-cpp-python` (for NeuTTS Air), `dia2`.
+    *   **TTS:** `kokoro`, `kittentts`, `onnxruntime` (for Supertone & Supertonic-2), `chatterbox-tts` (including Turbo), `cosyvoice`, `mlx-audio-plus` (for CosyVoice2), `llama-cpp-python` (for NeuTTS Air), `dia2`.
     *   **VAD:** `pyannote-audio`.
 
 ## Audio Processing & Utilities

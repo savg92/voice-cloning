@@ -20,7 +20,13 @@ dependencies = [
     "openai-whisper",
     "kokoro>=0.9.4",
     "kittentts",
-    "datasets>=4.0.0",
+    "s3tokenizer",
+    "diffusers",
+    "pykakasi",
+    "spacy-pkuseg",
+    "conformer",
+    "torchcodec",
+    "datasets>=4.4.2",
     "accelerate>=1.8.1",
     "nemo-toolkit>=2.4.0",
     "lightning", # needed by nemo (PyTorch Lightning)
@@ -51,7 +57,7 @@ dependencies = [
     "ipadic",
     "mlx-lm>=0.29.1",
     "safetensors>=0.7.0",
-    "transformers>=4.57.3",  # Required by mlx-audio>=0.2.6, Granite ASR, etc.
+    "transformers>=4.46.3",  # Satisfy chatterbox-tts and mlx-audio
     # Dia2-1B TTS model (install manually: see docs/DIA2_GUIDE.md)
     # dia2 must be installed from local clone due to dependency management
     # uv pip install -e /path/to/dia2

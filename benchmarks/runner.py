@@ -21,6 +21,8 @@ class BenchmarkResult:
     rtf: float
     memory_mb: float
     notes: str = ""
+    audio_duration: float = 0.0
+    device: str = "cpu"
 
 @dataclass
 class BenchmarkConfig:
@@ -59,23 +61,13 @@ class BenchmarkRunner:
             logger.info("No results to save.")
             return
 
-        header = "| Model | Type | Latency (ms) | RTF | Memory (MB) | Notes |\n|---|---|---|---|---|---|\n"
-        rows = []
+        from .results_manager import BenchmarkResultsManager
+        manager = BenchmarkResultsManager(BENCHMARK_FILE)
+        
         for r in self.results:
-            rows.append(f"| {r.model} | {r.type} | {r.latency_ms:.2f} | {r.rtf:.4f} | {r.memory_mb:.2f} | {r.notes} |")
-        
-        content = header + "\n".join(rows) + "\n"
-        
-        print("\nBenchmark Results:")
-        print(content)
-        
-        try:
-            with open(BENCHMARK_FILE, "w") as f:
-                f.write("# Benchmark Results\n\n")
-                f.write(content)
-            logger.info(f"Report saved to {BENCHMARK_FILE}")
-        except Exception as e:
-            logger.error(f"Failed to save report: {e}")
+            manager.update_result(r, audio_duration=r.audio_duration, device=r.device)
+            
+        logger.info(f"Report updated in {BENCHMARK_FILE}")
 
     def run_benchmark(self, benchmark: ModelBenchmark):
         logger.info(f"Benchmarking: {benchmark.model_name}...")
@@ -151,12 +143,14 @@ class BenchmarkRunner:
                 notes = f"WARNING: {result_data.get('error')}"
             
             self.add_result(BenchmarkResult(
-                benchmark.model_name,
-                benchmark.type,
-                latency,
-                rtf,
-                mem_peak,
-                notes
+                model=benchmark.model_name,
+                type=benchmark.type,
+                latency_ms=latency,
+                rtf=rtf,
+                memory_mb=mem_peak,
+                notes=notes,
+                audio_duration=duration,
+                device=self._get_device().upper()
             ))
             
             benchmark.cleanup()
@@ -164,8 +158,10 @@ class BenchmarkRunner:
         except Exception as e:
             logger.error(f"Benchmark failed: {e}")
             self.add_result(BenchmarkResult(
-                benchmark.model_name,
-                benchmark.type,
-                0, 0, 0,
-                f"FAILED: {str(e)}"
+                model=benchmark.model_name,
+                type=benchmark.type,
+                latency_ms=0, rtf=0, memory_mb=0,
+                notes=f"FAILED: {str(e)}",
+                audio_duration=0,
+                device=self._get_device().upper()
             ))

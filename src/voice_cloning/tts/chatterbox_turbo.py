@@ -1,4 +1,3 @@
-
 import torch
 import torchaudio as ta
 import shutil
@@ -10,13 +9,14 @@ import soundfile as sf
 import os
 import logging
 from .utils import map_lang_code
+from pathlib import Path
+from huggingface_hub import snapshot_download
+from safetensors.torch import load_file
 
 logger = logging.getLogger(__name__)
 
-# Voice Presets for consistency across languages
-# These reference local wav files that serve as high-quality speaker embeddings
+# Voice Presets
 VOICE_PRESETS = {
-    # Default Language Voices (Kokoro-cloned)
     "en": "samples/kokoro_voices/af_heart.wav",
     "es": "samples/kokoro_voices/ef_dora.wav",
     "fr": "samples/kokoro_voices/ff_siwis.wav",
@@ -26,8 +26,6 @@ VOICE_PRESETS = {
     "ru": "samples/kokoro_voices/ru_nicole.wav",
     "tr": "samples/kokoro_voices/tr_river.wav",
     "hi": "samples/kokoro_voices/hf_alpha.wav",
-    
-    # Specific Kokoro Character Voices
     "af_heart": "samples/kokoro_voices/af_heart.wav",
     "af_bella": "samples/kokoro_voices/af_bella.wav",
     "am_adam": "samples/kokoro_voices/am_adam.wav",
@@ -40,38 +38,32 @@ VOICE_PRESETS = {
     "tr_river": "samples/kokoro_voices/tr_river.wav",
     "hi_puck": "samples/kokoro_voices/hi_puck.wav",
     "hf_alpha": "samples/kokoro_voices/hf_alpha.wav",
-
-    # Legacy/Other
     "dave": "samples/neutts_air/dave.wav",
     "jo": "samples/neutts_air/jo.wav",
 }
 
 class ChatterboxWrapper:
     """
-    Wrapper for Chatterbox TTS models.
+    Wrapper for Chatterbox TTS models (Turbo variant).
     
-    Supports both English-only and Multilingual variants.
+    NOTE: As of early 2026, the Turbo variant is primarily optimized for English.
     """
     
-    def __init__(self, device: str | None = None, model_type: str = "chatterbox", multilingual: bool = False):
-        """
-        Initialize Chatterbox TTS.
-        
-        Args:
-            device: Device to use ('cuda', 'cpu', 'mps'). Auto-detected if None.
-            model_type: 'chatterbox'
-            multilingual: If True, load multilingual model. Default is English-only.
-        """
+    def __init__(self, device: str | None = None, model_type: str = "chatterbox-turbo", multilingual: bool = False):
         self.device = device or self._auto_detect_device()
         self.multilingual = multilingual
         self.model_type = model_type
         
-        repo_id = "ResembleAI/chatterbox"
+        if multilingual:
+            logger.warning("Chatterbox-Turbo currently does not support a dedicated multilingual model. "
+                           "Falling back to English-only Turbo or use standard Chatterbox for multilingual.")
+            self.multilingual = False
+
+        repo_id = "ResembleAI/chatterbox-turbo"
         
-        logger.info(f"Initializing {model_type} ({'Multilingual' if multilingual else 'English'}) on {self.device}")
+        logger.info(f"Initializing {model_type} on {self.device}")
         
         try:
-            # Fix for torch.load issues on non-CUDA devices (library uses hardcoded CUDA loads)
             import torch
             _orig_load = torch.load
             def _patched_load(f, *args, **kwargs):
@@ -79,30 +71,78 @@ class ChatterboxWrapper:
                     kwargs['map_location'] = 'cpu'
                 return _orig_load(f, *args, **kwargs)
 
-            # Fix for transformers 4.49+ requiring 'eager' for output_attentions
-            from transformers import PretrainedConfig
-            _orig_init = PretrainedConfig.__init__
-            def _patched_config_init(self, *args, **kwargs):
-                if 'output_attentions' in kwargs and kwargs['output_attentions']:
-                    kwargs['attn_implementation'] = 'eager'
-                # Also force eager if we know it is a Llama-based model in Chatterbox
-                if hasattr(self, 'model_type') and self.model_type == 'llama':
-                     kwargs['attn_implementation'] = 'eager'
-                _orig_init(self, *args, **kwargs)
-            PretrainedConfig.__init__ = _patched_config_init
+            from chatterbox.models.t3 import llama_configs
+            TURBO_CONFIG = {
+              "activation_function": "gelu_new",
+              "architectures": ["GPT2LMHeadModel"],
+              "attn_pdrop": 0.1,
+              "bos_token_id": 50256,
+              "embd_pdrop": 0.1,
+              "eos_token_id": 50256,
+              "initializer_range": 0.02,
+              "layer_norm_epsilon": 1e-05,
+              "model_type": "gpt2",
+              "n_ctx": 8196,
+              "n_embd": 1024,
+              "hidden_size": 1024,
+              "n_head": 16,
+              "n_layer": 24,
+              "n_positions": 8196,
+              "vocab_size": 50276,
+            }
+            llama_configs.LLAMA_CONFIGS["Turbo"] = TURBO_CONFIG
 
-            if multilingual:
-                import chatterbox.mtl_tts
-                chatterbox.mtl_tts.torch.load = _patched_load
-                chatterbox.mtl_tts.REPO_ID = repo_id
-                from chatterbox.mtl_tts import ChatterboxMultilingualTTS
-                self.model = ChatterboxMultilingualTTS.from_pretrained(device=self.device)
-            else:
-                import chatterbox.tts
-                chatterbox.tts.torch.load = _patched_load
-                chatterbox.tts.REPO_ID = repo_id
-                from chatterbox.tts import ChatterboxTTS
-                self.model = ChatterboxTTS.from_pretrained(device=self.device)
+            ckpt_dir = Path(snapshot_download(repo_id=repo_id))
+
+            from chatterbox.tts import ChatterboxTTS, Conditionals
+            from chatterbox.models.t3.modules.t3_config import T3Config
+            from chatterbox.models.t3 import T3
+            from chatterbox.models.s3gen import S3Gen
+            from chatterbox.models.voice_encoder import VoiceEncoder
+            from chatterbox.models.tokenizers import EnTokenizer
+
+            import chatterbox.models.tokenizers.tokenizer as cb_tok_mod
+            cb_tok_mod.SOT = "<|endoftext|>"
+            cb_tok_mod.EOT = "<|endoftext|>"
+
+            tok_path = ckpt_dir / "tokenizer.json"
+
+            # Initialize components manually with Turbo config
+            hp = T3Config(text_tokens_dict_size=50276)
+            hp.speech_tokens_dict_size = 6563
+            hp.llama_config_name = "Turbo"
+            hp.input_pos_emb = None
+            hp.use_perceiver_resampler = False
+            hp.emotion_adv = False
+            
+            hp.start_text_token = 50256
+            hp.stop_text_token = 50256
+            hp.start_speech_token = 6561
+            hp.stop_speech_token = 6562
+
+            t3 = T3(hp)
+            t3_state = load_file(ckpt_dir / "t3_turbo_v1.safetensors")
+            if "model" in t3_state.keys():
+                t3_state = t3_state["model"][0]
+            t3.load_state_dict(t3_state)
+            t3.to(self.device).eval()
+
+            ve = VoiceEncoder()
+            ve.load_state_dict(load_file(ckpt_dir / "ve.safetensors"))
+            ve.to(self.device).eval()
+
+            s3gen = S3Gen()
+            s3gen.load_state_dict(load_file(ckpt_dir / "s3gen.safetensors"), strict=False)
+            s3gen.to(self.device).eval()
+
+            tokenizer = EnTokenizer(str(tok_path))
+
+            conds = None
+            if (builtin_voice := ckpt_dir / "conds.pt").exists():
+                map_loc = 'cpu' if self.device in ['cpu', 'mps'] else None
+                conds = Conditionals.load(builtin_voice, map_location=map_loc).to(self.device)
+
+            self.model = ChatterboxTTS(t3, s3gen, ve, tokenizer, self.device, conds=conds)
                 
             logger.info(f"✓ {model_type} model loaded successfully")
         except Exception as e:
@@ -110,7 +150,6 @@ class ChatterboxWrapper:
             raise
     
     def _auto_detect_device(self) -> str:
-        """Auto-detect the best available device."""
         if torch.cuda.is_available():
             return "cuda"
         elif torch.backends.mps.is_available():
@@ -126,28 +165,32 @@ class ChatterboxWrapper:
         cfg_weight: float = 0.5,
         language_id: str | None = None
     ) -> torch.Tensor:
-        """
-        Generate speech from text.
-        """
-        kwargs = {
-            "exaggeration": exaggeration,
-            "cfg_weight": cfg_weight
-        }
-        
         if audio_prompt_path:
-            kwargs["audio_prompt_path"] = audio_prompt_path
+            self.model.prepare_conditionals(audio_prompt_path, exaggeration=exaggeration)
         
-        # Multilingual model requires language_id
-        if self.multilingual:
-            kwargs["language_id"] = language_id or "en"
+        # Use inference_turbo for speed
+        text_tokens = self.model.tokenizer.text_to_tokens(text).to(self.device)
         
-        return self.model.generate(text, **kwargs)
+        speech_tokens = self.model.t3.inference_turbo(
+            self.model.conds.t3, 
+            text_tokens,
+            temperature=0.8,
+            top_p=0.95,
+            repetition_penalty=1.2
+        )
+        
+        from chatterbox.models.s3tokenizer import drop_invalid_tokens
+        speech_tokens = drop_invalid_tokens(speech_tokens[0])
+        speech_tokens = speech_tokens[speech_tokens < 6561].to(self.device)
+        
+        wav, _ = self.model.s3gen.inference(speech_tokens=speech_tokens, ref_dict=self.model.conds.gen)
+        wav = wav.squeeze(0).detach().cpu().numpy()
+        watermarked_wav = self.model.watermarker.apply_watermark(wav, sample_rate=self.model.sr)
+        return torch.from_numpy(watermarked_wav).unsqueeze(0)
     
     @property
     def sr(self) -> int:
-        """Return sampling rate."""
         return self.model.sr
-
 
 def _synthesize_with_pytorch(
     text: str,
@@ -157,14 +200,10 @@ def _synthesize_with_pytorch(
     cfg_weight: float = 0.5,
     language: str | None = None,
     multilingual: bool = False,
-    model_type: str = "chatterbox",
+    model_type: str = "chatterbox-turbo",
     device: str | None = None
 ):
-    """
-    Synthesize speech using PyTorch backend (chatterbox-tts library).
-    """
     wrapper = ChatterboxWrapper(device=device, model_type=model_type, multilingual=multilingual)
-    
     wav = wrapper.generate(
         text,
         audio_prompt_path=source_wav,
@@ -172,19 +211,14 @@ def _synthesize_with_pytorch(
         cfg_weight=cfg_weight,
         language_id=language
     )
-    
-    # Save audio
     if isinstance(wav, torch.Tensor):
         wav_np = wav.cpu().numpy()
     else:
         wav_np = wav
-        
     if wav_np.ndim > 1:
         wav_np = wav_np.squeeze()
-        
     sf.write(output_wav, wav_np, wrapper.sr)
     logger.info(f"✓ Saved audio to {output_wav}")
-
 
 def _synthesize_with_mlx(
     text: str,
@@ -193,62 +227,50 @@ def _synthesize_with_mlx(
     exaggeration: float = 0.5,
     cfg_weight: float = 0.5,
     language: str | None = None,
-    model_type: str = "chatterbox",
+    model_type: str = "chatterbox-turbo",
     model_id: str | None = None,
     voice: str | None = None,
     speed: float = 1.0,
     stream: bool = False
 ):
-    """
-    Synthesize speech using MLX backend.
-    """
     try:
         from mlx_audio.tts.generate import generate_audio
-        from mlx_audio.tts.models.chatterbox.chatterbox import Model as ChatterboxModel
+        from mlx_audio.tts.models.chatterbox_turbo.chatterbox_turbo import ChatterboxTurboTTS as ChatterboxTurboModel
     except ImportError:
         try:
             from mlx_audio.tts.generate import generate_audio
-            ChatterboxModel = None
+            ChatterboxTurboModel = None
         except ImportError:
             raise ImportError(
                 "MLX backend requires 'mlx-audio>=0.2.10' package. Install with:\n"
                 "  uv pip install -U mlx-audio"
             )
 
-    # Apply leniency patch for weight loading
-    if ChatterboxModel is not None:
-        original_load_weights = ChatterboxModel.load_weights
+    if ChatterboxTurboModel is not None:
+        original_load_weights = ChatterboxTurboModel.load_weights
         def patched_load_weights(self, weights: list, strict: bool = False):
             original_load_weights(self, weights, strict=False)
-        ChatterboxModel.load_weights = patched_load_weights
+        ChatterboxTurboModel.load_weights = patched_load_weights
     
     logger.info(f"Generating speech with MLX backend ({model_type})...")
     
-    # Determine reference audio
     ref_audio = source_wav
     if not ref_audio and voice and voice in VOICE_PRESETS:
         ref_audio = VOICE_PRESETS[voice]
     elif not ref_audio and voice and os.path.exists(str(voice)):
         ref_audio = voice
-    
     if not ref_audio:
         ref_audio = VOICE_PRESETS.get(language, VOICE_PRESETS.get("en"))
-        
     if not ref_audio:
-        raise ValueError(f"Chatterbox (MLX) requires a reference audio file. None found for voice={{voice}}, lang={{language}}")
+        raise ValueError(f"Chatterbox (MLX) requires a reference audio file.")
 
-    # Determine target model ID
-    target_model = model_id or "mlx-community/chatterbox-4bit"
-
-    # Map language code
-    lang_code = map_lang_code(language) if language else "a"
+    target_model = model_id or "mlx-community/Chatterbox-Turbo-4bit"
+    lang_code = language if language else "en"
     
-    # Prepare output paths
     output_dir = os.path.dirname(output_wav) or "."
     output_name = os.path.splitext(os.path.basename(output_wav))[0]
     file_prefix = os.path.join(output_dir, output_name)
     
-    # Voice mapping
     voice_map = {
         "en": "af_heart", "es": "ef_dora", "fr": "ff_siwis", "it": "if_sara",
         "pt": "pf_dora", "de": "af_sarah", "ru": "af_nicole", "tr": "af_river",
@@ -272,7 +294,6 @@ def _synthesize_with_mlx(
     
     generate_audio(**kwargs)
     
-    # Handle mlx-audio's _000.wav suffix
     expected_output = f"{file_prefix}_000.wav"
     if not os.path.exists(expected_output) and os.path.exists(f"{file_prefix}.wav"):
         expected_output = f"{file_prefix}.wav"
@@ -285,8 +306,7 @@ def _synthesize_with_mlx(
     else:
         raise RuntimeError(f"MLX generation failed: {expected_output} not found")
 
-
-def synthesize_with_chatterbox(
+def synthesize_with_chatterbox_turbo(
     text: str,
     output_wav: str,
     source_wav: str | None = None,
@@ -301,13 +321,6 @@ def synthesize_with_chatterbox(
     stream: bool = False,
     device: str | None = None
 ):
-    """
-    Synthesize speech from text using Chatterbox TTS.
-    """
-    # Auto-enable multilingual if language is specified and not English
-    if language and language != "en":
-        multilingual = True
-    
     if use_mlx:
          _synthesize_with_mlx(
              text=text, 

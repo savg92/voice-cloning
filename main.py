@@ -11,8 +11,8 @@ logging.basicConfig(
 
 def main():
     parser = argparse.ArgumentParser(description="Voice Cloning & ASR CLI - Test and compare speech models")
-    parser.add_argument("--model", choices=["chatterbox", "kitten", "kitten-0.1", "kitten-0.2", "kokoro", "canary", "parakeet", "granite", "whisper", "humaware", "marvis", "supertone", "supertonic2", "neutts-air", "dia2", "cosyvoice", "web"], default="web",
-                        help="Model to use (TTS: cosyvoice, chatterbox, kitten[-0.1|-0.2], kokoro, marvis, supertone, supertonic2, neutts-air, dia2 | ASR: canary, parakeet, granite, whisper | VAD: humaware | UI: web). Default: web")
+    parser.add_argument("--model", choices=["chatterbox", "chatterbox-turbo", "kitten", "kitten-0.1", "kitten-0.2", "kokoro", "canary", "parakeet", "granite", "whisper", "humaware", "marvis", "supertone", "supertonic2", "neutts-air", "dia2", "cosyvoice", "web"], default="web",
+                        help="Model to use (TTS: cosyvoice, chatterbox, chatterbox-turbo, kitten[-0.1|-0.2], kokoro, marvis, supertone, supertonic2, neutts-air, dia2 | ASR: canary, parakeet, granite, whisper | VAD: humaware | UI: web). Default: web")
     parser.add_argument("--device", choices=["cuda", "mps", "cpu"], default=None,
                         help="Device to run model on (cuda/mps/cpu). Auto-detects if not specified.")
     parser.add_argument("--text", type=str, help="Text to synthesize (for TTS models)")
@@ -89,7 +89,7 @@ def main():
     args = parser.parse_args()
 
     # Validate text requirement for TTS models
-    tts_models = ["chatterbox", "kitten", "kitten-0.1", "kitten-0.2", "kokoro", "marvis", "supertone", "neutts-air", "dia2", "cosyvoice"]
+    tts_models = ["chatterbox", "chatterbox-turbo", "kitten", "kitten-0.1", "kitten-0.2", "kokoro", "marvis", "supertone", "neutts-air", "dia2", "cosyvoice"]
     asr_models = ["canary", "parakeet", "granite", "whisper"]
     vad_models = ["humaware"]
     
@@ -150,10 +150,30 @@ def main():
                 multilingual=args.multilingual,
                 use_mlx=args.use_mlx,
                 model_id=args.model_id,
-                voice=args.voice
+                voice=args.voice,
+                speed=args.speed,
+                stream=args.stream
             )
-            print(f"✓ Chatterbox synthesis completed! Output saved to: {args.output}")
+            print(f"✓ {args.model} synthesis completed! Output saved to: {args.output}")
 
+        elif args.model == "chatterbox-turbo":
+            print("Loading Chatterbox Turbo model...")
+            from voice_cloning.tts.chatterbox_turbo import synthesize_with_chatterbox_turbo
+            synthesize_with_chatterbox_turbo(
+                text=args.text,
+                output_wav=args.output,
+                source_wav=args.reference,
+                exaggeration=args.exaggeration,
+                cfg_weight=args.cfg_weight,
+                language=args.language,
+                multilingual=args.multilingual,
+                use_mlx=args.use_mlx,
+                model_id=args.model_id,
+                voice=args.voice,
+                speed=args.speed,
+                stream=args.stream
+            )
+            print(f"✓ {args.model} synthesis completed! Output saved to: {args.output}")
 
         elif args.model == "canary":
             print("Loading Canary ASR model...")

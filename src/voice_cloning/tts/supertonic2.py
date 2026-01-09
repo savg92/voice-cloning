@@ -433,6 +433,7 @@ class Supertonic2TTS:
         energy_scale: float = 1.0,
         use_cpu: bool = False  # Kept for API compatibility, but handled in init
     ) -> str:
+        """
         Synthesize speech from text.
         
         Args:
