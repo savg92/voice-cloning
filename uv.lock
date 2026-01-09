@@ -2873,6 +2873,26 @@ wheels = [
 ]
 
 [[package]]
+name = "mlx-whisper"
+version = "0.4.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "huggingface-hub" },
+    { name = "mlx" },
+    { name = "more-itertools" },
+    { name = "numba" },
+    { name = "numpy" },
+    { name = "scipy", version = "1.15.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "scipy", version = "1.16.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "tiktoken" },
+    { name = "torch" },
+    { name = "tqdm" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/22/b7/a35232812a2ccfffcb7614ba96a91338551a660a0e9815cee668bf5743f0/mlx_whisper-0.4.3-py3-none-any.whl", hash = "sha256:6b82b6597a994643a3e5496c7bc229a672e5ca308458455bfe276e76ae024489", size = 890544, upload-time = "2025-08-29T14:56:13.815Z" },
+]
+
+[[package]]
 name = "modelscope"
 version = "1.33.0"
 source = { registry = "https://pypi.org/simple" }
@@ -6090,6 +6110,7 @@ dependencies = [
     { name = "mlx-audio" },
     { name = "mlx-audio-plus" },
     { name = "mlx-lm" },
+    { name = "mlx-whisper" },
     { name = "modelscope" },
     { name = "nemo-toolkit" },
     { name = "neucodec" },
@@ -6157,6 +6178,7 @@ requires-dist = [
     { name = "mlx-audio", specifier = ">=0.2.10" },
     { name = "mlx-audio-plus", specifier = ">=0.1.7" },
     { name = "mlx-lm", specifier = ">=0.29.1" },
+    { name = "mlx-whisper", specifier = ">=0.4.3" },
     { name = "modelscope", specifier = ">=1.15.0" },
     { name = "nemo-toolkit", specifier = ">=2.4.0" },
     { name = "neucodec", specifier = ">=0.0.4" },

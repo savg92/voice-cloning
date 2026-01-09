@@ -37,18 +37,18 @@ def transcribe_speech(
         result_text = ""
         
         if model_name == "Whisper":
-            from src.voice_cloning.asr.whisper import WhisperASR
+            from voice_cloning.asr.whisper import WhisperASR
             model = WhisperASR(model_id=whisper_model_id, use_mlx=whisper_use_mlx)
             lang = whisper_lang if whisper_lang != "auto" else None
             result_text = model.transcribe(audio_path, lang=lang, task=whisper_task, timestamps=whisper_timestamps)
             
         elif model_name == "Parakeet":
-            from src.voice_cloning.asr.parakeet import ParakeetASR
+            from voice_cloning.asr.parakeet import ParakeetASR
             model = ParakeetASR()
             result_text = model.transcribe(audio_path, timestamps=parakeet_timestamps)
             
         elif model_name == "Canary":
-            from src.voice_cloning.asr.canary import CanaryASR
+            from voice_cloning.asr.canary import CanaryASR
             model = CanaryASR()
             model.load_model()
             result = model.transcribe(
@@ -68,7 +68,7 @@ def transcribe_speech(
                     result_text += f"[{start:.2f}s -> {end:.2f}s] {text}\n"
 
         elif model_name == "Granite":
-            from src.voice_cloning.asr.granite import transcribe_file
+            from voice_cloning.asr.granite import transcribe_file
             import tempfile
             out_txt = tempfile.mktemp(suffix=".txt")
             transcribe_file(audio_path, out_txt)
@@ -114,8 +114,16 @@ def create_asr_tab():
                     gr.Markdown("### Whisper Settings")
                     whisper_model_id = gr.Dropdown(
                         label="Model Version",
-                        choices=["openai/whisper-large-v3-turbo", "openai/whisper-large-v3", "openai/whisper-medium", "openai/whisper-base", "openai/whisper-tiny", "mlx-community/whisper-large-v3-turbo", "mlx-community/whisper-medium"],
-                        value="openai/whisper-large-v3-turbo"
+                        choices=[
+                            "mlx-community/whisper-large-v3-turbo", 
+                            "mlx-community/whisper-medium",
+                            "openai/whisper-large-v3-turbo", 
+                            "openai/whisper-large-v3", 
+                            "openai/whisper-medium", 
+                            "openai/whisper-base", 
+                            "openai/whisper-tiny"
+                        ],
+                        value="mlx-community/whisper-large-v3-turbo"
                     )
                     whisper_lang = gr.Dropdown(label="Language", choices=WHISPER_LANGS, value="auto", allow_custom_value=True)
                     whisper_task = gr.Radio(label="Task", choices=["transcribe", "translate"], value="transcribe")

@@ -1,7 +1,7 @@
 import gradio as gr
-from src.voice_cloning.ui.tts_tab import create_tts_tab
-from src.voice_cloning.ui.asr_tab import create_asr_tab
-from src.voice_cloning.ui.vad_tab import create_vad_tab
+from voice_cloning.ui.tts_tab import create_tts_tab
+from voice_cloning.ui.asr_tab import create_asr_tab
+from voice_cloning.ui.vad_tab import create_vad_tab
 
 def create_interface() -> gr.Blocks:
     """Creates the main Gradio interface for the Voice Cloning Toolkit."""

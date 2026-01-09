@@ -56,6 +56,7 @@ dependencies = [
     "pyopenjtalk",
     "ipadic",
     "mlx-lm>=0.29.1",
+    "mlx-whisper>=0.4.3",
     "safetensors>=0.7.0",
     "transformers>=4.46.3",  # Satisfy chatterbox-tts and mlx-audio
     # Dia2-1B TTS model (install manually: see docs/DIA2_GUIDE.md)

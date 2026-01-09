@@ -19,31 +19,12 @@ KOKORO_VOICES = {
     "z": ["zf_xiaobei", "zf_xiaoni", "zf_xiaoxiao", "zf_xiaoyi", "zm_yunjian", "zm_yunxi", "zm_yunxia", "zm_yunyang"]
 }
 
-# Chatterbox Constants
-try:
-    from src.voice_cloning.tts.chatterbox import VOICE_PRESETS as CB_PRESETS
-    from src.voice_cloning.tts.chatterbox_turbo import VOICE_PRESETS as CBT_PRESETS
-    CHATTERBOX_VOICES = sorted(list(CB_PRESETS.keys()))
-    CHATTERBOX_TURBO_VOICES = sorted(list(CBT_PRESETS.keys()))
-except ImportError:
-    CHATTERBOX_VOICES = ["af_heart", "ef_dora", "ff_siwis"]
-    CHATTERBOX_TURBO_VOICES = ["af_heart", "ef_dora", "ff_siwis"]
-
-CHATTERBOX_LANGS = [
-    ("English", "en"), ("Arabic", "ar"), ("Chinese", "zh"), ("Czech", "cs"),
-    ("Danish", "da"), ("Dutch", "nl"), ("Finnish", "fi"), ("French", "fr"),
-    ("German", "de"), ("Greek", "el"), ("Hebrew", "he"), ("Hindi", "hi"),
-    ("Hungarian", "hu"), ("Italian", "it"), ("Japanese", "ja"), ("Korean", "ko"),
-    ("Malay", "ms"), ("Norwegian", "no"), ("Polish", "pl"), ("Portuguese", "pt"),
-    ("Russian", "ru"), ("Spanish", "es"), ("Swedish", "sv"), ("Swahili", "sw"),
-    ("Turkish", "tr")
-]
 
 MODEL_DESCRIPTIONS = {
     "Kokoro": "⚡ **Fast & High Quality** (82M params). Best overall for English/European languages. Supports streaming.",
     "Kitten": "🐱 **Lightweight** (30M params). Optimized for very low latency.",
-    "Chatterbox": "🗣️ **Voice Cloning & Emotion**. Standard expressive model. Supports 23 languages.",
-    "Chatterbox-Turbo": "🚀 **High-Speed Expressive**. Optimized for real-time performance and very low latency.",
+    "Chatterbox": "💬 **Conversational** (460M params). Natural prosody and zero-shot cloning. Supports native [laugh], [cough] tags.",
+    "Chatterbox-Turbo": "🚀 **Hybrid Engine**. High speed (EN) + Multilingual (23 Langs). Optimized for long-form content. Includes Resemble PerTh watermarking for safety.",
     "Marvis": "🤖 **Minimalist**. Simple English TTS.",
     "CosyVoice": "🎙️ **Advanced Generation**. Instruct-based control.",
     "NeuTTS Air": "💨 **CPU Optimized**. GGUF based models.",
@@ -71,17 +52,6 @@ def generate_speech(
     # Kitten
     kitten_version: str,
     kitten_voice: str,
-    # Chatterbox (Standard)
-    cb_exaggeration: float,
-    cb_cfg: float,
-    cb_lang: str,
-    cb_multi: bool,
-    cb_voice: str,
-    # Chatterbox (Turbo)
-    cbt_exaggeration: float,
-    cbt_cfg: float,
-    cbt_lang: str,
-    cbt_voice: str,
     # Marvis
     marvis_temp: float,
     marvis_top_p: float,
@@ -90,6 +60,11 @@ def generate_speech(
     cosy_instruct: str,
     # NeuTTS Air
     neutts_backbone: str,
+    # Chatterbox
+    chatterbox_lang: str,
+    chatterbox_exaggeration: float,
+    chatterbox_cfg: float,
+    chatterbox_watermark: bool,
     # Supertone
     supertone_preset: str,
     supertone_steps: int,
@@ -111,10 +86,6 @@ def generate_speech(
     cloning_models = ["Chatterbox", "Chatterbox-Turbo", "Marvis", "CosyVoice", "NeuTTS Air"]
     
     # Validation
-    if model_name == "Chatterbox" and not reference_audio and not cb_voice:
-        raise gr.Error("Reference audio or a Voice Preset is required for Chatterbox.")
-    if model_name == "Chatterbox-Turbo" and not reference_audio and not cbt_voice:
-        raise gr.Error("Reference audio or a Voice Preset is required for Chatterbox-Turbo.")
     if model_name in ["Marvis", "CosyVoice", "NeuTTS Air"] and not reference_audio:
         raise gr.Error(f"Reference audio is required for model '{model_name}'.")
 
@@ -124,39 +95,22 @@ def generate_speech(
         gr.Info(f"Synthesizing with {model_name}...")
         
         if model_name == "Kokoro":
-            from src.voice_cloning.tts.kokoro import synthesize_speech as kokoro_synthesize
+            from voice_cloning.tts.kokoro import synthesize_speech as kokoro_synthesize
             kokoro_synthesize(
                 text=text, output_path=output_path, voice=kokoro_voice,
                 lang_code=kokoro_lang, speed=speed, use_mlx=use_mlx, stream=stream
             )
             
         elif model_name == "Kitten":
-            from src.voice_cloning.tts.kitten_nano import KittenNanoTTS
+            from voice_cloning.tts.kitten_nano import KittenNanoTTS
             v_map = {"0.1": "KittenML/kitten-tts-nano-0.1", "0.2": "KittenML/kitten-tts-nano-0.2"}
             model_id = v_map.get(kitten_version, "KittenML/kitten-tts-nano-0.2")
             tts = KittenNanoTTS(model_id=model_id)
             tts.synthesize_to_file(text=text, output_path=output_path, voice=kitten_voice, speed=speed, stream=stream)
             
-        elif model_name == "Chatterbox":
-            from src.voice_cloning.tts.chatterbox import synthesize_with_chatterbox
-            synthesize_with_chatterbox(
-                text=text, output_wav=output_path, source_wav=reference_audio,
-                exaggeration=cb_exaggeration, cfg_weight=cb_cfg,
-                language=cb_lang, multilingual=cb_multi, use_mlx=use_mlx,
-                voice=cb_voice if cb_voice else None, speed=speed, stream=stream
-            )
-
-        elif model_name == "Chatterbox-Turbo":
-            from src.voice_cloning.tts.chatterbox_turbo import synthesize_with_chatterbox_turbo
-            synthesize_with_chatterbox_turbo(
-                text=text, output_wav=output_path, source_wav=reference_audio,
-                exaggeration=cbt_exaggeration, cfg_weight=cbt_cfg,
-                language=cbt_lang, use_mlx=use_mlx,
-                voice=cbt_voice if cbt_voice else None, speed=speed, stream=stream
-            )
 
         elif model_name == "Marvis":
-            from src.voice_cloning.tts.marvis import MarvisTTS
+            from voice_cloning.tts.marvis import MarvisTTS
             tts = MarvisTTS()
             tts.synthesize(
                 text=text, output_path=output_path, ref_audio=reference_audio,
@@ -165,7 +119,7 @@ def generate_speech(
             )
         
         elif model_name == "CosyVoice":
-            from src.voice_cloning.tts.cosyvoice import synthesize_speech as cosy_synthesize
+            from voice_cloning.tts.cosyvoice import synthesize_speech as cosy_synthesize
             cosy_synthesize(
                 text=text, output_path=output_path, ref_audio_path=reference_audio,
                 ref_text=reference_text, instruct_text=cosy_instruct,
@@ -173,21 +127,38 @@ def generate_speech(
             )
 
         elif model_name == "NeuTTS Air":
-            from src.voice_cloning.tts.neutts_air import synthesize_with_neutts_air
+            from voice_cloning.tts.neutts_air import synthesize_with_neutts_air
             synthesize_with_neutts_air(
                 text=text, output_path=output_path, ref_audio=reference_audio,
                 ref_text=reference_text, backbone=neutts_backbone, device="cpu"
             )
 
         elif model_name == "Supertone":
-            from src.voice_cloning.tts.supertone import synthesize_with_supertone
+            from voice_cloning.tts.supertone import synthesize_with_supertone
             synthesize_with_supertone(
                 text=text, output_path=output_path, preset=supertone_preset,
                 steps=supertone_steps, cfg_scale=supertone_cfg, stream=stream
             )
 
+        elif model_name == "Chatterbox":
+            from voice_cloning.tts.chatterbox import synthesize_with_chatterbox
+            synthesize_with_chatterbox(
+                text=text, output_wav=output_path, source_wav=reference_audio,
+                exaggeration=chatterbox_exaggeration, cfg_weight=chatterbox_cfg,
+                language=chatterbox_lang, use_mlx=use_mlx, stream=stream
+            )
+
+        elif model_name == "Chatterbox-Turbo":
+            from voice_cloning.tts.chatterbox_turbo import synthesize_with_chatterbox_turbo
+            synthesize_with_chatterbox_turbo(
+                text=text, output_wav=output_path, source_wav=reference_audio,
+                exaggeration=chatterbox_exaggeration, cfg_weight=chatterbox_cfg,
+                language=chatterbox_lang, use_mlx=use_mlx, stream=stream,
+                watermark=chatterbox_watermark
+            )
+
         elif model_name == "Supertonic-2":
-            from src.voice_cloning.tts.supertonic2 import Supertonic2TTS
+            from voice_cloning.tts.supertonic2 import Supertonic2TTS
             tts = Supertonic2TTS()
             tts.synthesize(
                 text=text, output_path=output_path, voice_style=supertonic2_voice,
@@ -197,7 +168,7 @@ def generate_speech(
 
         elif model_name == "Dia2":
             if not torch.cuda.is_available(): raise gr.Error("Requires CUDA.")
-            from src.voice_cloning.tts.dia2 import Dia2TTS
+            from voice_cloning.tts.dia2 import Dia2TTS
             tts = Dia2TTS()
             tts.synthesize(text=text, output_path=output_path, cfg_scale=dia2_cfg, temperature=dia2_temp, top_k=dia2_top_k)
             
@@ -214,7 +185,7 @@ def generate_speech(
 def on_model_change(model_name: str):
     cloning_models = ["Chatterbox", "Chatterbox-Turbo", "Marvis", "CosyVoice", "NeuTTS Air"]
     ref_text_models = ["Marvis", "CosyVoice", "NeuTTS Air"]
-    mlx_models = ["Kokoro", "Chatterbox", "Chatterbox-Turbo", "CosyVoice"]
+    mlx_models = ["Kokoro", "CosyVoice", "Chatterbox", "Chatterbox-Turbo"]
     stream_models = ["Kokoro", "Kitten", "Supertone", "Marvis", "Chatterbox", "Chatterbox-Turbo"]
     
     desc = MODEL_DESCRIPTIONS.get(model_name, "")
@@ -224,8 +195,7 @@ def on_model_change(model_name: str):
         gr.update(visible=(model_name in ref_text_models)), # ref_text
         gr.update(visible=(model_name == "Kokoro")),
         gr.update(visible=(model_name == "Kitten")),
-        gr.update(visible=(model_name == "Chatterbox")),
-        gr.update(visible=(model_name == "Chatterbox-Turbo")),
+        gr.update(visible=(model_name in ["Chatterbox", "Chatterbox-Turbo"])), # chatterbox_params
         gr.update(visible=(model_name == "Marvis")),
         gr.update(visible=(model_name == "CosyVoice")),
         gr.update(visible=(model_name == "NeuTTS Air")),
@@ -241,35 +211,6 @@ def on_kokoro_lang_change(lang_code: str):
     voices = KOKORO_VOICES.get(lang_code, ["af_heart"])
     return gr.update(choices=voices, value=voices[0])
 
-def on_cb_update(lang_code: str, ref_audio: str | None):
-    if ref_audio: return gr.update(choices=[], value=None, visible=False)
-    from src.voice_cloning.tts.chatterbox import VOICE_PRESETS as VOICES
-    choices = sorted(list(VOICES.keys()))
-    prefixes = {
-        "en": ("af_", "bf_", "am_", "bm_", "en"), "es": ("ef_", "em_", "es"),
-        "fr": ("ff_", "fr"), "it": ("if_", "im_", "it"), "pt": ("pf_", "pm_", "pt"),
-        "de": ("de_", "df_", "dm_"), "ru": ("ru_", "rf_", "rm_"), "tr": ("tr_", "tf_", "tm_"),
-        "hi": ("hi_", "hf_", "hm_"), "ja": ("jf_", "jm_", "ja"), "zh": ("zf_", "zm_", "zh"),
-    }
-    valid = prefixes.get(lang_code, (lang_code,))
-    filtered = [v for v in choices if v.startswith(valid) or v == lang_code]
-    if not filtered: filtered = choices
-    return gr.update(choices=filtered, value=filtered[0] if filtered else None, visible=True)
-
-def on_cbt_update(lang_code: str, ref_audio: str | None):
-    if ref_audio: return gr.update(choices=[], value=None, visible=False)
-    from src.voice_cloning.tts.chatterbox_turbo import VOICE_PRESETS as VOICES
-    choices = sorted(list(VOICES.keys()))
-    prefixes = {
-        "en": ("af_", "bf_", "am_", "bm_", "en"), "es": ("ef_", "em_", "es"),
-        "fr": ("ff_", "fr"), "it": ("if_", "im_", "it"), "pt": ("pf_", "pm_", "pt"),
-        "de": ("de_", "df_", "dm_"), "ru": ("ru_", "rf_", "rm_"), "tr": ("tr_", "tf_", "tm_"),
-        "hi": ("hi_", "hf_", "hm_"), "ja": ("jf_", "jm_", "ja"), "zh": ("zf_", "zm_", "zh"),
-    }
-    valid = prefixes.get(lang_code, (lang_code,))
-    filtered = [v for v in choices if v.startswith(valid) or v == lang_code]
-    if not filtered: filtered = choices
-    return gr.update(choices=filtered, value=filtered[0] if filtered else None, visible=True)
 
 def create_tts_tab():
     with gr.Column() as tts_layout:
@@ -305,24 +246,6 @@ def create_tts_tab():
                         kitten_version = gr.Dropdown(label="Version", choices=["0.1", "0.2"], value="0.2")
                         kitten_voice = gr.Dropdown(label="Voice", choices=["expr-voice-2-m", "expr-voice-2-f", "expr-voice-3-m", "expr-voice-3-f", "expr-voice-4-m", "expr-voice-4-f", "expr-voice-5-m", "expr-voice-5-f"], value="expr-voice-4-f")
 
-                with gr.Group(visible=False) as chatter_params:
-                    gr.Markdown("### Chatterbox Settings")
-                    with gr.Row():
-                        cb_exaggeration = gr.Slider(label="Exaggeration", minimum=0.0, maximum=1.0, value=0.7)
-                        cb_cfg = gr.Slider(label="CFG Weight", minimum=0.0, maximum=1.0, value=0.5)
-                    with gr.Row():
-                        cb_lang = gr.Dropdown(label="Language", choices=CHATTERBOX_LANGS, value="en", allow_custom_value=True)
-                        cb_multi = gr.Checkbox(label="Multilingual Mode", value=False)
-                    cb_voice = gr.Dropdown(label="Voice Preset (Optional)", choices=CHATTERBOX_VOICES, allow_custom_value=True)
-
-                with gr.Group(visible=False) as chatter_turbo_params:
-                    gr.Markdown("### Chatterbox Turbo Settings")
-                    with gr.Row():
-                        cbt_exaggeration = gr.Slider(label="Exaggeration", minimum=0.0, maximum=1.0, value=0.5)
-                        cbt_cfg = gr.Slider(label="CFG Weight", minimum=0.0, maximum=1.0, value=0.5)
-                    with gr.Row():
-                        cbt_lang = gr.Dropdown(label="Language", choices=CHATTERBOX_LANGS, value="en", allow_custom_value=True)
-                        cbt_voice = gr.Dropdown(label="Voice Preset (Optional)", choices=CHATTERBOX_TURBO_VOICES, allow_custom_value=True)
 
                 with gr.Group(visible=False) as marvis_params:
                     gr.Markdown("### Marvis Settings")
@@ -338,6 +261,55 @@ def create_tts_tab():
                 with gr.Group(visible=False) as neutts_params:
                     gr.Markdown("### NeuTTS Air Settings")
                     neutts_backbone = gr.Dropdown(label="Backbone", choices=["neuphonic/neutts-air-q4-gguf", "neuphonic/neutts-air-q8-gguf"], value="neuphonic/neutts-air-q4-gguf")
+
+                with gr.Group(visible=False) as chatterbox_params:
+                    gr.Markdown("### Chatterbox Settings")
+                    chatterbox_lang = gr.Dropdown(
+                        label="Language",
+                        choices=[
+                            ("Arabic", "ar"), ("Chinese", "zh"), ("Danish", "da"), ("Dutch", "nl"), ("English", "en"),
+                            ("Finnish", "fi"), ("French", "fr"), ("German", "de"), ("Greek", "el"), ("Hebrew", "he"),
+                            ("Hindi", "hi"), ("Italian", "it"), ("Japanese", "ja"), ("Korean", "ko"), ("Malay", "ms"),
+                            ("Norwegian", "no"), ("Polish", "pl"), ("Portuguese", "pt"), ("Russian", "ru"),
+                            ("Spanish", "es"), ("Swahili", "sw"), ("Swedish", "sv"), ("Turkish", "tr")
+                        ],
+                        value="en"
+                    )
+                    with gr.Row():
+                        chatterbox_exaggeration = gr.Slider(
+                            label="Exaggeration", minimum=0.0, maximum=2.0, value=0.5, step=0.1,
+                            info="Expressiveness. Higher (0.8+) makes speech dramatic. Push to 1.5+ for intense paralinguistic tags."
+                        )
+                        chatterbox_cfg = gr.Slider(
+                            label="CFG Scale", minimum=0.0, maximum=1.0, value=0.5, step=0.1,
+                            info="Guidance weight. Lower (~0.3) for faster/stable pacing. Use 0.0 for cross-language cloning."
+                        )
+                    
+                    with gr.Row():
+                        chatterbox_watermark = gr.Checkbox(
+                            label="Responsible AI Watermark", value=True,
+                            info="Applies Resemble PerTh perceptual watermarking for audio attribution."
+                        )
+                    
+                    with gr.Accordion("🎭 Paralinguistic Tags Reference", open=False):
+                        gr.Markdown("""
+                        Include these tags in your text to trigger sounds or emotions. 
+                        
+                        **Note:** Tag names vary between English (Turbo) and Multilingual engines.
+                        
+                        | **Type** | **English (Turbo) Tags** | **Multilingual Tags** |
+                        | :--- | :--- | :--- |
+                        | **Sounds** | `[laugh]`, `[cough]`, `[chuckle]`, `[clear throat]`, `[gasp]`, `[groan]`, `[shush]` | `[laughter]`, `[cough]`, `[giggle]`, `[clear_throat]`, `[gasp]`, `[groan]`, `[shhh]` |
+                        | **Actions** | - | `[sip]`, `[chew]`, `[sneeze]`, `[snore]`, `[inhale]`, `[exhale]`, `[humming]` |
+                        | **Emotions** | `[happy]`, `[angry]`, `[crying]`, `[sarcastic]`, `[surprised]`, `[whispering]` | `[whisper]`, `[cry]`, `[guffaw]` |
+                        | **Animals** | - | `[bark]`, `[meow]`, `[howl]` |
+                        
+                        *Example (EN): "[laugh] That is so funny! [whispering] But don't tell anyone."*
+                        *Example (MTL): "[laughter] That is so funny! [whisper] But don't tell anyone."*
+
+                        > [!TIP]
+                        > **For Stronger Effects:** If tags feel too subtle, increase **Exaggeration** and **CFG Scale** to **1.0+**. Adding a space or period before/after a tag can also help the model transition more clearly.
+                        """)
 
                 with gr.Group(visible=False) as supertone_params:
                     gr.Markdown("### Supertone Settings")
@@ -371,16 +343,12 @@ def create_tts_tab():
                 audio_output = gr.Audio(label="Generated Result", type="filepath")
         
         # UI Logic
-        model_dropdown.change(fn=on_model_change, inputs=[model_dropdown], outputs=[ref_audio_input, ref_text_input, kokoro_params, kitten_params, chatter_params, chatter_turbo_params, marvis_params, cosy_params, neutts_params, supertone_params, supertonic2_params, dia2_params, use_mlx, stream, model_desc])
+        model_dropdown.change(fn=on_model_change, inputs=[model_dropdown], outputs=[ref_audio_input, ref_text_input, kokoro_params, kitten_params, chatterbox_params, marvis_params, cosy_params, neutts_params, supertone_params, supertonic2_params, dia2_params, use_mlx, stream, model_desc])
         kokoro_lang.change(fn=on_kokoro_lang_change, inputs=[kokoro_lang], outputs=[kokoro_voice])
-        cb_lang.change(fn=on_cb_update, inputs=[cb_lang, ref_audio_input], outputs=[cb_voice])
-        ref_audio_input.change(fn=on_cb_update, inputs=[cb_lang, ref_audio_input], outputs=[cb_voice])
-        cbt_lang.change(fn=on_cbt_update, inputs=[cbt_lang, ref_audio_input], outputs=[cbt_voice])
-        ref_audio_input.change(fn=on_cbt_update, inputs=[cbt_lang, ref_audio_input], outputs=[cbt_voice])
 
         generate_btn.click(
             fn=generate_speech,
-            inputs=[model_dropdown, text_input, ref_audio_input, ref_text_input, speed, use_mlx, stream, kokoro_lang, kokoro_voice, kitten_version, kitten_voice, cb_exaggeration, cb_cfg, cb_lang, cb_multi, cb_voice, cbt_exaggeration, cbt_cfg, cbt_lang, cbt_voice, marvis_temp, marvis_top_p, marvis_quant, cosy_instruct, neutts_backbone, supertone_preset, supertone_steps, supertone_cfg, supertonic2_lang, supertonic2_voice, supertonic2_steps, supertonic2_pitch, supertonic2_energy, dia2_cfg, dia2_temp, dia2_top_k],
+            inputs=[model_dropdown, text_input, ref_audio_input, ref_text_input, speed, use_mlx, stream, kokoro_lang, kokoro_voice, kitten_version, kitten_voice, marvis_temp, marvis_top_p, marvis_quant, cosy_instruct, neutts_backbone, chatterbox_lang, chatterbox_exaggeration, chatterbox_cfg, chatterbox_watermark, supertone_preset, supertone_steps, supertone_cfg, supertonic2_lang, supertonic2_voice, supertonic2_steps, supertonic2_pitch, supertonic2_energy, dia2_cfg, dia2_temp, dia2_top_k],
             outputs=[audio_output]
         )
     return tts_layout

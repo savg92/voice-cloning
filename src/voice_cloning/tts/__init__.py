@@ -11,7 +11,7 @@ def __getattr__(name: str):
 	requiring heavy packages to be present during import of the package.
 	"""
 	if name == "KittenNanoTTS":
-		from src.voice_cloning.tts.kitten_nano import KittenNanoTTS
+		from voice_cloning.tts.kitten_nano import KittenNanoTTS
 
 		return KittenNanoTTS
 	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

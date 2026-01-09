@@ -1,3 +1,8 @@
+import os
+
+# os.environ["PYTORCH_MPS_HIGH_WATERMARK_RATIO"] = "0.0" # Kept for reference, but handled in main.py or globally if needed.
+# For now, we trust the previous fix for OOM.
+
 import torch
 import torchaudio as ta
 import shutil
@@ -6,17 +11,20 @@ import queue
 import subprocess
 import numpy as np
 import soundfile as sf
-import os
+import gc
 import logging
 from .utils import map_lang_code
 from pathlib import Path
 from huggingface_hub import snapshot_download
-from safetensors.torch import load_file
 
 logger = logging.getLogger(__name__)
 
+# Global cache for loaded models
+_MODEL_CACHE = {}
+
 # Voice Presets
 VOICE_PRESETS = {
+    # 23 Language Defaults (mapped to 13 available Kokoro samples)
     "en": "samples/kokoro_voices/af_heart.wav",
     "es": "samples/kokoro_voices/ef_dora.wav",
     "fr": "samples/kokoro_voices/ff_siwis.wav",
@@ -26,6 +34,22 @@ VOICE_PRESETS = {
     "ru": "samples/kokoro_voices/ru_nicole.wav",
     "tr": "samples/kokoro_voices/tr_river.wav",
     "hi": "samples/kokoro_voices/hf_alpha.wav",
+    "ja": "samples/kokoro_voices/hf_alpha.wav",  # Fallback
+    "zh": "samples/kokoro_voices/hf_alpha.wav",  # Fallback
+    "ko": "samples/kokoro_voices/hf_alpha.wav",  # Fallback
+    "ar": "samples/kokoro_voices/hf_alpha.wav",  # Fallback
+    "da": "samples/kokoro_voices/de_sarah.wav", # Close family
+    "nl": "samples/kokoro_voices/de_sarah.wav", # Close family
+    "sv": "samples/kokoro_voices/de_sarah.wav",  # Close family
+    "no": "samples/kokoro_voices/de_sarah.wav",  # Close family
+    "fi": "samples/kokoro_voices/ru_nicole.wav", # Geographic
+    "pl": "samples/kokoro_voices/ru_nicole.wav", # Slavic
+    "el": "samples/kokoro_voices/if_sara.wav",   # Mediterranean
+    "he": "samples/kokoro_voices/if_sara.wav",   # Mediterranean
+    "ms": "samples/kokoro_voices/af_heart.wav",  # Neutral
+    "sw": "samples/kokoro_voices/af_heart.wav",  # Neutral
+
+    # Character Presets
     "af_heart": "samples/kokoro_voices/af_heart.wav",
     "af_bella": "samples/kokoro_voices/af_bella.wav",
     "am_adam": "samples/kokoro_voices/am_adam.wav",
@@ -44,111 +68,124 @@ VOICE_PRESETS = {
 
 class ChatterboxWrapper:
     """
-    Wrapper for Chatterbox TTS models (Turbo variant).
-    
-    NOTE: As of early 2026, the Turbo variant is primarily optimized for English.
+    Wrapper for Chatterbox TTS models using official high-level APIs.
+    Hybrid backend: Turbo for English speed, Multilingual for 23 languages.
     """
     
     def __init__(self, device: str | None = None, model_type: str = "chatterbox-turbo", multilingual: bool = False):
         self.device = device or self._auto_detect_device()
-        self.multilingual = multilingual
         self.model_type = model_type
+        # We store models lazily to save VRAM/memory
+        self.models = {} 
         
-        if multilingual:
-            logger.warning("Chatterbox-Turbo currently does not support a dedicated multilingual model. "
-                           "Falling back to English-only Turbo or use standard Chatterbox for multilingual.")
-            self.multilingual = False
+        logger.info(f"Initializing Hybrid {model_type} on {self.device}")
 
-        repo_id = "ResembleAI/chatterbox-turbo"
-        
-        logger.info(f"Initializing {model_type} on {self.device}")
-        
+        # BROAD MONKEYPATCHES for MPS and CPU-only (CUDA deserialization) compatibility
         try:
+            # 1. Patch torch.load GLOBALLY during Chatterbox initialization to fix the CUDA deserialization error
+            # This is safer than just patching mtl_tts because other sub-modules might have it too
             import torch
-            _orig_load = torch.load
-            def _patched_load(f, *args, **kwargs):
+            _orig_torch_load = torch.load
+            def _safe_torch_load(f, *args, **kwargs):
                 if 'map_location' not in kwargs:
-                    kwargs['map_location'] = 'cpu'
-                return _orig_load(f, *args, **kwargs)
+                    # If we aren't on CUDA, default to CPU for loading (PyTorch will move it later)
+                    if not torch.cuda.is_available():
+                        kwargs['map_location'] = 'cpu'
+                return _orig_torch_load(f, *args, **kwargs)
+            torch.load = _safe_torch_load
 
-            from chatterbox.models.t3 import llama_configs
-            TURBO_CONFIG = {
-              "activation_function": "gelu_new",
-              "architectures": ["GPT2LMHeadModel"],
-              "attn_pdrop": 0.1,
-              "bos_token_id": 50256,
-              "embd_pdrop": 0.1,
-              "eos_token_id": 50256,
-              "initializer_range": 0.02,
-              "layer_norm_epsilon": 1e-05,
-              "model_type": "gpt2",
-              "n_ctx": 8196,
-              "n_embd": 1024,
-              "hidden_size": 1024,
-              "n_head": 16,
-              "n_layer": 24,
-              "n_positions": 8196,
-              "vocab_size": 50276,
-            }
-            llama_configs.LLAMA_CONFIGS["Turbo"] = TURBO_CONFIG
+            # 2. Patch S3Tokenizer (float64 avoids)
+            from chatterbox.models.s3tokenizer.s3tokenizer import S3Tokenizer
+            _orig_prepare = S3Tokenizer._prepare_audio
+            def _patched_prepare(self_tok, wavs):
+                processed = _orig_prepare(self_tok, wavs)
+                return [w.to(torch.float32) if torch.is_tensor(w) else w.astype(np.float32) for w in processed]
+            S3Tokenizer._prepare_audio = _patched_prepare
 
-            ckpt_dir = Path(snapshot_download(repo_id=repo_id))
-
-            from chatterbox.tts import ChatterboxTTS, Conditionals
-            from chatterbox.models.t3.modules.t3_config import T3Config
-            from chatterbox.models.t3 import T3
-            from chatterbox.models.s3gen import S3Gen
-            from chatterbox.models.voice_encoder import VoiceEncoder
-            from chatterbox.models.tokenizers import EnTokenizer
-
-            import chatterbox.models.tokenizers.tokenizer as cb_tok_mod
-            cb_tok_mod.SOT = "<|endoftext|>"
-            cb_tok_mod.EOT = "<|endoftext|>"
-
-            tok_path = ckpt_dir / "tokenizer.json"
-
-            # Initialize components manually with Turbo config
-            hp = T3Config(text_tokens_dict_size=50276)
-            hp.speech_tokens_dict_size = 6563
-            hp.llama_config_name = "Turbo"
-            hp.input_pos_emb = None
-            hp.use_perceiver_resampler = False
-            hp.emotion_adv = False
+            # 3. Patch VoiceEncoder (float64 avoids)
+            from chatterbox.models.voice_encoder.voice_encoder import VoiceEncoder
             
-            hp.start_text_token = 50256
-            hp.stop_text_token = 50256
-            hp.start_speech_token = 6561
-            hp.stop_speech_token = 6562
+            # Patch embeds_from_mels which was the source of the recent crash (calls .to(self.device) on float64)
+            _orig_embeds_from_mels = VoiceEncoder.embeds_from_mels
+            def _patched_embeds_from_mels(self_ve, mels, *args, **kwargs):
+                if torch.is_tensor(mels):
+                    mels = mels.to(torch.float32)
+                elif isinstance(mels, list):
+                    mels = [m.astype(np.float32) if isinstance(m, np.ndarray) else m for m in mels]
+                return _orig_embeds_from_mels(self_ve, mels, *args, **kwargs)
+            VoiceEncoder.embeds_from_mels = _patched_embeds_from_mels
 
-            t3 = T3(hp)
-            t3_state = load_file(ckpt_dir / "t3_turbo_v1.safetensors")
-            if "model" in t3_state.keys():
-                t3_state = t3_state["model"][0]
-            t3.load_state_dict(t3_state)
-            t3.to(self.device).eval()
+            # Also patch inference just in case
+            _orig_inference = VoiceEncoder.inference
+            def _patched_inference(self_ve, mels, *args, **kwargs):
+                return _orig_inference(self_ve, mels.to(torch.float32), *args, **kwargs)
+            VoiceEncoder.inference = _patched_inference
 
-            ve = VoiceEncoder()
-            ve.load_state_dict(load_file(ckpt_dir / "ve.safetensors"))
-            ve.to(self.device).eval()
+            # 4. Patch AlignmentStreamAnalyzer (Fix SDPA/output_attentions error)
+            try:
+                from chatterbox.models.t3.inference.alignment_stream_analyzer import AlignmentStreamAnalyzer
+                _orig_add_spy = AlignmentStreamAnalyzer._add_attention_spy
+                def _patched_add_spy(self_asa, tfmr, *args, **kwargs):
+                    if hasattr(tfmr, 'config'):
+                        # Force "eager" attention implementation if we want output_attentions
+                        # This avoids the "SDPA does not support output_attentions" error in transformers
+                        if getattr(tfmr.config, "_attn_implementation", None) == "sdpa":
+                            logger.info("  Mapping tfmr.config.attn_implementation: sdpa -> eager")
+                            tfmr.config._attn_implementation = "eager"
+                    return _orig_add_spy(self_asa, tfmr, *args, **kwargs)
+                AlignmentStreamAnalyzer._add_attention_spy = _patched_add_spy
+            except ImportError:
+                pass
 
-            s3gen = S3Gen()
-            s3gen.load_state_dict(load_file(ckpt_dir / "s3gen.safetensors"), strict=False)
-            s3gen.to(self.device).eval()
+            # 5. Patch ChatterboxTurboTTS.norm_loudness (Source of float64 promotion)
+            try:
+                from chatterbox.tts_turbo import ChatterboxTurboTTS
+                _orig_norm = ChatterboxTurboTTS.norm_loudness
+                def _patched_norm(self_tts, wav, *args, **kwargs):
+                    res = _orig_norm(self_tts, wav, *args, **kwargs)
+                    if isinstance(res, np.ndarray):
+                        return res.astype(np.float32)
+                    return res
+                ChatterboxTurboTTS.norm_loudness = _patched_norm
+            except ImportError:
+                pass # Already patched or not available
 
-            tokenizer = EnTokenizer(str(tok_path))
-
-            conds = None
-            if (builtin_voice := ckpt_dir / "conds.pt").exists():
-                map_loc = 'cpu' if self.device in ['cpu', 'mps'] else None
-                conds = Conditionals.load(builtin_voice, map_location=map_loc).to(self.device)
-
-            self.model = ChatterboxTTS(t3, s3gen, ve, tokenizer, self.device, conds=conds)
-                
-            logger.info(f"✓ {model_type} model loaded successfully")
+            logger.info("✓ Comprehensive MPS and CPU-compatibility patches applied")
         except Exception as e:
-            logger.error(f"Failed to load {model_type} model: {e}")
-            raise
-    
+            logger.warning(f"Failed to apply stability patches: {e}")
+
+    def _get_model(self, language_id: str | None = None):
+        is_turbo = (language_id is None or language_id.lower() == "en")
+        model_key = "turbo" if is_turbo else "multilingual"
+        
+        if model_key not in self.models:
+            try:
+                if is_turbo:
+                    from chatterbox.tts_turbo import ChatterboxTurboTTS
+                    logger.info("Loading official ChatterboxTurboTTS (English)...")
+                    model = ChatterboxTurboTTS.from_pretrained(self.device)
+                else:
+                    from chatterbox.mtl_tts import ChatterboxMultilingualTTS
+                    logger.info("Loading official ChatterboxMultilingualTTS (23 Languages)...")
+                    device_obj = torch.device(self.device)
+                    model = ChatterboxMultilingualTTS.from_pretrained(device_obj)
+                
+                # Monkeypatch watermarker to be optional
+                if hasattr(model, "watermarker"):
+                    orig_apply = model.watermarker.apply_watermark
+                    def patched_apply(wav, sample_rate):
+                        if getattr(self, "use_watermark", True):
+                            return orig_apply(wav, sample_rate)
+                        return wav
+                    model.watermarker.apply_watermark = patched_apply
+                
+                self.models[model_key] = model
+            except Exception as e:
+                logger.error(f"Failed to load {model_key} model: {e}")
+                raise
+        
+        return self.models[model_key]
+
     def _auto_detect_device(self) -> str:
         if torch.cuda.is_available():
             return "cuda"
@@ -163,34 +200,48 @@ class ChatterboxWrapper:
         audio_prompt_path: str | None = None,
         exaggeration: float = 0.5,
         cfg_weight: float = 0.5,
-        language_id: str | None = None
+        language_id: str | None = None,
+        watermark: bool = True
     ) -> torch.Tensor:
-        if audio_prompt_path:
-            self.model.prepare_conditionals(audio_prompt_path, exaggeration=exaggeration)
+        """
+        Generate speech using the appropriate official API (Turbo vs Multilingual).
+        """
+        model = self._get_model(language_id)
+        self.use_watermark = watermark
         
-        # Use inference_turbo for speed
-        text_tokens = self.model.tokenizer.text_to_tokens(text).to(self.device)
+        lang = language_id.lower() if language_id else "en"
+        logger.info(f"Generating with {'Turbo' if lang == 'en' else 'Multilingual'} API. Language: {lang} (Watermark: {watermark})")
         
-        speech_tokens = self.model.t3.inference_turbo(
-            self.model.conds.t3, 
-            text_tokens,
-            temperature=0.8,
-            top_p=0.95,
-            repetition_penalty=1.2
-        )
-        
-        from chatterbox.models.s3tokenizer import drop_invalid_tokens
-        speech_tokens = drop_invalid_tokens(speech_tokens[0])
-        speech_tokens = speech_tokens[speech_tokens < 6561].to(self.device)
-        
-        wav, _ = self.model.s3gen.inference(speech_tokens=speech_tokens, ref_dict=self.model.conds.gen)
-        wav = wav.squeeze(0).detach().cpu().numpy()
-        watermarked_wav = self.model.watermarker.apply_watermark(wav, sample_rate=self.model.sr)
-        return torch.from_numpy(watermarked_wav).unsqueeze(0)
+        if lang == "en":
+            # Turbo generate signature
+            return model.generate(
+                text=text,
+                audio_prompt_path=audio_prompt_path,
+                exaggeration=exaggeration,
+                cfg_weight=cfg_weight,
+                temperature=0.8,
+                top_k=1000,
+                top_p=0.95,
+                repetition_penalty=1.2,
+                norm_loudness=True
+            )
+        else:
+            # Multilingual generate signature
+            return model.generate(
+                text=text,
+                language_id=lang,
+                audio_prompt_path=audio_prompt_path,
+                exaggeration=exaggeration,
+                cfg_weight=cfg_weight,
+                temperature=0.8,
+                repetition_penalty=2.0,
+                min_p=0.05,
+                top_p=1.0
+            )
     
     @property
     def sr(self) -> int:
-        return self.model.sr
+        return 24000
 
 def _synthesize_with_pytorch(
     text: str,
@@ -201,16 +252,38 @@ def _synthesize_with_pytorch(
     language: str | None = None,
     multilingual: bool = False,
     model_type: str = "chatterbox-turbo",
-    device: str | None = None
+    device: str | None = None,
+    watermark: bool = True
 ):
-    wrapper = ChatterboxWrapper(device=device, model_type=model_type, multilingual=multilingual)
-    wav = wrapper.generate(
-        text,
-        audio_prompt_path=source_wav,
-        exaggeration=exaggeration,
-        cfg_weight=cfg_weight,
-        language_id=language
-    )
+    # Determine model key for caching
+    model_key = f"{model_type}_{device}"
+    
+    global _MODEL_CACHE
+    if model_key in _MODEL_CACHE:
+        wrapper = _MODEL_CACHE[model_key]
+    else:
+        logger.info(f"Loading Chatterbox model: {model_key}...")
+        wrapper = ChatterboxWrapper(device=device, model_type=model_type)
+        _MODEL_CACHE[model_key] = wrapper
+
+    # Determine reference audio
+    ref_audio = source_wav
+    if not ref_audio:
+        ref_audio = VOICE_PRESETS.get(language, VOICE_PRESETS.get("en"))
+
+    try:
+        wav = wrapper.generate(
+            text=text,
+            audio_prompt_path=ref_audio,
+            exaggeration=exaggeration,
+            cfg_weight=cfg_weight,
+            language_id=language,
+            watermark=watermark
+        )
+    except AssertionError as e:
+        if "Audio prompt must be longer than 5 seconds" in str(e):
+            raise ValueError("Chatterbox-Turbo requires an audio prompt longer than 5 seconds for voice cloning.")
+        raise e
     if isinstance(wav, torch.Tensor):
         wav_np = wav.cpu().numpy()
     else:
@@ -218,7 +291,14 @@ def _synthesize_with_pytorch(
     if wav_np.ndim > 1:
         wav_np = wav_np.squeeze()
     sf.write(output_wav, wav_np, wrapper.sr)
+    sf.write(output_wav, wav_np, wrapper.sr)
     logger.info(f"✓ Saved audio to {output_wav}")
+    
+    # Cleanup
+    del wrapper
+    if torch.mps.is_available():
+        torch.mps.empty_cache()
+    gc.collect()
 
 def _synthesize_with_mlx(
     text: str,
@@ -254,6 +334,10 @@ def _synthesize_with_mlx(
     
     logger.info(f"Generating speech with MLX backend ({model_type})...")
     
+    lang_code = language if language else "en"
+    is_english = (lang_code == "en")
+    
+    # Determine reference audio
     ref_audio = source_wav
     if not ref_audio and voice and voice in VOICE_PRESETS:
         ref_audio = VOICE_PRESETS[voice]
@@ -264,8 +348,16 @@ def _synthesize_with_mlx(
     if not ref_audio:
         raise ValueError(f"Chatterbox (MLX) requires a reference audio file.")
 
-    target_model = model_id or "mlx-community/Chatterbox-Turbo-4bit"
-    lang_code = language if language else "en"
+    # Determine target model ID
+    if model_id:
+        target_model = model_id
+    else:
+        # Hybrid MLX logic: Turbo for English, Standard for Multilingual
+        if is_english:
+            target_model = "mlx-community/Chatterbox-Turbo-4bit"
+        else:
+            logger.info(f"Language '{lang_code}' is not English. Using Multilingual (4-bit) MLX backend.")
+            target_model = "mlx-community/chatterbox-4bit" # Best 4-bit multilingual fallback
     
     output_dir = os.path.dirname(output_wav) or "."
     output_name = os.path.splitext(os.path.basename(output_wav))[0]
@@ -319,7 +411,8 @@ def synthesize_with_chatterbox_turbo(
     voice: str | None = None,
     speed: float = 1.0,
     stream: bool = False,
-    device: str | None = None
+    device: str | None = None,
+    watermark: bool = True
 ):
     if use_mlx:
          _synthesize_with_mlx(
@@ -343,5 +436,6 @@ def synthesize_with_chatterbox_turbo(
             cfg_weight=cfg_weight, 
             language=language, 
             multilingual=multilingual,
-            device=device
+            device=device,
+            watermark=watermark
         )

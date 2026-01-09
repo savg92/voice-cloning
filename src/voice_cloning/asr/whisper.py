@@ -30,6 +30,19 @@ class WhisperASR:
                 self.model_id = os.environ.get("WHISPER_MODEL") or default_model
         else:
             self.model_id = model_id
+
+        # Automatic mapping for MLX models
+        # ONLY do this if use_mlx is True, otherwise Transformers will fail to load MLX weights
+        if self.use_mlx and self.model_id and self.model_id.startswith("openai/"):
+            # Map openai/whisper-large-v3-turbo -> mlx-community/whisper-large-v3-turbo
+            mapped_id = self.model_id.replace("openai/", "mlx-community/")
+            logger.info(f"Mapping {self.model_id} to {mapped_id} for MLX usage.")
+            self.model_id = mapped_id
+        elif not self.use_mlx and self.model_id and self.model_id.startswith("mlx-community/"):
+             # Conversely, if someone passed mlx-community/ but is using PyTorch, map back
+             mapped_id = self.model_id.replace("mlx-community/", "openai/")
+             logger.info(f"Mapping {self.model_id} back to {mapped_id} for PyTorch usage.")
+             self.model_id = mapped_id
             
         self.pipe = None
 
@@ -70,6 +83,20 @@ class WhisperASR:
 
         if self.use_mlx:
             import mlx_whisper
+            import mlx_whisper.whisper
+            
+            # Monkey-patch ModelDimensions to ignore extra kwargs (like _name_or_path)
+            # which causes "got an unexpected keyword argument" error in some models.
+            if not hasattr(mlx_whisper.whisper.ModelDimensions, "_is_patched"):
+                original_init = mlx_whisper.whisper.ModelDimensions.__init__
+                def patched_init(self, *args, **kwargs):
+                    # Filter kwargs to only include those expected by the dataclass
+                    valid_keys = self.__annotations__.keys()
+                    filtered_kwargs = {k: v for k, v in kwargs.items() if k in valid_keys}
+                    original_init(self, *args, **filtered_kwargs)
+                mlx_whisper.whisper.ModelDimensions.__init__ = patched_init
+                mlx_whisper.whisper.ModelDimensions._is_patched = True
+
             logger.info(f"Transcribing {audio_path} with MLX Whisper ({self.model_id})...")
             
             # mlx_whisper.transcribe returns a dict with 'text' and 'segments'
