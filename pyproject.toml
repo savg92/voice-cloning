@@ -72,6 +72,7 @@ dependencies = [
     "pytest>=9.0.2",
     "pytest-cov>=7.0.0",
     "modelscope>=1.15.0",
+    "soprano-tts",
 ]
 
 [build-system]

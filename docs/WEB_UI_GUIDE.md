@@ -15,7 +15,7 @@ By default, the interface will be available at `http://127.0.0.1:7860`.
 ## Features
 
 ### 🎭 Text-to-Speech (TTS)
-- **Model Selection**: Switch between Kokoro, Kitten, Chatterbox, Marvis, and CosyVoice.
+- **Model Selection**: Switch between Kokoro, Kitten, Chatterbox, Marvis, CosyVoice, and Soprano.
 - **Voice Cloning**: Upload a reference audio file for zero-shot cloning (supported by Chatterbox, Marvis, and CosyVoice).
 - **Advanced Parameters**:
     - **Speed**: Adjust the playback speed multiplier.

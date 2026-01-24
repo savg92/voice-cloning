@@ -67,6 +67,7 @@ Streaming tests measure:
 - Supertone (pseudo-streaming via sentence splitting)
 - KittenTTS (pseudo-streaming via sentence splitting)
 - Kokoro (native chunk-based streaming)
+- Soprano (native chunk-based streaming)
 - Marvis (has streaming API)
 
 ### Voice Cloning Benchmarks
@@ -191,7 +192,8 @@ Time until the first audio chunk is available (streaming only).
 | Model | Type | Streaming | Cloning | Notes |
 |-------|------|-----------|---------|-------|
 | **KittenTTS Nano** | Fast TTS | ✅ Pseudo | ❌ | CPU-friendly, English only |
-| **Kokoro** | Neural TTS | ✅ Native | ❌ | Multilingual, high quality |
+| **KOKORO** | Neural TTS | ✅ Native | ❌ | Multilingual, high quality |
+| **Soprano** | Ultra-fast TTS | ✅ Native | ❌ | English only, lightweight |
 | **Marvis** | MLX TTS | ✅ Native | ✅ | Apple Silicon optimized |
 | **Supertone** | ONNX TTS | ✅ Pseudo | ❌ | Ultra-fast, lightweight |
 | **NeuTTS Air** | Voice Cloning | ❌ | ✅ | Cloning only (requires ref) |

@@ -20,6 +20,7 @@ Performance benchmark of voice cloning models optimized for Apple Silicon (M3). 
 | Category | Winner | Metric |
 |----------|--------|--------|
 | **Fastest TTS** | Supertone | 319ms (21× real-time) |
+| **Fastest Lightweight** | Soprano | 764ms (7.1× real-time) |
 | **Lowest Memory** | KittenTTS | 67.5 MB |
 | **Fastest ASR** | Parakeet | 2.6s (2.7× real-time) |
 | **Fastest VAD** | HumAware | 891ms (8.0× real-time) |
@@ -50,6 +51,8 @@ All results from MacBook Pro M3 8GB running on MPS (Metal Performance Shaders).
 | **Canary** | ASR | 46,637 | 6.5687 | 0.0 | 7.10 | 0.15× | MPS |
 | **HumAware VAD** | VAD | 891 | 0.1254 | 411.9 | 7.10 | 8.0× | MPS |
 | **Chatterbox Turbo (MLX)** | TTS | 2771.16 | 0.4763 | 0.00 | 5.82 | 2.1× | MPS |
+| **Soprano (MLX)** | TTS | 764.86 | 0.1406 | 159.25 | 5.44 | 7.1× | MPS |
+| **Soprano** | TTS | 9420.18 | 1.8172 | 0.00 | 5.18 | 0.6× | MPS |
 
 **Legend:**
 - **Latency**: Total processing time in milliseconds
@@ -80,6 +83,8 @@ All results from MacBook Pro M3 8GB running on MPS (Metal Performance Shaders).
 | **NeuTTS Air** | 22,877ms | 2.698 | 168.9 MB | **0.37× real-time** | Voice cloning, slow but high quality |
 | **CosyVoice2 (PyTorch)** | 82,564ms | 5.160 | 0.0 MB | **0.19× real-time** | Very slow backend |
 | **Chatterbox Turbo (MLX)** | 2771.16ms | 0.476 | 0.00 MB | **2.1× real-time** | Device: mps |
+| **Soprano (MLX)** | 764.86ms | 0.141 | 159.25 MB | **7.1× real-time** | Device: mps |
+| **Soprano** | 9420.18ms | 1.817 | 0.00 MB | **0.6× real-time** | Device: mps |
 
 **Test Text**: "The quick brown fox jumps over the lazy dog. This is a benchmark test to measure synthesis speed." (7.1 seconds of audio)
 
@@ -318,6 +323,7 @@ All models marked with streaming support have been tested:
 - **Supertone**: ✅ Pseudo-streaming (sentence-based)
 - **KittenTTS**: ✅ Pseudo-streaming (sentence-based)
 - **Kokoro**: ✅ Native streaming (chunk-based)
+- **Soprano**: ✅ Native streaming (Smooth chunk-based)
 - **Marvis**: ✅ Native streaming API
 
 Run with `--stream` flag in main.py to enable:

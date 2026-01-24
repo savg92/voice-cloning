@@ -131,6 +131,15 @@ def main():
         except Exception as e:
             logger.warning(f"Skipping CosyVoice: {e}")
 
+    if should_run("soprano"):
+        try:
+            from .tts.soprano import SopranoBenchmark
+            if platform.system() == "Darwin" and platform.machine() == "arm64":
+                runner.run_benchmark(SopranoBenchmark(use_mlx=True))
+            runner.run_benchmark(SopranoBenchmark(use_mlx=False))
+        except Exception as e:
+            logger.warning(f"Skipping Soprano: {e}")
+
     # -------------------------------------------------------------------------
     # ASR Benchmarks
     # -------------------------------------------------------------------------

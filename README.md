@@ -4,7 +4,7 @@ This project provides a comprehensive testing and comparison platform for multip
 
 ## Features
 
-- **Multiple TTS Models**: Support for Chatterbox, Kitten TTS Nano, Kokoro, Marvis TTS, Supertone, Supertonic-2, NeuTTS Air, Dia2-1B (CUDA only)
+- **Multiple TTS Models**: Support for Chatterbox, Kitten TTS Nano, Kokoro, Marvis TTS, Supertone, Supertonic-2, NeuTTS Air, Soprano-1.1-80M, Dia2-1B (CUDA only)
 - **Multiple ASR Models**: Parakeet, Canary, Granite, Whisper
 - **VAD**: HumAware-VAD
 - **Voice Cloning**: Clone voices using reference audio samples. Models like Chatterbox and Marvis TTS support voice cloning.
@@ -68,6 +68,12 @@ uv run python main.py --model supertonic2 \
   --text "Hello, I can speak multiple languages now." \
   --language en \
   --output outputs/supertonic2.wav
+
+# Soprano-1.1-80M - Ultra-fast & Smooth Streaming
+uv run python main.py --model soprano \
+  --text "Hello, I am Soprano, an extremely fast and lightweight model." \
+  --output outputs/soprano.wav \
+  --use-mlx  # Optional: For Apple Silicon acceleration
 
 # Dia2-1B - Multi-speaker dialogue (⚠️ CUDA only, slow on macOS)
 uv run python main.py --model dia2 \

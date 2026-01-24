@@ -11,8 +11,8 @@ logging.basicConfig(
 
 def main():
     parser = argparse.ArgumentParser(description="Voice Cloning & ASR CLI - Test and compare speech models")
-    parser.add_argument("--model", choices=["chatterbox", "chatterbox-turbo", "kitten", "kitten-0.1", "kitten-0.2", "kokoro", "canary", "parakeet", "granite", "whisper", "humaware", "marvis", "supertone", "supertonic2", "neutts-air", "dia2", "cosyvoice", "web"], default="web",
-                        help="Model to use (TTS: cosyvoice, chatterbox, chatterbox-turbo, kitten[-0.1|-0.2], kokoro, marvis, supertone, supertonic2, neutts-air, dia2 | ASR: canary, parakeet, granite, whisper | VAD: humaware | UI: web). Default: web")
+    parser.add_argument("--model", choices=["chatterbox", "chatterbox-turbo", "kitten", "kitten-0.1", "kitten-0.2", "kokoro", "canary", "parakeet", "granite", "whisper", "humaware", "marvis", "supertone", "supertonic2", "neutts-air", "dia2", "cosyvoice", "soprano", "web"], default="web",
+                        help="Model to use (TTS: cosyvoice, chatterbox, chatterbox-turbo, kitten[-0.1|-0.2], kokoro, marvis, supertone, supertonic2, neutts-air, dia2, soprano | ASR: canary, parakeet, granite, whisper | VAD: humaware | UI: web). Default: web")
     parser.add_argument("--device", choices=["cuda", "mps", "cpu"], default=None,
                         help="Device to run model on (cuda/mps/cpu). Auto-detects if not specified.")
     parser.add_argument("--text", type=str, help="Text to synthesize (for TTS models)")
@@ -89,7 +89,7 @@ def main():
     args = parser.parse_args()
 
     # Validate text requirement for TTS models
-    tts_models = ["chatterbox", "chatterbox-turbo", "kitten", "kitten-0.1", "kitten-0.2", "kokoro", "marvis", "supertone", "neutts-air", "dia2", "cosyvoice"]
+    tts_models = ["chatterbox", "chatterbox-turbo", "kitten", "kitten-0.1", "kitten-0.2", "kokoro", "marvis", "supertone", "neutts-air", "dia2", "cosyvoice", "soprano"]
     asr_models = ["canary", "parakeet", "granite", "whisper"]
     vad_models = ["humaware"]
     
@@ -468,6 +468,24 @@ def main():
                 use_mlx=args.use_mlx
             )
             print(f"✓ CosyVoice2 synthesis completed! Output saved to: {result}")
+
+        elif args.model == "soprano":
+            print("Loading Soprano TTS model...")
+            from voice_cloning.tts.soprano import synthesize_speech
+            
+            # Default temperature for Soprano if not provided
+            temp = args.temperature if args.temperature is not None else 0.7
+            
+            result = synthesize_speech(
+                text=args.text,
+                output_path=args.output,
+                use_mlx=args.use_mlx,
+                speed=args.speed,
+                stream=args.stream,
+                temperature=temp,
+                top_p=args.top_p
+            )
+            print(f"✓ Soprano synthesis completed! Output saved to: {result}")
 
 
     except ImportError as e:

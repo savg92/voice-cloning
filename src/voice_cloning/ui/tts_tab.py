@@ -31,6 +31,7 @@ MODEL_DESCRIPTIONS = {
     "Supertone": "🎛️ **Controllable**. Step-based generation with CFG (v1).",
     "Supertonic-2": "🎙️ **Fast & Multilingual**. New v2 model supporting EN, KO, ES, PT, FR via ONNX.",
     "Dia2": "🎹 **High Fidelity**. Diffusion-based (Requires CUDA).",
+    "Soprano": "🎭 **Ultra-realistic & Ultra-fast** (80M params). High-performance English-only TTS model.",
 }
 
 KOKORO_LANGS = {
@@ -78,7 +79,10 @@ def generate_speech(
     # Dia2
     dia2_cfg: float,
     dia2_temp: float,
-    dia2_top_k: int
+    dia2_top_k: int,
+    # Soprano
+    soprano_temp: float,
+    soprano_top_p: float
 ) -> str:
     if not text.strip():
         raise gr.Error("Please enter some text to synthesize.")
@@ -172,6 +176,14 @@ def generate_speech(
             tts = Dia2TTS()
             tts.synthesize(text=text, output_path=output_path, cfg_scale=dia2_cfg, temperature=dia2_temp, top_k=dia2_top_k)
             
+        elif model_name == "Soprano":
+            from voice_cloning.tts.soprano import synthesize_speech as soprano_synthesize
+            soprano_synthesize(
+                text=text, output_path=output_path,
+                use_mlx=use_mlx, speed=speed, stream=stream,
+                temperature=soprano_temp, top_p=soprano_top_p
+            )
+            
         else:
             raise ValueError(f"Unknown model: {model_name}")
             
@@ -185,8 +197,8 @@ def generate_speech(
 def on_model_change(model_name: str):
     cloning_models = ["Chatterbox", "Chatterbox-Turbo", "Marvis", "CosyVoice", "NeuTTS Air"]
     ref_text_models = ["Marvis", "CosyVoice", "NeuTTS Air"]
-    mlx_models = ["Kokoro", "CosyVoice", "Chatterbox", "Chatterbox-Turbo"]
-    stream_models = ["Kokoro", "Kitten", "Supertone", "Marvis", "Chatterbox", "Chatterbox-Turbo"]
+    mlx_models = ["Kokoro", "CosyVoice", "Chatterbox", "Chatterbox-Turbo", "Soprano"]
+    stream_models = ["Kokoro", "Kitten", "Supertone", "Marvis", "Chatterbox", "Chatterbox-Turbo", "Soprano"]
     
     desc = MODEL_DESCRIPTIONS.get(model_name, "")
     
@@ -202,6 +214,7 @@ def on_model_change(model_name: str):
         gr.update(visible=(model_name == "Supertone")),
         gr.update(visible=(model_name == "Supertonic-2")),
         gr.update(visible=(model_name == "Dia2")),
+        gr.update(visible=(model_name == "Soprano")), # soprano_params
         gr.update(visible=(model_name in mlx_models)), # use_mlx
         gr.update(visible=(model_name in stream_models)), # stream
         gr.update(value=desc, visible=bool(desc)) # description
@@ -219,7 +232,7 @@ def create_tts_tab():
             with gr.Column(scale=1):
                 model_dropdown = gr.Dropdown(
                     label="Model Engine",
-                    choices=["Kokoro", "Kitten", "Chatterbox", "Chatterbox-Turbo", "Marvis", "CosyVoice", "NeuTTS Air", "Supertone", "Supertonic-2", "Dia2"],
+                    choices=["Kokoro", "Kitten", "Chatterbox", "Chatterbox-Turbo", "Marvis", "CosyVoice", "NeuTTS Air", "Supertone", "Supertonic-2", "Dia2", "Soprano"],
                     value="Kokoro", interactive=True
                 )
                 model_desc = gr.Markdown(value=MODEL_DESCRIPTIONS["Kokoro"])
@@ -336,6 +349,13 @@ def create_tts_tab():
                         dia2_temp = gr.Slider(label="Temperature", minimum=0.0, maximum=1.5, value=0.8)
                     dia2_top_k = gr.Slider(label="Top K", minimum=1, maximum=100, value=50, step=1)
 
+                with gr.Group(visible=False) as soprano_params:
+                    gr.Markdown("### Soprano Settings")
+                    with gr.Row():
+                        soprano_temp = gr.Slider(label="Temperature", minimum=0.0, maximum=1.0, value=0.7, step=0.05)
+                        soprano_top_p = gr.Slider(label="Top P", minimum=0.0, maximum=1.0, value=0.95, step=0.01)
+                    gr.Markdown("Soprano is a high-performance, English-only model.")
+
                 generate_btn = gr.Button("🚀 Generate Audio", variant="primary")
             
             with gr.Column(scale=1):
@@ -343,12 +363,12 @@ def create_tts_tab():
                 audio_output = gr.Audio(label="Generated Result", type="filepath")
         
         # UI Logic
-        model_dropdown.change(fn=on_model_change, inputs=[model_dropdown], outputs=[ref_audio_input, ref_text_input, kokoro_params, kitten_params, chatterbox_params, marvis_params, cosy_params, neutts_params, supertone_params, supertonic2_params, dia2_params, use_mlx, stream, model_desc])
+        model_dropdown.change(fn=on_model_change, inputs=[model_dropdown], outputs=[ref_audio_input, ref_text_input, kokoro_params, kitten_params, chatterbox_params, marvis_params, cosy_params, neutts_params, supertone_params, supertonic2_params, dia2_params, soprano_params, use_mlx, stream, model_desc])
         kokoro_lang.change(fn=on_kokoro_lang_change, inputs=[kokoro_lang], outputs=[kokoro_voice])
 
         generate_btn.click(
             fn=generate_speech,
-            inputs=[model_dropdown, text_input, ref_audio_input, ref_text_input, speed, use_mlx, stream, kokoro_lang, kokoro_voice, kitten_version, kitten_voice, marvis_temp, marvis_top_p, marvis_quant, cosy_instruct, neutts_backbone, chatterbox_lang, chatterbox_exaggeration, chatterbox_cfg, chatterbox_watermark, supertone_preset, supertone_steps, supertone_cfg, supertonic2_lang, supertonic2_voice, supertonic2_steps, supertonic2_pitch, supertonic2_energy, dia2_cfg, dia2_temp, dia2_top_k],
+            inputs=[model_dropdown, text_input, ref_audio_input, ref_text_input, speed, use_mlx, stream, kokoro_lang, kokoro_voice, kitten_version, kitten_voice, marvis_temp, marvis_top_p, marvis_quant, cosy_instruct, neutts_backbone, chatterbox_lang, chatterbox_exaggeration, chatterbox_cfg, chatterbox_watermark, supertone_preset, supertone_steps, supertone_cfg, supertonic2_lang, supertonic2_voice, supertonic2_steps, supertonic2_pitch, supertonic2_energy, dia2_cfg, dia2_temp, dia2_top_k, soprano_temp, soprano_top_p],
             outputs=[audio_output]
         )
     return tts_layout
