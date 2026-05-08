@@ -120,7 +120,7 @@ python benchmark.py --models neutts --include-cloning
 Run the dedicated multilingual benchmark script to test Spanish TTS and ASR performance:
 
 ```bash
-python multilingual_benchmark.py
+python benchmarks/multilingual_benchmark.py
 ```
 
 This script evaluates:

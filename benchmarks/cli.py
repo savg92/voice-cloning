@@ -115,6 +115,13 @@ def main():
         except Exception as e:
             logger.warning(f"Skipping Supertonic-2: {e}")
 
+    if should_run("supertonic3"):
+        try:
+            from .tts.supertonic3 import Supertonic3Benchmark
+            runner.run_benchmark(Supertonic3Benchmark())
+        except Exception as e:
+            logger.warning(f"Skipping Supertonic-3: {e}")
+
     if should_run("neutts"):
         try:
             from .tts.neutts import NeuTTSBenchmark

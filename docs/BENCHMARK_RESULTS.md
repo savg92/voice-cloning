@@ -53,6 +53,7 @@ All results from MacBook Pro M3 8GB running on MPS (Metal Performance Shaders).
 | **Chatterbox Turbo (MLX)** | TTS | 2771.16 | 0.4763 | 0.00 | 5.82 | 2.1× | MPS |
 | **Soprano (MLX)** | TTS | 764.86 | 0.1406 | 159.25 | 5.44 | 7.1× | MPS |
 | **Soprano** | TTS | 9420.18 | 1.8172 | 0.00 | 5.18 | 0.6× | MPS |
+| **Supertonic-3** | TTS | 5799.45 | 0.8322 | 65.94 | 6.97 | 1.2× | MPS |
 
 **Legend:**
 - **Latency**: Total processing time in milliseconds
@@ -82,8 +83,9 @@ All results from MacBook Pro M3 8GB running on MPS (Metal Performance Shaders).
 | **Marvis (MLX)** | 8,769ms | 1.636 | 0.0 MB | **0.61× real-time** | Improved speed in v1.1 |
 | **NeuTTS Air** | 22,877ms | 2.698 | 168.9 MB | **0.37× real-time** | Voice cloning, slow but high quality |
 | **CosyVoice2 (PyTorch)** | 82,564ms | 5.160 | 0.0 MB | **0.19× real-time** | Very slow backend |
-| **Chatterbox Turbo (MLX)** | 2771.16ms | 0.476 | 0.00 MB | **2.1× real-time** | Device: mps |
 | **Soprano (MLX)** | 764.86ms | 0.141 | 159.25 MB | **7.1× real-time** | Device: mps |
+| **Chatterbox Turbo (MLX)** | 2771.16ms | 0.476 | 0.00 MB | **2.1× real-time** | Device: mps |
+| **Supertonic-3** | 5799.45ms | 0.832 | 65.94 MB | **1.2× real-time** | Device: mps |
 | **Soprano** | 9420.18ms | 1.817 | 0.00 MB | **0.6× real-time** | Device: mps |
 
 **Test Text**: "The quick brown fox jumps over the lazy dog. This is a benchmark test to measure synthesis speed." (7.1 seconds of audio)
@@ -138,6 +140,12 @@ uv run python main.py --model kokoro --text "Hello" --output out.wav --use-mlx
 - Minimal memory overhead
 - Best audio quality
 - Supports 8 languages
+
+**🌍 Supertonic-3 - Multilingual & Expressive**
+- Solid performance at 1.2× real-time on Apple Silicon
+- **31 languages** support with excellent accuracy (0% CER in Spanish tests)
+- **Expression tags** like `<laugh>`, `<breath>`, `<sigh>` for lifelike speech
+- Balanced memory usage (66 MB)
 
 **🍎 Marvis - Apple Silicon Native**
 - Only model slower than real-time (0.6×)

@@ -11,13 +11,14 @@ logging.basicConfig(
 
 def main():
     parser = argparse.ArgumentParser(description="Voice Cloning & ASR CLI - Test and compare speech models")
-    parser.add_argument("--model", choices=["chatterbox", "chatterbox-turbo", "kitten", "kitten-0.1", "kitten-0.2", "kokoro", "canary", "parakeet", "granite", "whisper", "humaware", "marvis", "supertone", "supertonic2", "neutts-air", "dia2", "cosyvoice", "soprano", "web"], default="web",
-                        help="Model to use (TTS: cosyvoice, chatterbox, chatterbox-turbo, kitten[-0.1|-0.2], kokoro, marvis, supertone, supertonic2, neutts-air, dia2, soprano | ASR: canary, parakeet, granite, whisper | VAD: humaware | UI: web). Default: web")
+    parser.add_argument("--model", choices=["chatterbox", "chatterbox-turbo", "kitten", "kitten-0.1", "kitten-0.2", "kokoro", "canary", "parakeet", "granite", "whisper", "humaware", "marvis", "supertone", "supertonic2", "supertonic3", "neutts-air", "dia2", "cosyvoice", "soprano", "web"], default="web",
+                        help="Model to use (TTS: cosyvoice, chatterbox, chatterbox-turbo, kitten[-0.1|-0.2], kokoro, marvis, supertone, supertonic2, supertonic3, neutts-air, dia2, soprano | ASR: canary, parakeet, granite, whisper | VAD: humaware | UI: web). Default: web")
     parser.add_argument("--device", choices=["cuda", "mps", "cpu"], default=None,
                         help="Device to run model on (cuda/mps/cpu). Auto-detects if not specified.")
     parser.add_argument("--text", type=str, help="Text to synthesize (for TTS models)")
     parser.add_argument("--audio", type=str, help="Audio file to transcribe (for ASR models) or analyze (for VAD models)")
-    parser.add_argument("--output", type=str, default="output.wav", help="Output file path")
+    parser.add_argument("--output", type=str, default="output_supertonic3.wav", help="Output file path or filename")
+    parser.add_argument("--output-dir", type=str, default="outputs", help="Directory to save outputs (default: outputs)")
     parser.add_argument("--reference", type=str, help="Reference audio file for voice cloning (for models that support it)")
     parser.add_argument("--voice", type=str, help="Voice preset or style")
     parser.add_argument("--speed", type=float, default=1.0, help="Speech speed (default: 1.0)")
@@ -89,7 +90,7 @@ def main():
     args = parser.parse_args()
 
     # Validate text requirement for TTS models
-    tts_models = ["chatterbox", "chatterbox-turbo", "kitten", "kitten-0.1", "kitten-0.2", "kokoro", "marvis", "supertone", "neutts-air", "dia2", "cosyvoice", "soprano"]
+    tts_models = ["chatterbox", "chatterbox-turbo", "kitten", "kitten-0.1", "kitten-0.2", "kokoro", "marvis", "supertone", "supertonic2", "supertonic3", "neutts-air", "dia2", "cosyvoice", "soprano"]
     asr_models = ["canary", "parakeet", "granite", "whisper"]
     vad_models = ["humaware"]
     
@@ -116,8 +117,15 @@ def main():
             print(f"Error: Audio file not found: {args.reference}")
             sys.exit(1)
 
-    # Ensure output directory exists
+    # Handle output path: if it's just a filename, prepend the output directory
     output_path = Path(args.output)
+    if not output_path.is_absolute() and len(output_path.parts) == 1:
+        output_path = Path(args.output_dir) / output_path
+    
+    # Update args.output so downstream code uses the full path
+    args.output = str(output_path)
+
+    # Ensure output directory exists
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     if args.model in tts_models:
@@ -367,6 +375,31 @@ def main():
                     steps=args.steps
                 )
                 print(f"✓ Supertonic-2 synthesis completed! Output saved to: {result}")
+            except Exception as e:
+                print(f"✗ Error: {e}")
+                sys.exit(1)
+        
+        elif args.model == "supertonic3":
+            print("Loading Supertonic-3 TTS model...")
+            from voice_cloning.tts.supertonic3 import Supertonic3TTS
+            
+            try:
+                # Map lang_code if necessary
+                lang = args.language if args.language != "en" else "en"
+                if args.lang_code and args.lang_code != "e":
+                    lang = args.lang_code
+                elif args.lang_code == "e":
+                    lang = "en"
+
+                tts = Supertonic3TTS()
+                result = tts.synthesize(
+                    text=args.text,
+                    output_path=args.output,
+                    voice=args.voice if args.voice else "F1",
+                    lang=lang,
+                    speed=args.speed
+                )
+                print(f"✓ Supertonic-3 synthesis completed! Output saved to: {result}")
             except Exception as e:
                 print(f"✗ Error: {e}")
                 sys.exit(1)

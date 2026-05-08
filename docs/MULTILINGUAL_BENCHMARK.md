@@ -13,6 +13,7 @@ This document contains the results of benchmarking multilingual TTS and ASR mode
 ### Text-to-Speech (TTS)
 - **Kokoro** (Spanish language mode)
 - **Chatterbox** (Multilingual - Spanish)
+- **Supertonic-3** (Latest multilingual TTS)
 
 ### Automatic Speech Recognition (ASR)
 - **Whisper** (Tiny model - multilingual)
@@ -26,6 +27,7 @@ This document contains the results of benchmarking multilingual TTS and ASR mode
 | Model | Status | Latency (s) | RTF | Audio Duration (s) | Notes |
 |-------|---------|-------------|-----|-------------------|-------|
 | Kokoro (Spanish) | ✅ | 9.28 | 2.36 | 3.92 | Successful synthesis |
+| Supertonic-3 (Spanish) | ✅ | 9.06 | 2.14 | 4.23 | **New!** 31-language support |
 | Chatterbox (Spanish) | ❌ | - | - | - | Failed (dependency conflict) |
 
 **Key Findings**:
@@ -42,6 +44,8 @@ This document contains the results of benchmarking multilingual TTS and ASR mode
 | **Whisper (Standard Turbo)** | kokoro_spanish.wav | ✅ | 46.82 | 11.93 | **0.00%** | 0.08× (slow!) |
 | **Canary** | kokoro_spanish.wav | ✅ | 145.39 | 37.04 | **0.00%** | 0.03× (very slow) |
 | **Whisper (Tiny)** | kokoro_spanish.wav | ✅ | 1.04 | 0.27 | 14.29% | **3.7× (fastest!)** |
+| **Whisper (MLX Turbo)** | supertonic3_spanish.wav | ✅ | 2.96 | 0.70 | **0.00%** | **1.4×** |
+| **Parakeet** | supertonic3_spanish.wav | ✅ | 4.85 | 1.15 | **0.00%** | 0.87× |
 
 **Transcription Comparison**:
 
@@ -117,6 +121,7 @@ This document contains the results of benchmarking multilingual TTS and ASR mode
 2. **All modern Whisper variants achieve perfect transcription** on Spanish
 3. **Standard Whisper models are extremely slow on MPS** - always use MLX on Mac
 4. **Whisper Tiny trades accuracy for extreme speed** (3.7× real-time)
+5. **Supertonic-3 sets a new standard for multilingual quality** with perfect Spanish transcription.
 
 ### Spanish vs English Accuracy
 

@@ -4,7 +4,7 @@ This project provides a comprehensive testing and comparison platform for multip
 
 ## Features
 
-- **Multiple TTS Models**: Support for Chatterbox, Kitten TTS Nano, Kokoro, Marvis TTS, Supertone, Supertonic-2, NeuTTS Air, Soprano-1.1-80M, Dia2-1B (CUDA only)
+- **Multiple TTS Models**: Support for Chatterbox, Kitten TTS Nano, Kokoro, Marvis TTS, Supertone, Supertonic-2, Supertonic-3, NeuTTS Air, Soprano-1.1-80M, Dia2-1B (CUDA only)
 - **Multiple ASR Models**: Parakeet, Canary, Granite, Whisper
 - **VAD**: HumAware-VAD
 - **Voice Cloning**: Clone voices using reference audio samples. Models like Chatterbox and Marvis TTS support voice cloning.
@@ -69,6 +69,12 @@ uv run python main.py --model supertonic2 \
   --language en \
   --output outputs/supertonic2.wav
 
+# Supertonic-3 - Latest 31 Languages & Expression Tags (Auto-downloads)
+uv run python main.py --model supertonic3 \
+  --text "I am so happy to see you! <laugh>" \
+  --lang-code en \
+  --output outputs/supertonic3.wav
+
 # Soprano-1.1-80M - Ultra-fast & Smooth Streaming
 uv run python main.py --model soprano \
   --text "Hello, I am Soprano, an extremely fast and lightweight model." \
@@ -123,7 +129,7 @@ For detailed usage of each model, see the respective guide in `docs/`.
 - **Dia2**: Multi-speaker dialogue (CUDA only)
 
 ### 🌍 Multilingual Models
-- **TTS**: Chatterbox (23 langs), Kokoro (8 langs), Marvis (EN/FR/DE), Supertonic-2 (EN/KO/ES/PT/FR)
+- **TTS**: Chatterbox (23 langs), Kokoro (8 langs), Marvis (EN/FR/DE), Supertonic-2 (5 langs), Supertonic-3 (31 langs)
 - **ASR**: Parakeet (100+ langs), Whisper (99+ langs), Canary (25 langs)
 
 ### 🍎 Apple Silicon Optimized (MLX)
@@ -211,6 +217,11 @@ For detailed usage of each model, see the respective guide in `docs/`.
 - **Type**: Fast, Multilingual ONNX TTS
 - **Best for**: Fast inference across multiple languages (EN, KO, ES, PT, FR)
 - **Guide**: [docs/SUPERTONIC2_GUIDE.md](docs/SUPERTONIC2_GUIDE.md)
+
+### 15. Supertonic-3 TTS 🌍 Multilingual ⚡🎭
+- **Type**: Latest Multilingual ONNX TTS (31 Languages)
+- **Best for**: High-quality multilingual synthesis and expression tags (<laugh>, <breath>, <sigh>)
+- **Guide**: [docs/SUPERTONIC3_GUIDE.md](docs/SUPERTONIC3_GUIDE.md)
 
 ## Installation
 
@@ -374,7 +385,8 @@ uv run python main.py --model humaware --reference samples/speech.wav --output o
 - `--model`: Choose from `chatterbox`, `kitten` (defaults to 0.2), `kitten-0.1`, `kitten-0.2`, `kokoro`, `parakeet`, `marvis`, `humaware`, `supertone`, `supertonic2`, `cosyvoice`, `neutts-air`, `dia2`, `canary`, `granite`, `whisper`
 - `--text`: Text to synthesize (required)
 - `--reference`: Reference audio file for voice cloning (required for voice cloning models)
-- `--output`: Output file path (required)
+- `--output`: Output file path or filename (default: output.wav)
+- `--output-dir`: Directory to save outputs (default: outputs)
 - `--speed`: Speech speed multiplier (default: 1.0)
 - `--voice`: Voice for Kokoro model (default: af_heart)
 - `--lang_code`: Language code for Kokoro (default: a)

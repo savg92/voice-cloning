@@ -485,7 +485,7 @@ class MultilingualBenchmark:
         logger.info("GENERATING REPORT")
         logger.info("=" * 60)
         
-        report_path = self.output_dir / "MULTILINGUAL_RESULTS.md"
+        report_path = Path("docs/MULTILINGUAL_BENCHMARK.md")
         
         with open(report_path, 'w') as f:
             f.write("# Multilingual Benchmark Results (Spanish)\n\n")
