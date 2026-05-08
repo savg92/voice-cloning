@@ -215,12 +215,8 @@ def _synthesize_with_pytorch(
 
     # Determine device and dtype
     # CPU often produces noise with bfloat16/float16 in some kernels, force float32 for CPU
-    if torch.cuda.is_available():
-        device = 'cuda'
-    elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
-        device = 'mps'
-    else:
-        device = 'cpu'
+    from .utils import get_best_device
+    device = get_best_device()
         
     fp16 = False if device == 'cpu' else True
     

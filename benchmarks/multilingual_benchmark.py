@@ -260,9 +260,53 @@ class MultilingualBenchmark:
             logger.info(f"✓ Success: Latency={latency:.2f}s, RTF={rtf:.4f}, Duration={info.duration:.2f}s")
             
         except Exception as e:
-            logger.warning(f"  CosyVoice2 PyTorch skipped/failed: {e}")
+            logger.info(f"  CosyVoice2 PyTorch skipped/failed: {e}")
             self.results.append({
                 "model": "CosyVoice2 (PyTorch)",
+                "type": "TTS",
+                "language": "Spanish",
+                "success": False,
+                "error": str(e)
+            })
+
+        logger.info("\n5. Testing OmniVoice (Spanish)")
+        try:
+            from src.voice_cloning.tts.omnivoice import synthesize_speech
+            import torch
+            
+            output_path = self.output_dir / "omnivoice_spanish.wav"
+            start_time = time.time()
+            
+            device = "mps" if torch.backends.mps.is_available() else "cpu"
+            
+            synthesize_speech(
+                text=test_text,
+                output_path=str(output_path),
+                language="es",
+                speed=1.0,
+                device=device
+            )
+            
+            latency = time.time() - start_time
+            info = sf.info(str(output_path))
+            rtf = latency / info.duration
+            
+            self.results.append({
+                "model": "OmniVoice (Spanish)",
+                "type": "TTS",
+                "language": "Spanish",
+                "latency_s": latency,
+                "rtf": rtf,
+                "audio_duration_s": info.duration,
+                "success": True
+            })
+            
+            logger.info(f"✓ Success: Latency={latency:.2f}s, RTF={rtf:.4f}, Duration={info.duration:.2f}s")
+            
+        except Exception as e:
+            logger.error(f"✗ OmniVoice failed: {e}")
+            self.results.append({
+                "model": "OmniVoice (Spanish)",
                 "type": "TTS",
                 "language": "Spanish",
                 "success": False,
@@ -281,7 +325,8 @@ class MultilingualBenchmark:
             (self.output_dir / "chatterbox_mlx_spanish.wav", self.spanish_tests[0]),
             (self.output_dir / "kokoro_spanish.wav", self.spanish_tests[0]),
             (self.output_dir / "cosyvoice_mlx_spanish.wav", self.spanish_tests[0]),
-            (self.output_dir / "cosyvoice_torch_spanish.wav", self.spanish_tests[0])
+            (self.output_dir / "cosyvoice_torch_spanish.wav", self.spanish_tests[0]),
+            (self.output_dir / "omnivoice_spanish.wav", self.spanish_tests[0])
         ]
         
         for audio_path, reference_text in test_files:

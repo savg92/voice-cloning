@@ -3,6 +3,8 @@ import torch
 from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
 import logging
 
+from voice_cloning.tts.utils import get_best_device
+
 logger = logging.getLogger(__name__)
 
 class WhisperASR:
@@ -15,7 +17,7 @@ class WhisperASR:
             if self.use_mlx:
                 self.device = "mps"
             else:
-                self.device = "cuda:0" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
+                self.device = get_best_device()
             
         self.torch_dtype = torch.float16 if torch.cuda.is_available() else torch.float32
         

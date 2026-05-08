@@ -11,13 +11,13 @@ logging.basicConfig(
 
 def main():
     parser = argparse.ArgumentParser(description="Voice Cloning & ASR CLI - Test and compare speech models")
-    parser.add_argument("--model", choices=["chatterbox", "chatterbox-turbo", "kitten", "kitten-0.1", "kitten-0.2", "kokoro", "canary", "parakeet", "granite", "whisper", "humaware", "marvis", "supertone", "supertonic2", "supertonic3", "neutts-air", "dia2", "cosyvoice", "soprano", "web"], default="web",
-                        help="Model to use (TTS: cosyvoice, chatterbox, chatterbox-turbo, kitten[-0.1|-0.2], kokoro, marvis, supertone, supertonic2, supertonic3, neutts-air, dia2, soprano | ASR: canary, parakeet, granite, whisper | VAD: humaware | UI: web). Default: web")
+    parser.add_argument("--model", choices=["chatterbox", "chatterbox-turbo", "kitten", "kitten-0.1", "kitten-0.2", "kokoro", "canary", "parakeet", "granite", "whisper", "humaware", "marvis", "supertone", "supertonic2", "supertonic3", "neutts-air", "dia2", "cosyvoice", "soprano", "omnivoice", "web"], default="web",
+                        help="Model to use (TTS: omnivoice, cosyvoice, chatterbox, chatterbox-turbo, kitten[-0.1|-0.2], kokoro, marvis, supertone, supertonic2, supertonic3, neutts-air, dia2, soprano | ASR: canary, parakeet, granite, whisper | VAD: humaware | UI: web). Default: web")
     parser.add_argument("--device", choices=["cuda", "mps", "cpu"], default=None,
                         help="Device to run model on (cuda/mps/cpu). Auto-detects if not specified.")
     parser.add_argument("--text", type=str, help="Text to synthesize (for TTS models)")
     parser.add_argument("--audio", type=str, help="Audio file to transcribe (for ASR models) or analyze (for VAD models)")
-    parser.add_argument("--output", type=str, default="output_supertonic3.wav", help="Output file path or filename")
+    parser.add_argument("--output", type=str, default="output.wav", help="Output file path or filename")
     parser.add_argument("--output-dir", type=str, default="outputs", help="Directory to save outputs (default: outputs)")
     parser.add_argument("--reference", type=str, help="Reference audio file for voice cloning (for models that support it)")
     parser.add_argument("--voice", type=str, help="Voice preset or style")
@@ -46,8 +46,6 @@ def main():
                         help="Sampling temperature for Marvis TTS (default: 0.7)")
     parser.add_argument("--top-p", type=float, default=0.95,
                         help="Top-p (nucleus) sampling parameter (default: 0.95)")
-    parser.add_argument("--ref_text", 
-                        help="Text caption for reference audio (Marvis TTS voice cloning)")
     parser.add_argument("--quantized", action="store_true", default=True,
                         help="Use quantized 4-bit model for faster speed (default: True)")
     parser.add_argument("--no-quantized", action="store_false", dest="quantized",
@@ -75,11 +73,15 @@ def main():
     parser.add_argument("--cfg-scale", type=float, default=1.0,
                         help="CFG guidance scale for Supertonic (default: 1.0)")
     
-    # NeuTTS Air Arguments
-    parser.add_argument("--ref-text", type=str,
-                        help="Reference text file (transcript of reference audio) for NeuTTS Air")
+    # Common TTS/Cloning Arguments
+    parser.add_argument("--ref-text", dest="ref_text",
+                        help="Text caption for reference audio (transcript of reference audio) for voice cloning")
     parser.add_argument("--backbone", type=str, default="neuphonic/neutts-air-q4-gguf",
                         help="Backbone model for NeuTTS Air (default: neutts-air-q4-gguf)")
+    
+    # OmniVoice Arguments
+    parser.add_argument("--instruct", type=str,
+                        help="Natural language instruction for voice design (OmniVoice)")
     
     # Dia2 Arguments
     
@@ -90,7 +92,7 @@ def main():
     args = parser.parse_args()
 
     # Validate text requirement for TTS models
-    tts_models = ["chatterbox", "chatterbox-turbo", "kitten", "kitten-0.1", "kitten-0.2", "kokoro", "marvis", "supertone", "supertonic2", "supertonic3", "neutts-air", "dia2", "cosyvoice", "soprano"]
+    tts_models = ["chatterbox", "chatterbox-turbo", "kitten", "kitten-0.1", "kitten-0.2", "kokoro", "marvis", "supertone", "supertonic2", "supertonic3", "neutts-air", "dia2", "cosyvoice", "soprano", "omnivoice"]
     asr_models = ["canary", "parakeet", "granite", "whisper"]
     vad_models = ["humaware"]
     
@@ -519,6 +521,22 @@ def main():
                 top_p=args.top_p
             )
             print(f"✓ Soprano synthesis completed! Output saved to: {result}")
+
+        elif args.model == "omnivoice":
+            print("Loading OmniVoice model...")
+            from voice_cloning.tts.omnivoice import synthesize_speech
+            
+            result = synthesize_speech(
+                text=args.text,
+                output_path=args.output,
+                reference=args.reference,
+                ref_text=args.ref_text,
+                instruct=args.instruct,
+                language=args.language if args.language != "en" else None,
+                speed=args.speed,
+                device=args.device
+            )
+            print(f"✓ OmniVoice synthesis completed! Output saved to: {result}")
 
 
     except ImportError as e:

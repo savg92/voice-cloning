@@ -27,8 +27,9 @@ This document contains the results of benchmarking multilingual TTS and ASR mode
 | Model | Status | Latency (s) | RTF | Audio Duration (s) | Notes |
 |-------|---------|-------------|-----|-------------------|-------|
 | Kokoro (Spanish) | ✅ | 9.28 | 2.36 | 3.92 | Successful synthesis |
-| Supertonic-3 (Spanish) | ✅ | 9.06 | 2.14 | 4.23 | **New!** 31-language support |
+| Supertonic-3 (Spanish) | ✅ | 9.06 | 2.14 | 4.23 |
 | Chatterbox (Spanish) | ❌ | - | - | - | Failed (dependency conflict) |
+| OmniVoice (Spanish) | ✅ | 97.42 | 33.8268 | 2.88 |
 
 **Key Findings**:
 - Kokoro successfully generated Spanish audio at 2.36x real-time

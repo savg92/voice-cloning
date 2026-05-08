@@ -1,10 +1,10 @@
 # Voice Cloning Project
 
-This project provides a comprehensive testing and comparison platform for multiple text-to-speech (TTS) models: Chatterbox, Kitten TTS Nano, Kokoro, Marvis TTS, Supertone, Supertonic-2, Parakeet ASR, Canary ASR, Granite ASR, and Whisper ASR. It enables easy voice cloning and synthesis with different models to evaluate their performance and quality.
+This project provides a comprehensive testing and comparison platform for multiple text-to-speech (TTS) models: Chatterbox, Kitten TTS Nano, Kokoro, Marvis TTS, Supertone, Supertonic-2, Supertonic-3, OmniVoice, Parakeet ASR, Canary ASR, Granite ASR, and Whisper ASR. It enables easy voice cloning and synthesis with different models to evaluate their performance and quality.
 
 ## Features
 
-- **Multiple TTS Models**: Support for Chatterbox, Kitten TTS Nano, Kokoro, Marvis TTS, Supertone, Supertonic-2, Supertonic-3, NeuTTS Air, Soprano-1.1-80M, Dia2-1B (CUDA only)
+- **Multiple TTS Models**: Support for OmniVoice, Chatterbox, Kitten TTS Nano, Kokoro, Marvis TTS, Supertone, Supertonic-2, Supertonic-3, NeuTTS Air, Soprano-1.1-80M, Dia2-1B (CUDA only)
 - **Multiple ASR Models**: Parakeet, Canary, Granite, Whisper
 - **VAD**: HumAware-VAD
 - **Voice Cloning**: Clone voices using reference audio samples. Models like Chatterbox and Marvis TTS support voice cloning.
@@ -86,6 +86,12 @@ uv run python main.py --model dia2 \
   --device cpu \
   --text "[S1] Hello! [S2] How are you?" \
   --output outputs/dialogue.wav
+
+# OmniVoice - Massively Multilingual & Voice Design
+uv run python main.py --model omnivoice \
+  --text "Hello! I can speak 600+ languages and you can design my voice!" \
+  --instruct "male, young adult, british accent" \
+  --output outputs/omnivoice.wav
 ```
 
 #### ASR (Speech Recognition)
@@ -129,7 +135,7 @@ For detailed usage of each model, see the respective guide in `docs/`.
 - **Dia2**: Multi-speaker dialogue (CUDA only)
 
 ### 🌍 Multilingual Models
-- **TTS**: Chatterbox (23 langs), Kokoro (8 langs), Marvis (EN/FR/DE), Supertonic-2 (5 langs), Supertonic-3 (31 langs)
+- **TTS**: OmniVoice (600+ langs), Chatterbox (23 langs), Kokoro (8 langs), Marvis (EN/FR/DE), Supertonic-2 (5 langs), Supertonic-3 (31 langs)
 - **ASR**: Parakeet (100+ langs), Whisper (99+ langs), Canary (25 langs)
 
 ### 🍎 Apple Silicon Optimized (MLX)
@@ -218,10 +224,10 @@ For detailed usage of each model, see the respective guide in `docs/`.
 - **Best for**: Fast inference across multiple languages (EN, KO, ES, PT, FR)
 - **Guide**: [docs/SUPERTONIC2_GUIDE.md](docs/SUPERTONIC2_GUIDE.md)
 
-### 15. Supertonic-3 TTS 🌍 Multilingual ⚡🎭
-- **Type**: Latest Multilingual ONNX TTS (31 Languages)
-- **Best for**: High-quality multilingual synthesis and expression tags (<laugh>, <breath>, <sigh>)
-- **Guide**: [docs/SUPERTONIC3_GUIDE.md](docs/SUPERTONIC3_GUIDE.md)
+### 16. OmniVoice 🎭 Voice Cloning | 🌍 600+ Languages
+- **Type**: Diffusion-based Multi-feature TTS
+- **Best for**: Massively multilingual tasks and natural language voice design
+- **Guide**: [docs/OMNIVOICE_GUIDE.md](docs/OMNIVOICE_GUIDE.md)
 
 ## Installation
 
@@ -382,7 +388,7 @@ uv run python main.py --model humaware --reference samples/speech.wav --output o
 
 ### Available Options
 
-- `--model`: Choose from `chatterbox`, `kitten` (defaults to 0.2), `kitten-0.1`, `kitten-0.2`, `kokoro`, `parakeet`, `marvis`, `humaware`, `supertone`, `supertonic2`, `cosyvoice`, `neutts-air`, `dia2`, `canary`, `granite`, `whisper`
+- `--model`: Choose from `omnivoice`, `chatterbox`, `kitten` (defaults to 0.2), `kitten-0.1`, `kitten-0.2`, `kokoro`, `parakeet`, `marvis`, `humaware`, `supertone`, `supertonic2`, `cosyvoice`, `neutts-air`, `dia2`, `canary`, `granite`, `whisper`
 - `--text`: Text to synthesize (required)
 - `--reference`: Reference audio file for voice cloning (required for voice cloning models)
 - `--output`: Output file path or filename (default: output.wav)

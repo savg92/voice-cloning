@@ -54,6 +54,7 @@ All results from MacBook Pro M3 8GB running on MPS (Metal Performance Shaders).
 | **Soprano (MLX)** | TTS | 764.86 | 0.1406 | 159.25 | 5.44 | 7.1× | MPS |
 | **Soprano** | TTS | 9420.18 | 1.8172 | 0.00 | 5.18 | 0.6× | MPS |
 | **Supertonic-3** | TTS | 5799.45 | 0.8322 | 65.94 | 6.97 | 1.2× | MPS |
+| **OmniVoice** | TTS | 21227.78 | 3.7505 | 32.94 | 5.66 | 0.3× | MPS |
 
 **Legend:**
 - **Latency**: Total processing time in milliseconds
@@ -87,6 +88,7 @@ All results from MacBook Pro M3 8GB running on MPS (Metal Performance Shaders).
 | **Chatterbox Turbo (MLX)** | 2771.16ms | 0.476 | 0.00 MB | **2.1× real-time** | Device: mps |
 | **Supertonic-3** | 5799.45ms | 0.832 | 65.94 MB | **1.2× real-time** | Device: mps |
 | **Soprano** | 9420.18ms | 1.817 | 0.00 MB | **0.6× real-time** | Device: mps |
+| **OmniVoice** | 21227.78ms | 3.750 | 32.94 MB | **0.3× real-time** | Device: mps | 
 
 **Test Text**: "The quick brown fox jumps over the lazy dog. This is a benchmark test to measure synthesis speed." (7.1 seconds of audio)
 

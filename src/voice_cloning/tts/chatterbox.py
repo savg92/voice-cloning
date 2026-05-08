@@ -111,12 +111,8 @@ class ChatterboxWrapper:
     
     def _auto_detect_device(self) -> str:
         """Auto-detect the best available device."""
-        if torch.cuda.is_available():
-            return "cuda"
-        elif torch.backends.mps.is_available():
-            return "mps"
-        else:
-            return "cpu"
+        from .utils import get_best_device
+        return get_best_device()
     
     def generate(
         self,

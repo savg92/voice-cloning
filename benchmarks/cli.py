@@ -147,6 +147,13 @@ def main():
         except Exception as e:
             logger.warning(f"Skipping Soprano: {e}")
 
+    if should_run("omnivoice"):
+        try:
+            from .tts.omnivoice import OmniVoiceBenchmark
+            runner.run_benchmark(OmniVoiceBenchmark())
+        except Exception as e:
+            logger.warning(f"Skipping OmniVoice: {e}")
+
     # -------------------------------------------------------------------------
     # ASR Benchmarks
     # -------------------------------------------------------------------------

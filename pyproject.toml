@@ -45,7 +45,6 @@ dependencies = [
     "ipython>=8.37.0",
     "mlx>=0.30.1",
     "mlx-audio>=0.2.10",
-    "mlx-audio-plus>=0.1.7",
     "sounddevice",
     "pyloudnorm",
     "typer",
@@ -73,6 +72,7 @@ dependencies = [
     "pytest-cov>=7.0.0",
     "modelscope>=1.15.0",
     "soprano-tts",
+    "omnivoice>=0.1.5",
 ]
 
 [build-system]
